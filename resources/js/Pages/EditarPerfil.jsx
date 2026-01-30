@@ -70,6 +70,7 @@ export default function EditarPerfil({ auth, stats }) {
         { name: 'Vegeta', path: '/images/characters/Vegeta.png' },
         { name: 'Bills', path: '/images/characters/Bills.png' },
         { name: 'Bulma', path: '/images/characters/Bulma.png' },
+        { name: 'Freezer', path: '/images/characters/Freezer.png' },
     ];
 
     return (

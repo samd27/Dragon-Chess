@@ -13,7 +13,7 @@ export default function FactionSelector({ auth }) {
                         <span className="text-xl transition-transform group-hover:-translate-x-1">←</span>
                         <span className="text-xs font-black uppercase tracking-widest">Abortar Misión</span>
                     </Link>
-                    <h2 className="text-xs font-black tracking-[0.5em] uppercase opacity-50 text-white">Fase Operacional: Reclutamiento</h2>
+                    <h2 className="text-xs font-black tracking-[0.5em] uppercase opacity-50 text-white">SELECTOR DE BANDO</h2>
                     <div className="w-24 h-[1px] bg-white/10"></div>
                 </header>
 
@@ -26,24 +26,24 @@ export default function FactionSelector({ auth }) {
                         </div>
 
                         <div className="space-y-4">
-                            <div className={`p-4 rounded-2xl border transition-all duration-300 flex items-start gap-4 ${selected === 'Z_WARRIORS' ? 'bg-primary/10 border-primary shadow-neon-orange' : 'bg-white/5 border-white/10 opacity-60'}`}>
-                                <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
-                                    <span className="text-primary text-xl">🛡️</span>
+                            <div 
+                                onClick={() => setSelected('Z_WARRIORS')}
+                                className={`p-6 rounded-2xl border transition-all duration-300 flex flex-col items-center justify-center gap-3 cursor-pointer hover:scale-[1.02] active:scale-95 ${selected === 'Z_WARRIORS' ? 'bg-primary/10 border-primary shadow-neon-orange' : 'bg-white/5 border-white/10 opacity-60 hover:opacity-80'}`}
+                            >
+                                <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center">
+                                    <span className="text-primary text-2xl">🛡️</span>
                                 </div>
-                                <div>
-                                    <h4 className="text-xs font-black uppercase tracking-widest mb-1 text-white">Resistencia Saiyan</h4>
-                                    <p className="text-[10px] opacity-70 leading-relaxed font-medium text-white/60">Tus piezas ganan impulso defensivo al estar cerca de tu Rey. Un verdadero Saiyan nunca se rinde.</p>
-                                </div>
+                                <h4 className="text-base font-black uppercase tracking-widest text-white text-center">Resistencia Terricola</h4>
                             </div>
 
-                            <div className={`p-4 rounded-2xl border transition-all duration-300 flex items-start gap-4 ${selected === 'CONQUERORS' ? 'bg-secondary/10 border-secondary shadow-neon-blue' : 'bg-white/5 border-white/10 opacity-60'}`}>
-                                <div className="w-10 h-10 rounded-lg bg-secondary/20 flex items-center justify-center flex-shrink-0">
-                                    <span className="text-secondary text-xl">💀</span>
+                            <div 
+                                onClick={() => setSelected('CONQUERORS')}
+                                className={`p-6 rounded-2xl border transition-all duration-300 flex flex-col items-center justify-center gap-3 cursor-pointer hover:scale-[1.02] active:scale-95 ${selected === 'CONQUERORS' ? 'bg-purple-500/10 border-purple-500 shadow-neon-purple' : 'bg-white/5 border-white/10 opacity-60 hover:opacity-80'}`}
+                            >
+                                <div className="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                                    <span className="text-purple-500 text-2xl">💀</span>
                                 </div>
-                                <div>
-                                    <h4 className="text-xs font-black uppercase tracking-widest mb-1 text-white">Dominación Galáctica</h4>
-                                    <p className="text-[10px] opacity-70 leading-relaxed font-medium text-white/60">Ganas impulso de velocidad y Ki extra por cada captura. Aplastar enemigos alimenta tu poder.</p>
-                                </div>
+                                <h4 className="text-base font-black uppercase tracking-widest text-white text-center">Dominación Galáctica</h4>
                             </div>
                         </div>
 
@@ -63,12 +63,13 @@ export default function FactionSelector({ auth }) {
                             onClick={() => setSelected('Z_WARRIORS')}
                             className={`relative group rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 border-4 ${selected === 'Z_WARRIORS' ? 'border-primary ring-8 ring-primary/10 scale-100' : 'border-white/5 opacity-40 grayscale hover:opacity-80 scale-[0.98]'}`}
                         >
+                            <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-orange-700"></div>
                             <img 
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvuxTmZ3Mog-ggz7sN1qzhBlSny4kvG5rKUL7hr51qzl2JY8XhZnHAh6H_Vqkk8HsGQnBpr-KEBe5V2qFWCkc9BJ27kZfB89RSKVXtdJWpJYMCoeqmraqtfKOH4vt61L3BkRpK2xNi07EqGvkM8f8IfzQhMlbI0m62QjqOTasLqcBcBZaEmIbPBbQ1EflFmECdh3Afucem3kPGsUiOxCQpM9g8Gj3q0Nq44xpsq3usJQhl4_ydQvklU4Z6E36yh8rDnyUyBBHtX7c" 
+                                src="https://dragonball-api.com/characters/goku_normal.webp" 
                                 alt="Z-Warriors" 
-                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                                className="absolute inset-0 w-full h-full object-contain object-bottom transition-transform duration-1000 group-hover:scale-110"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
                             <div className="absolute bottom-10 left-10 right-10">
                                 <h3 className="text-5xl font-black italic tracking-tighter uppercase leading-none drop-shadow-xl text-white">GUERREROS Z</h3>
                                 <p className="text-sm font-bold text-primary tracking-[0.4em] uppercase mt-2">Guardianes de la Tierra</p>
@@ -78,17 +79,18 @@ export default function FactionSelector({ auth }) {
                         {/* Conquerors Large Panel */}
                         <div 
                             onClick={() => setSelected('CONQUERORS')}
-                            className={`relative group rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 border-4 ${selected === 'CONQUERORS' ? 'border-secondary ring-8 ring-secondary/10 scale-100' : 'border-white/5 opacity-40 grayscale hover:opacity-80 scale-[0.98]'}`}
+                            className={`relative group rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 border-4 ${selected === 'CONQUERORS' ? 'border-purple-500 ring-8 ring-purple-500/10 scale-100' : 'border-white/5 opacity-40 grayscale hover:opacity-80 scale-[0.98]'}`}
                         >
+                            <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-purple-900"></div>
                             <img 
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMWPpvubC6zTDVRN3hLAL8vEFEAPVeAHqiMQmBwiFp8JO98acCA4bOTPnG9-mkSO3zqvZIvvp2EsWgnrdSu8aNiY86wCbx_sZH6Tp_QgzNcyhY0Jn7TWtS59ZxQMmQ_86VFnb_oY5gXB0v0sGdOnZBtNvNm1BeTbHXA15Nj3Euuo2xyXUme4WwNtQsdPhrIrbv8aeSmBCzRRNp3Qoq2gGWMawmmgXRneoXUGz2i2bonMyS2tRwkss7GwlrBiSD1ogRDFEjNpG5Kt8" 
+                                src="https://dragonball-api.com/characters/Freezer.webp" 
                                 alt="Conquerors" 
-                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                                className="absolute inset-0 w-full h-full object-contain object-bottom transition-transform duration-1000 group-hover:scale-110"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
                             <div className="absolute bottom-10 left-10 right-10">
-                                <h3 className="text-5xl font-black italic tracking-tighter uppercase leading-none drop-shadow-xl text-white">CONQUISTADORES</h3>
-                                <p className="text-sm font-bold text-secondary tracking-[0.4em] uppercase mt-2">Destructores de Mundos</p>
+                                <h3 className="text-5xl font-black italic tracking-tighter uppercase leading-none drop-shadow-xl text-white">VILLANOS</h3>
+                                <p className="text-sm font-bold text-purple-400 tracking-[0.4em] uppercase mt-2">Destructores de Mundos</p>
                             </div>
                         </div>
                     </div>
