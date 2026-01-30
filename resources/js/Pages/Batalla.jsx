@@ -44,55 +44,54 @@ export default function GameArena({ auth, faction }) {
             <Head title="Dragon Chess - Battle Arena" />
             <div className="flex flex-col h-screen relative overflow-hidden bg-[#0d0e12]">
                 {/* Top Header */}
-                <header className="px-10 py-4 flex items-center justify-between border-b border-white/5 bg-black/20 backdrop-blur-lg">
+                <header className="px-4 md:px-10 py-3 md:py-4 flex items-center justify-between border-b border-white/5 bg-black/20 backdrop-blur-lg">
                     <button onClick={() => setShowConfirmAbort(true)} className="flex items-center gap-2 group text-white/60 hover:text-red-500 transition-colors">
-                        <span className="text-xl transition-transform group-hover:-translate-x-1">←</span>
-                        <span className="text-xs font-black uppercase tracking-widest">Abortar Misión</span>
+                        <span className="text-lg md:text-xl transition-transform group-hover:-translate-x-1">←</span>
+                        <span className="text-[10px] md:text-xs font-black uppercase tracking-widest">Abortar Misión</span>
                     </button>
-                    <div className="flex items-center gap-4">
+                    <div className="hidden md:flex items-center gap-4">
                         <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
                         <span className="text-xs font-black tracking-[0.4em] uppercase text-white/40">Batalla en Progreso</span>
                     </div>
                 </header>
 
                 {/* Main Game Area */}
-                <div className="flex flex-1 overflow-hidden">
+                <div className="flex flex-col md:flex-row flex-1 overflow-hidden md:overflow-auto">
                     {/* Left: Player Zone */}
-                    <aside className="w-80 border-r border-white/5 bg-black/40 p-10 flex flex-col justify-between">
-                    <div className="flex flex-col items-center gap-6">
+                    <aside className="w-full md:w-80 border-b md:border-b-0 md:border-r border-white/5 bg-black/40 p-4 md:p-10 flex flex-row md:flex-col justify-between md:justify-between gap-4 md:gap-0">
+                    <div className="flex flex-row md:flex-col items-center gap-3 md:gap-6">
                         <div className="relative">
-                            <div className={`w-36 h-36 rounded-3xl border-4 overflow-hidden bg-black p-1 transition-all duration-500 scale-110 -rotate-2 ${
+                            <div className={`w-20 h-20 md:w-36 md:h-36 rounded-2xl md:rounded-3xl border-2 md:border-4 overflow-hidden bg-black p-1 transition-all duration-500 md:scale-110 -rotate-2 ${
                                 faction === 'Z_WARRIORS' 
                                     ? 'border-primary shadow-neon-orange' 
                                     : 'border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.4)]'
                             }`}>
-                                <img src={player.avatar} alt="You" className="w-full h-full object-cover rounded-2xl" />
+                                <img src={player.avatar} alt="You" className="w-full h-full object-cover rounded-xl md:rounded-2xl" />
                             </div>
-                            <div className={`absolute -bottom-2 -left-2 text-xs font-black px-4 py-1 rounded shadow-lg uppercase ${
+                            <div className={`absolute -bottom-1 -left-1 md:-bottom-2 md:-left-2 text-[8px] md:text-xs font-black px-2 md:px-4 py-0.5 md:py-1 rounded shadow-lg uppercase ${
                                 faction === 'Z_WARRIORS' ? 'bg-primary' : 'bg-purple-500'
                             }`}>
                                 {faction === 'Z_WARRIORS' ? 'Guerrero Z' : 'Villano'}
                             </div>
                         </div>
-                        <div className="text-center">
-                            <h3 className="text-2xl font-black italic uppercase tracking-tighter leading-none mb-2 text-white">{player.name}</h3>
+                        <div className="text-left md:text-center">
+                            <h3 className="text-lg md:text-2xl font-black italic uppercase tracking-tighter leading-none mb-1 md:mb-2 text-white">{player.name}</h3>
                         </div>
+                    </div>
                         
-                        <div className="w-full space-y-4 pt-6">
-                            <div className="flex flex-col items-center">
-                                <span className={`text-6xl font-mono font-black leading-none ${
-                                    faction === 'Z_WARRIORS' 
-                                        ? 'text-primary drop-shadow-[0_0_20px_rgba(249,122,31,0.5)]' 
-                                        : 'text-purple-500 drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]'
-                                }`}>
-                                    {formatTime(600)}
-                                </span>
-                            </div>
-                           
+                    <div className="flex flex-col items-center justify-center">
+                        <div className="flex flex-col items-center">
+                            <span className={`text-3xl md:text-6xl font-mono font-black leading-none ${
+                                faction === 'Z_WARRIORS' 
+                                    ? 'text-primary drop-shadow-[0_0_20px_rgba(249,122,31,0.5)]' 
+                                    : 'text-purple-500 drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]'
+                            }`}>
+                                {formatTime(600)}
+                            </span>
                         </div>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="hidden md:block space-y-4">
                         <h4 className="text-[9px] font-black uppercase text-white/30 tracking-widest border-b border-white/5 pb-2">Registro de Combate</h4>
                         <div className="space-y-2 opacity-50 text-[10px] font-medium italic text-white/60">
                             <p>Esperando primer movimiento...</p>
@@ -101,10 +100,10 @@ export default function GameArena({ auth, faction }) {
                 </aside>
 
                 {/* Middle: Tactical Map (Chess Board) */}
-                <main className="flex-1 flex flex-col items-center justify-center p-8 relative">
+                <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 relative">
                     <div className="absolute inset-0 pointer-events-none opacity-5 bg-[radial-gradient(circle_at_center,white_0%,transparent_70%)]"></div>
                     
-                    <div className="relative w-full max-w-[500px] aspect-square bg-[#1a1b1e] border-[8px] border-[#2d2e32] rounded-3xl overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.6)] grid grid-cols-8 grid-rows-8 group">
+                    <div className="relative w-full max-w-[350px] md:max-w-[500px] aspect-square bg-[#1a1b1e] border-4 md:border-[8px] border-[#2d2e32] rounded-2xl md:rounded-3xl overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.6)] grid grid-cols-8 grid-rows-8 group">
                         {/* Holographic Overlays */}
                         <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
                         
@@ -117,35 +116,34 @@ export default function GameArena({ auth, faction }) {
                 </main>
 
                 {/* Right: Opponent Zone */}
-                <aside className="w-80 border-l border-white/5 bg-black/40 p-10 flex flex-col justify-between">
-                    <div className="flex flex-col items-center gap-6">
+                <aside className="w-full md:w-80 border-t md:border-t-0 md:border-l border-white/5 bg-black/40 p-4 md:p-10 flex flex-row md:flex-col justify-between md:justify-start gap-4 md:gap-0">
+                    <div className="flex flex-row md:flex-col items-center gap-3 md:gap-6">
                         <div className="relative">
-                            <div className={`w-32 h-32 rounded-3xl border-4 overflow-hidden bg-black p-1 rotate-3 ${
+                            <div className={`w-20 h-20 md:w-32 md:h-32 rounded-2xl md:rounded-3xl border-2 md:border-4 overflow-hidden bg-black p-1 rotate-3 ${
                                 faction === 'Z_WARRIORS' 
                                     ? 'border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.4)]' 
                                     : 'border-primary shadow-neon-orange'
                             }`}>
-                                <img src={opponent.avatar} alt="Opponent" className="w-full h-full object-cover rounded-2xl" />
+                                <img src={opponent.avatar} alt="Opponent" className="w-full h-full object-cover rounded-xl md:rounded-2xl" />
                             </div>
-                            <div className={`absolute -bottom-2 -right-2 text-xs font-black px-4 py-1 rounded shadow-lg uppercase ${
+                            <div className={`absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 text-[8px] md:text-xs font-black px-2 md:px-4 py-0.5 md:py-1 rounded shadow-lg uppercase ${
                                 faction === 'Z_WARRIORS' ? 'bg-purple-500' : 'bg-primary'
                             }`}>
                                 {faction === 'Z_WARRIORS' ? 'Villano' : 'Guerrero Z'}
                             </div>
                         </div>
-                        <div className="text-center">
-                            <h3 className="text-2xl font-black italic uppercase tracking-tighter leading-none mb-2 text-white">{opponent.name}</h3>
+                        <div className="text-left md:text-center">
+                            <h3 className="text-lg md:text-2xl font-black italic uppercase tracking-tighter leading-none mb-1 md:mb-2 text-white">{opponent.name}</h3>
                         </div>
+                    </div>
                         
-                        <div className="w-full space-y-4 pt-6">
-                            <div className="flex flex-col items-center">
-                                <span className={`text-5xl font-mono font-black leading-none ${
-                                    faction === 'Z_WARRIORS' ? 'text-purple-500' : 'text-primary'
-                                }`}>
-                                    {formatTime(600)}
-                                </span>
-                            </div>
-                           
+                    <div className="flex flex-col items-center justify-center">
+                        <div className="flex flex-col items-center">
+                            <span className={`text-3xl md:text-5xl font-mono font-black leading-none ${
+                                faction === 'Z_WARRIORS' ? 'text-purple-500' : 'text-primary'
+                            }`}>
+                                {formatTime(600)}
+                            </span>
                         </div>
                     </div>
                 </aside>

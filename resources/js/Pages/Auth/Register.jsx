@@ -98,7 +98,7 @@ export default function Register() {
     return (
         <>
             <Head title="Registro - Dragon Chess" />
-            <div className="flex h-screen relative overflow-hidden bg-gradient-to-br from-[#0d0e12] via-[#1a1b1e] to-[#0d0e12]">
+            <div className="flex flex-col md:flex-row min-h-screen relative overflow-hidden bg-gradient-to-br from-[#0d0e12] via-[#1a1b1e] to-[#0d0e12]">
                 {/* Decorative Aura */}
                 <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-primary/10 blur-[120px] rounded-full pointer-events-none"></div>
                 <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] bg-secondary/5 blur-[120px] rounded-full pointer-events-none"></div>
@@ -120,14 +120,14 @@ export default function Register() {
                 </div>
 
                 {/* Right Side - Register Form */}
-                <div className="flex-1 flex items-center justify-center p-8 relative z-10">
+                <div className="flex-1 flex items-center justify-center p-4 md:p-8 relative z-10">
                     <div className="w-full max-w-md">
-                        <Link href={route('welcome')} className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-8">
-                            <span className="text-xl">←</span>
-                            <span className="font-medium">Volver al inicio</span>
+                        <Link href={route('welcome')} className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-6 md:mb-8">
+                            <span className="text-lg md:text-xl">←</span>
+                            <span className="text-xs md:text-sm font-medium">Volver al inicio</span>
                         </Link>
 
-                        <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+                        <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-2xl">
                             <h1 className="text-3xl font-black italic tracking-tighter uppercase text-white mb-2">
                                 Únete a la Arena
                             </h1>
