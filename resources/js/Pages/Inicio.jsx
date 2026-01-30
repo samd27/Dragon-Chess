@@ -1,6 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
+import { useState } from 'react';
 
 export default function Welcome({ auth }) {
+    const [showDropdown, setShowDropdown] = useState(false);
+    
     const player = {
         name: auth.user?.name || 'Kakarot_99',
         level: 54,
@@ -43,12 +46,38 @@ export default function Welcome({ auth }) {
                             <span className="text-sm text-yellow-400">⭐</span>
                         </div>
                         {auth.user ? (
-                            <div className="flex items-center gap-3 bg-black/40 rounded-full pl-1 pr-4 py-1 border border-white/10 shadow-xl">
-                                <img src={player.avatar} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-primary object-cover" />
-                                <div className="flex flex-col">
-                                    <span className="text-[10px] text-primary font-black uppercase tracking-widest leading-none mb-0.5">Lvl {player.level}</span>
-                                    <span className="text-white text-xs font-bold leading-none">{player.name}</span>
-                                </div>
+                            <div className="relative">
+                                <button 
+                                    onClick={() => setShowDropdown(!showDropdown)}
+                                    className="flex items-center gap-3 bg-black/40 rounded-full pl-1 pr-4 py-1 border border-white/10 shadow-xl hover:border-primary/50 transition-all"
+                                >
+                                    <img src={player.avatar} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-primary object-cover" />
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] text-primary font-black uppercase tracking-widest leading-none mb-0.5">Lvl {player.level}</span>
+                                        <span className="text-white text-xs font-bold leading-none">{player.name}</span>
+                                    </div>
+                                </button>
+
+                                {showDropdown && (
+                                    <>
+                                        <div 
+                                            className="fixed inset-0 z-10" 
+                                            onClick={() => setShowDropdown(false)}
+                                        ></div>
+                                        <div className="absolute right-0 mt-2 w-48 bg-black/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl z-20 overflow-hidden">
+                                            <Link
+                                                href={route('logout')}
+                                                method="post"
+                                                as="button"
+                                                type="button"
+                                                className="block w-full text-left px-4 py-3 text-red-400 hover:bg-red-500/10 transition-colors text-sm font-medium"
+                                                onClick={() => setShowDropdown(false)}
+                                            >
+                                                Logout
+                                            </Link>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         ) : (
                             <div className="flex items-center gap-3">
