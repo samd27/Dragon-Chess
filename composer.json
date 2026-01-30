@@ -67,6 +67,9 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
+        },
+        "platform": {
+            "ext-bcmath": "99.99.99"
         }
     },
     "minimum-stability": "stable",
