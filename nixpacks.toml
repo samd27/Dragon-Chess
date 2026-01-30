@@ -3,7 +3,7 @@ nixPkgs = ['nodejs', 'php82', 'php82Packages.composer', 'php82Extensions.bcmath'
 
 [phases.install]
 cmds = [
-    'composer install --no-dev --optimize-autoloader',
+    'composer install --no-dev --optimize-autoloader --ignore-platform-req=ext-bcmath',
     'npm ci',
     'npm run build'
 ]
