@@ -39,11 +39,11 @@ export default function GameArena({ auth, faction }) {
                 <header className="px-10 py-4 flex items-center justify-between border-b border-white/5 bg-black/20 backdrop-blur-lg">
                     <Link href={route('faction.select')} className="flex items-center gap-2 group text-white/60 hover:text-white transition-colors">
                         <span className="text-xl transition-transform group-hover:-translate-x-1">←</span>
-                        <span className="text-xs font-black uppercase tracking-widest">Change Faction</span>
+                        <span className="text-xs font-black uppercase tracking-widest">Cambiar Facción</span>
                     </Link>
                     <div className="flex items-center gap-4">
                         <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
-                        <span className="text-xs font-black tracking-[0.4em] uppercase text-white/40">Battle in Progress</span>
+                        <span className="text-xs font-black tracking-[0.4em] uppercase text-white/40">Batalla en Progreso</span>
                     </div>
                 </header>
 
@@ -60,13 +60,13 @@ export default function GameArena({ auth, faction }) {
                         </div>
                         <div className="text-center">
                             <h3 className="text-2xl font-black italic uppercase tracking-tighter leading-none mb-2 text-white">{opponent.name}</h3>
-                            <p className="text-[10px] font-bold text-secondary tracking-[0.4em] uppercase opacity-70">Universal Opponent</p>
+                            <p className="text-[10px] font-bold text-secondary tracking-[0.4em] uppercase opacity-70">Oponente Universal</p>
                         </div>
                         
                         <div className="w-full space-y-4 pt-6">
                             <div className="flex flex-col items-center">
                                 <span className="text-5xl font-mono font-black text-secondary leading-none">{formatTime(600)}</span>
-                                <span className="text-[9px] font-black uppercase tracking-widest text-white/30 mt-2">Energy Threshold</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-white/30 mt-2">Umbral de Energía</span>
                             </div>
                             <div className="w-full h-3 bg-gray-800 rounded-full overflow-hidden border border-white/10">
                                 <div className="h-full bg-secondary shadow-neon-blue transition-all duration-1000" style={{ width: '100%' }}></div>
@@ -75,9 +75,9 @@ export default function GameArena({ auth, faction }) {
                     </div>
 
                     <div className="space-y-4">
-                        <h4 className="text-[9px] font-black uppercase text-white/30 tracking-widest border-b border-white/5 pb-2">Combat Log</h4>
+                        <h4 className="text-[9px] font-black uppercase text-white/30 tracking-widest border-b border-white/5 pb-2">Registro de Combate</h4>
                         <div className="space-y-2 opacity-50 text-[10px] font-medium italic text-white/60">
-                            <p>Awaiting first move...</p>
+                            <p>Esperando primer movimiento...</p>
                         </div>
                     </div>
                 </aside>
@@ -90,7 +90,7 @@ export default function GameArena({ auth, faction }) {
                         <div className="px-10 py-2 rounded-2xl border-2 bg-primary/20 border-primary shadow-neon-orange flex items-center gap-4 transition-all duration-300 backdrop-blur-md">
                             <div className="w-3 h-3 rounded-full bg-primary shadow-neon-orange animate-pulse"></div>
                             <span className="text-sm font-black tracking-[0.4em] uppercase text-primary">
-                                Initiate Attack
+                                Iniciar Ataque
                             </span>
                         </div>
                     </div>

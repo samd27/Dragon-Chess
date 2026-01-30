@@ -1,13 +1,13 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function Welcome({ auth }) {
+export default function Welcome({ auth, stats }) {
     const [showDropdown, setShowDropdown] = useState(false);
     
     const player = {
         name: auth.user?.name || 'Kakarot_99',
-        level: 54,
-        avatar: 'https://i.pravatar.cc/150?u=player',
+        level: stats?.level || 1,
+        avatar: auth.user?.avatar || '/images/characters/Goku.png',
     };
 
     return (
@@ -23,28 +23,26 @@ export default function Welcome({ auth }) {
                     <div className="flex items-center gap-10">
                         <div className="flex flex-col gap-0.5 transform -rotate-2">
                             <h2 className="text-2xl font-black italic tracking-tighter uppercase leading-none text-white">
-                                DB <span className="text-primary">ARENA</span>
+                                D <span className="text-primary">CHESS</span>
                             </h2>
                             <div className="h-[2px] w-full bg-gradient-to-r from-primary to-transparent"></div>
                         </div>
-                        <nav className="hidden md:flex items-center gap-8">
-                            <button className="text-primary font-black uppercase text-xs tracking-widest flex items-center gap-2">
-                                <span className="text-sm">⚔️</span> BATTLE
-                            </button>
-                            <button className="text-white/40 hover:text-white font-black uppercase text-xs tracking-widest flex items-center gap-2 transition-colors">
-                                <span className="text-sm">👥</span> ALLIANCE
-                            </button>
-                            <button className="text-white/40 hover:text-white font-black uppercase text-xs tracking-widest flex items-center gap-2 transition-colors">
-                                <span className="text-sm">🏪</span> BAZAAR
-                            </button>
-                        </nav>
+                        {auth.user && (
+                            <nav className="hidden md:flex items-center gap-8">
+                                <button className="text-primary font-black uppercase text-xs tracking-widest flex items-center gap-2">
+                                    <span className="text-sm">⚔️</span> BATALLA
+                                </button>
+                                <button className="text-white/40 hover:text-white font-black uppercase text-xs tracking-widest flex items-center gap-2 transition-colors">
+                                    <span className="text-sm">👥</span> PIEZAS
+                                </button>
+                                <button className="text-white/40 hover:text-white font-black uppercase text-xs tracking-widest flex items-center gap-2 transition-colors">
+                                    <span className="text-sm">🏪</span> TIENDA
+                                </button>
+                            </nav>
+                        )}
                     </div>
 
-                    <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/5">
-                            <span className="text-primary font-black tracking-tighter">9,000</span>
-                            <span className="text-sm text-yellow-400">⭐</span>
-                        </div>
+                    <div className="flex items-center">
                         {auth.user ? (
                             <div className="relative">
                                 <button 
@@ -66,6 +64,13 @@ export default function Welcome({ auth }) {
                                         ></div>
                                         <div className="absolute right-0 mt-2 w-48 bg-black/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl z-20 overflow-hidden">
                                             <Link
+                                                href={route('profile.edit')}
+                                                className="block w-full text-left px-4 py-3 text-white hover:bg-primary/10 transition-colors text-sm font-medium border-b border-white/10"
+                                                onClick={() => setShowDropdown(false)}
+                                            >
+                                                Personalizar Perfil
+                                            </Link>
+                                            <Link
                                                 href={route('logout')}
                                                 method="post"
                                                 as="button"
@@ -73,7 +78,7 @@ export default function Welcome({ auth }) {
                                                 className="block w-full text-left px-4 py-3 text-red-400 hover:bg-red-500/10 transition-colors text-sm font-medium"
                                                 onClick={() => setShowDropdown(false)}
                                             >
-                                                Logout
+                                                Cerrar Sesión
                                             </Link>
                                         </div>
                                     </>
@@ -85,13 +90,13 @@ export default function Welcome({ auth }) {
                                     href={route('login')}
                                     className="px-4 py-2 text-white/80 hover:text-white font-bold text-sm transition-colors"
                                 >
-                                    Log in
+                                    Iniciar Sesión
                                 </Link>
                                 <Link
                                     href={route('register')}
                                     className="px-6 py-2 bg-primary hover:bg-orange-500 text-white font-bold text-sm rounded-lg transition-colors"
                                 >
-                                    Register
+                                    Registrarse
                                 </Link>
                             </div>
                         )}
@@ -103,77 +108,47 @@ export default function Welcome({ auth }) {
                     {/* Left: Hero Text */}
                     <div className="max-w-lg flex flex-col gap-8 text-left">
                         <div className="flex flex-col">
-                            <span className="text-sm font-black text-primary tracking-[0.6em] uppercase mb-4 animate-pulse">Prepare for Impact</span>
-                            <h1 className="text-8xl font-black italic tracking-tighter uppercase leading-[0.8] text-white drop-shadow-[0_0_30px_rgba(249,122,31,0.3)]">
+                            <span className="text-sm font-black text-primary tracking-[0.6em] uppercase mb-4 animate-pulse">Prepárate Para el Combate</span>
+                            <h1 className="text-8xl font-black italic tracking-tighter uppercase leading-[1.3] text-white drop-shadow-[0_0_30px_rgba(249,122,31,0.3)] pb-8">
                                 DRAGON<br/>
-                                <span className="text-transparent bg-clip-text bg-gradient-to-b from-primary to-orange-700">CHESS</span>
+                                <span className="inline-block text-transparent bg-clip-text bg-gradient-to-b from-primary to-orange-700 py-2 overflow-visible">CHESS</span>
                             </h1>
                             <p className="mt-6 text-white/50 text-sm font-medium leading-relaxed max-w-sm">
-                                The ultimate high-stakes chess battleground. Choose your warrior, master your Ki, and dominate the arena.
+                                El campo de batalla de ajedrez definitivo. Elige tu guerrero, domina tu Ki y conquista la arena.
                             </p>
                         </div>
                         
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center">
                             <Link 
-                                href={route('faction.select')}
-                                className="group relative bg-primary h-16 px-10 rounded-2xl flex items-center gap-4 shadow-[0_15px_30px_rgba(249,122,31,0.3)] hover:shadow-[0_20px_40px_rgba(249,122,31,0.4)] transition-all hover:-translate-y-1 active:scale-95 overflow-hidden"
+                                href={auth.user ? route('faction.select') : route('login')}
+                                className="group relative bg-primary h-20 px-14 rounded-2xl flex items-center gap-4 shadow-[0_15px_30px_rgba(249,122,31,0.3)] hover:shadow-[0_20px_40px_rgba(249,122,31,0.4)] transition-all hover:-translate-y-1 active:scale-95 overflow-hidden"
                             >
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                                <span className="text-xl font-black italic tracking-tighter uppercase relative z-10">Enter Battle</span>
-                                <span className="text-2xl font-black rotate-45 group-hover:rotate-90 transition-transform relative z-10">⚔️</span>
+                                <span className="text-2xl font-black italic tracking-tighter uppercase relative z-10">Entrar a Batalla</span>
+                                <span className="text-3xl font-black rotate-45 group-hover:rotate-90 transition-transform relative z-10">⚔️</span>
                             </Link>
-                            <button className="h-16 px-10 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-4 hover:bg-white/10 transition-colors uppercase font-black italic tracking-tighter text-lg">
-                                Training
-                                <span>🤖</span>
-                            </button>
                         </div>
                     </div>
 
                     {/* Right: Featured Event & Stats */}
-                    <div className="w-80 space-y-6">
-                        <div className="bg-[#1e1f26] border-2 border-yellow-500/30 rounded-3xl p-6 relative overflow-hidden group cursor-pointer hover:border-yellow-500/60 transition-all shadow-2xl">
-                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                                <span className="text-8xl text-yellow-500">🏆</span>
-                            </div>
-                            <div className="relative z-10">
-                                <span className="text-[10px] font-black text-yellow-500 tracking-[0.3em] uppercase block mb-1">Live Event</span>
-                                <h3 className="text-xl font-black italic tracking-tighter uppercase text-white mb-4 leading-tight">Cell Games<br/>Classic</h3>
-                                <div className="flex items-center justify-between mt-6">
-                                    <div className="flex -space-x-2">
-                                        {[1,2,3].map(i => (
-                                            <div key={i} className="w-8 h-8 rounded-full border-2 border-[#1e1f26] bg-gray-800 overflow-hidden">
-                                                <img src={`https://i.pravatar.cc/100?u=${i}`} alt="" />
-                                            </div>
-                                        ))}
-                                        <div className="w-8 h-8 rounded-full border-2 border-[#1e1f26] bg-gray-700 flex items-center justify-center text-[10px] font-bold">+24</div>
-                                    </div>
-                                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Ongoing</span>
+                    {auth.user && (
+                        <div className="w-80 space-y-6">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-white/5 p-6 rounded-2xl border border-white/10 flex flex-col items-center">
+                                    <span className="text-3xl font-black text-primary italic leading-none">{stats?.victories || 0}</span>
+                                    <span className="text-[10px] font-black uppercase text-white/40 tracking-widest mt-2">Victorias</span>
+                                </div>
+                                <div className="bg-white/5 p-6 rounded-2xl border border-white/10 flex flex-col items-center">
+                                    <span className="text-3xl font-black text-yellow-500 italic leading-none">{stats?.ki?.toLocaleString() || 0}</span>
+                                    <span className="text-[10px] font-black uppercase text-white/40 tracking-widest mt-2">Ki</span>
                                 </div>
                             </div>
                         </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-white/5 p-4 rounded-2xl border border-white/10 flex flex-col items-center">
-                                <span className="text-2xl font-black text-primary italic leading-none">542</span>
-                                <span className="text-[9px] font-black uppercase text-white/40 tracking-widest mt-1">Wins</span>
-                            </div>
-                            <div className="bg-white/5 p-4 rounded-2xl border border-white/10 flex flex-col items-center">
-                                <span className="text-2xl font-black text-secondary italic leading-none">128</span>
-                                <span className="text-[9px] font-black uppercase text-white/40 tracking-widest mt-1">Rank</span>
-                            </div>
-                        </div>
-                    </div>
+                    )}
                 </main>
 
                 {/* Subtle Footer Bar */}
-                <footer className="px-10 py-4 border-t border-white/5 flex items-center justify-between opacity-50 text-[9px] font-black uppercase tracking-[0.4em] text-white">
-                    <span>Server Status: Synchronized</span>
-                    <div className="flex items-center gap-6">
-                        <a href="#" className="hover:text-primary transition-colors">Privacy Protocol</a>
-                        <a href="#" className="hover:text-primary transition-colors">Combat Rules</a>
-                        <span>© Capsule Corp 762</span>
-                    </div>
-                </footer>
+            
             </div>
         </>
     );

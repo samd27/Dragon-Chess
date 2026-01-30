@@ -6,9 +6,15 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
+    $stats = null;
+    if (auth()->check()) {
+        $stats = auth()->user()->stats;
+    }
+    
     return Inertia::render('Inicio', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
+        'stats' => $stats,
     ]);
 })->name('welcome');
 

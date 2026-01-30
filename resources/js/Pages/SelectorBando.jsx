@@ -6,14 +6,14 @@ export default function FactionSelector({ auth }) {
 
     return (
         <>
-            <Head title="Choose Your Allegiance" />
+            <Head title="Elige Tu Bando" />
             <div className="flex flex-col h-screen relative overflow-hidden bg-gradient-to-br from-[#0d0e12] via-[#1a1b1e] to-[#0d0e12]">
                 <header className="px-10 py-6 flex items-center justify-between border-b border-white/5 relative z-10 bg-black/20">
                     <Link href={route('welcome')} className="flex items-center gap-2 group text-white/60 hover:text-white transition-colors">
                         <span className="text-xl transition-transform group-hover:-translate-x-1">←</span>
-                        <span className="text-xs font-black uppercase tracking-widest">Abort Mission</span>
+                        <span className="text-xs font-black uppercase tracking-widest">Abortar Misión</span>
                     </Link>
-                    <h2 className="text-xs font-black tracking-[0.5em] uppercase opacity-50 text-white">Operational Phase: Recruitment</h2>
+                    <h2 className="text-xs font-black tracking-[0.5em] uppercase opacity-50 text-white">Fase Operacional: Reclutamiento</h2>
                     <div className="w-24 h-[1px] bg-white/10"></div>
                 </header>
 
@@ -21,8 +21,8 @@ export default function FactionSelector({ auth }) {
                     {/* Left: Selection Column */}
                     <div className="w-1/3 flex flex-col justify-center gap-8">
                         <div className="space-y-2">
-                            <h1 className="text-5xl font-black italic tracking-tighter uppercase leading-tight text-white">Choose Your<br/><span className="text-primary">Allegiance</span></h1>
-                            <p className="text-white/40 text-sm font-medium max-w-xs leading-relaxed">Your faction determines your battle perks and the warriors you'll command in the arena.</p>
+                            <h1 className="text-5xl font-black italic tracking-tighter uppercase leading-tight text-white">Elige Tu<br/><span className="text-primary">Bando</span></h1>
+                            <p className="text-white/40 text-sm font-medium max-w-xs leading-relaxed">Tu facción determina tus ventajas de batalla y los guerreros que comandarás en la arena.</p>
                         </div>
 
                         <div className="space-y-4">
@@ -31,8 +31,8 @@ export default function FactionSelector({ auth }) {
                                     <span className="text-primary text-xl">🛡️</span>
                                 </div>
                                 <div>
-                                    <h4 className="text-xs font-black uppercase tracking-widest mb-1 text-white">Saiyan Resilience</h4>
-                                    <p className="text-[10px] opacity-70 leading-relaxed font-medium text-white/60">Your pieces gain defensive boost when standing near your King. A true Saiyan never gives up.</p>
+                                    <h4 className="text-xs font-black uppercase tracking-widest mb-1 text-white">Resistencia Saiyan</h4>
+                                    <p className="text-[10px] opacity-70 leading-relaxed font-medium text-white/60">Tus piezas ganan impulso defensivo al estar cerca de tu Rey. Un verdadero Saiyan nunca se rinde.</p>
                                 </div>
                             </div>
 
@@ -41,8 +41,8 @@ export default function FactionSelector({ auth }) {
                                     <span className="text-secondary text-xl">💀</span>
                                 </div>
                                 <div>
-                                    <h4 className="text-xs font-black uppercase tracking-widest mb-1 text-white">Galactic Domination</h4>
-                                    <p className="text-[10px] opacity-70 leading-relaxed font-medium text-white/60">Gain a speed boost and extra Ki for every capture. Crushing enemies fuels your power.</p>
+                                    <h4 className="text-xs font-black uppercase tracking-widest mb-1 text-white">Dominación Galáctica</h4>
+                                    <p className="text-[10px] opacity-70 leading-relaxed font-medium text-white/60">Ganas impulso de velocidad y Ki extra por cada captura. Aplastar enemigos alimenta tu poder.</p>
                                 </div>
                             </div>
                         </div>
@@ -51,7 +51,7 @@ export default function FactionSelector({ auth }) {
                             href={route('game.arena', { faction: selected })}
                             className="w-full bg-primary h-16 rounded-2xl shadow-neon-orange font-black italic uppercase tracking-tighter text-2xl flex items-center justify-center gap-4 hover:bg-orange-500 transition-all active:scale-95 group"
                         >
-                            Confirm Battle Plan
+                            Confirmar Plan de Batalla
                             <span className="font-black group-hover:translate-x-2 transition-transform text-2xl">⚡</span>
                         </Link>
                     </div>
@@ -70,8 +70,8 @@ export default function FactionSelector({ auth }) {
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
                             <div className="absolute bottom-10 left-10 right-10">
-                                <h3 className="text-5xl font-black italic tracking-tighter uppercase leading-none drop-shadow-xl text-white">Z-WARRIORS</h3>
-                                <p className="text-sm font-bold text-primary tracking-[0.4em] uppercase mt-2">Guardians of Earth</p>
+                                <h3 className="text-5xl font-black italic tracking-tighter uppercase leading-none drop-shadow-xl text-white">GUERREROS Z</h3>
+                                <p className="text-sm font-bold text-primary tracking-[0.4em] uppercase mt-2">Guardianes de la Tierra</p>
                             </div>
                         </div>
 
@@ -87,8 +87,8 @@ export default function FactionSelector({ auth }) {
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
                             <div className="absolute bottom-10 left-10 right-10">
-                                <h3 className="text-5xl font-black italic tracking-tighter uppercase leading-none drop-shadow-xl text-white">CONQUERORS</h3>
-                                <p className="text-sm font-bold text-secondary tracking-[0.4em] uppercase mt-2">Destroyers of Worlds</p>
+                                <h3 className="text-5xl font-black italic tracking-tighter uppercase leading-none drop-shadow-xl text-white">CONQUISTADORES</h3>
+                                <p className="text-sm font-bold text-secondary tracking-[0.4em] uppercase mt-2">Destructores de Mundos</p>
                             </div>
                         </div>
                     </div>
