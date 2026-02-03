@@ -120,7 +120,7 @@ export default function Welcome({ auth, stats }) {
                         
                         <div className="flex items-center">
                             <Link 
-                                href={auth.user ? route('faction.select') : route('login')}
+                                href={auth.user ? route('game.mode') : route('login')}
                                 className="group relative bg-primary h-16 md:h-20 px-10 md:px-14 rounded-2xl flex items-center gap-3 md:gap-4 shadow-[0_15px_30px_rgba(249,122,31,0.3)] hover:shadow-[0_20px_40px_rgba(249,122,31,0.4)] transition-all hover:-translate-y-1 active:scale-95 overflow-hidden w-full md:w-auto justify-center"
                             >
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>

@@ -19,14 +19,23 @@ Route::get('/', function () {
     ]);
 })->name('welcome');
 
+Route::get('/game-mode', function () {
+    return Inertia::render('ModoJuego');
+})->middleware(['auth'])->name('game.mode');
+
 Route::get('/faction-select', function () {
-    return Inertia::render('SelectorBando');
-})->name('faction.select');
+    $mode = request('mode', 'PVP');
+    return Inertia::render('SelectorBando', [
+        'mode' => $mode,
+    ]);
+})->middleware(['auth'])->name('faction.select');
 
 Route::get('/game-arena', function () {
     $faction = request('faction', 'Z_WARRIORS');
+    $mode = request('mode', 'PVP');
     return Inertia::render('Batalla', [
         'faction' => $faction,
+        'mode' => $mode,
     ]);
 })->name('game.arena');
 
