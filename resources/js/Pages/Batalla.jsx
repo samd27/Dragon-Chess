@@ -2,7 +2,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
 
-export default function GameArena({ auth, faction, mode = 'PVP' }) {
+export default function GameArena({ auth, faction, mode = 'PVP', player2 = null }) {
     const [game, setGame] = useState(new Chess());
     const [selectedSquare, setSelectedSquare] = useState(null);
     const [possibleMoves, setPossibleMoves] = useState([]);
@@ -21,6 +21,8 @@ export default function GameArena({ auth, faction, mode = 'PVP' }) {
     const opponentCapturedRef = useRef(null);
     
     // Determinar qué jugador es blanco y cuál es negro
+    // Guerrero Z controla blancas (naranjas) y mueve primero
+    // Villano controla negras (moradas) y mueve segundo
     const playerIsWhite = faction === 'Z_WARRIORS';
     
     const player = {
@@ -30,18 +32,36 @@ export default function GameArena({ auth, faction, mode = 'PVP' }) {
 
     const handleAbortMission = () => {
         setShowConfirmAbort(false);
+        // Limpiar sesión de jugador 2 si existe
+        if (mode === 'PVP' && player2) {
+            fetch(route('clear.player2.session'), { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } });
+        }
         router.visit(route('game.mode'));
+    };
+    
+    const handleReturnToMenu = () => {
+        // Limpiar sesión de jugador 2 si existe
+        if (mode === 'PVP' && player2) {
+            fetch(route('clear.player2.session'), { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } })
+                .then(() => router.visit(route('game.mode')));
+        } else {
+            router.visit(route('game.mode'));
+        }
     };
 
     const opponent = {
-        name: mode === 'PVC' ? 'CPU' : 'Jugador 2',
-        avatar: faction === 'Z_WARRIORS' ? '/images/characters/Freezer.png' : '/images/characters/Goku.png',
+        name: mode === 'PVC' 
+            ? 'CPU' 
+            : (player2 ? player2.name : 'Invitado'),
+        avatar: mode === 'PVC'
+            ? (faction === 'Z_WARRIORS' ? '/images/characters/Freezer.png' : '/images/characters/Goku.png')
+            : (player2 ? player2.avatar : (faction === 'Z_WARRIORS' ? '/images/characters/Freezer.png' : '/images/characters/Goku.png')),
     };
 
     // Piezas Unicode para renderizar
     const pieceSymbols = {
-        'p': '♟', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛', 'k': '♚',
-        'P': '♙', 'N': '♘', 'B': '♗', 'R': '♖', 'Q': '♕', 'K': '♔'
+        'p': '\u265F', 'n': '\u265E', 'b': '\u265D', 'r': '\u265C', 'q': '\u265B', 'k': '\u265A',
+        'P': '\u2659', 'N': '\u2658', 'B': '\u2657', 'R': '\u2656', 'Q': '\u2655', 'K': '\u2654'
     };
 
     // Cronómetro activo
@@ -83,7 +103,8 @@ export default function GameArena({ auth, faction, mode = 'PVP' }) {
     useEffect(() => {
         if (game.isCheck() && !gameOver) {
             setShowCheckAnimation(true);
-            setTimeout(() => setShowCheckAnimation(false), 2000);
+        } else {
+            setShowCheckAnimation(false);
         }
         
         if (game.isCheckmate()) {
@@ -304,14 +325,15 @@ export default function GameArena({ auth, faction, mode = 'PVP' }) {
             >
                 {piece && (
                     <span className={`text-4xl md:text-5xl select-none transition-all ${
-                        piece.color === 'w' 
-                            ? (playerIsWhite ? 'text-primary' : 'text-purple-500')
-                            : (playerIsWhite ? 'text-purple-500' : 'text-primary')
+                        // Si es una pieza del jugador actual
+                        (piece.color === 'w' && playerIsWhite) || (piece.color === 'b' && !playerIsWhite)
+                            ? (faction === 'Z_WARRIORS' ? 'text-primary' : 'text-purple-500')
+                            : (faction === 'Z_WARRIORS' ? 'text-purple-500' : 'text-primary')
                     } ${
                         isSelected 
-                            ? (piece.color === 'w' 
-                                ? (playerIsWhite ? 'drop-shadow-[0_0_25px_rgba(249,122,31,1)] scale-110' : 'drop-shadow-[0_0_25px_rgba(168,85,247,1)] scale-110')
-                                : (playerIsWhite ? 'drop-shadow-[0_0_25px_rgba(168,85,247,1)] scale-110' : 'drop-shadow-[0_0_25px_rgba(249,122,31,1)] scale-110'))
+                            ? ((piece.color === 'w' && playerIsWhite) || (piece.color === 'b' && !playerIsWhite)
+                                ? (faction === 'Z_WARRIORS' ? 'drop-shadow-[0_0_25px_rgba(249,122,31,1)] scale-110' : 'drop-shadow-[0_0_25px_rgba(168,85,247,1)] scale-110')
+                                : (faction === 'Z_WARRIORS' ? 'drop-shadow-[0_0_25px_rgba(168,85,247,1)] scale-110' : 'drop-shadow-[0_0_25px_rgba(249,122,31,1)] scale-110'))
                             : 'drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]'
                     }`}>
                         {pieceSymbols[piece.color === 'w' ? piece.type.toUpperCase() : piece.type]}
@@ -350,7 +372,7 @@ export default function GameArena({ auth, faction, mode = 'PVP' }) {
         if (playerIsWhite) {
             return isWhiteTurn ? 'Guerrero Z' : 'Villano';
         } else {
-            return isWhiteTurn ? 'Villano' : 'Guerrero Z';
+            return isWhiteTurn ? 'Guerrero Z' : 'Villano';
         }
     };
     
@@ -375,12 +397,12 @@ export default function GameArena({ auth, faction, mode = 'PVP' }) {
                     </button>
                     <div className="flex items-center gap-3 md:gap-4">
                         <div className={`w-3 h-3 rounded-full animate-pulse ${
-                            (game.turn() === 'w' && playerIsWhite) || (game.turn() === 'b' && !playerIsWhite)
+                            game.turn() === 'w'
                                 ? 'bg-primary'
                                 : 'bg-purple-500'
                         }`}></div>
                         <span className={`text-xs font-black tracking-[0.2em] md:tracking-[0.4em] uppercase ${
-                            (game.turn() === 'w' && playerIsWhite) || (game.turn() === 'b' && !playerIsWhite)
+                            game.turn() === 'w'
                                 ? 'text-primary'
                                 : 'text-purple-500'
                         }`}>
@@ -394,8 +416,10 @@ export default function GameArena({ auth, faction, mode = 'PVP' }) {
                 <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
                     {/* Left: Player Zone */}
                     <aside className={`w-full md:w-80 border-b md:border-b-0 md:border-r border-white/5 p-4 md:p-6 flex flex-row md:flex-col justify-between md:justify-start gap-4 md:gap-4 transition-all duration-300 overflow-y-auto ${
-                        (game.turn() === 'w' && playerIsWhite) || (game.turn() === 'b' && !playerIsWhite)
-                            ? 'bg-primary/10 border-primary/30'
+                        ((game.turn() === 'w' && playerIsWhite) || (game.turn() === 'b' && !playerIsWhite))
+                            ? (game.isCheck() 
+                                ? 'bg-red-500/20 border-red-500/50 animate-pulse' 
+                                : 'bg-primary/10 border-primary/30')
                             : 'bg-black/40'
                     }`}
                     style={{
@@ -488,6 +512,15 @@ export default function GameArena({ auth, faction, mode = 'PVP' }) {
                 <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 relative">
                     <div className="absolute inset-0 pointer-events-none opacity-5 bg-[radial-gradient(circle_at_center,white_0%,transparent_70%)]"></div>
                     
+                    {/* Check Warning - Arriba del tablero */}
+                    {showCheckAnimation && (
+                        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+                            <div className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-red-500 animate-pulse drop-shadow-[0_0_40px_rgba(239,68,68,1)]">
+                                ¡JAQUE!
+                            </div>
+                        </div>
+                    )}
+                    
                     <div className="relative">
                         <div className="flex gap-2">
                             {/* Coordenadas izquierdas (8-1) */}
@@ -522,8 +555,10 @@ export default function GameArena({ auth, faction, mode = 'PVP' }) {
 
                 {/* Right: Opponent Zone */}
                 <aside className={`w-full md:w-80 border-t md:border-t-0 md:border-l border-white/5 p-4 md:p-6 flex flex-row md:flex-col justify-between md:justify-start gap-4 md:gap-4 transition-all duration-300 overflow-y-auto ${
-                        (game.turn() === 'b' && playerIsWhite) || (game.turn() === 'w' && !playerIsWhite)
-                            ? 'bg-purple-500/10 border-purple-500/30'
+                        ((game.turn() === 'b' && playerIsWhite) || (game.turn() === 'w' && !playerIsWhite))
+                            ? (game.isCheck() 
+                                ? 'bg-red-500/20 border-red-500/50 animate-pulse' 
+                                : 'bg-purple-500/10 border-purple-500/30')
                             : 'bg-black/40'
                     }`}
                     style={{
@@ -582,14 +617,7 @@ export default function GameArena({ auth, faction, mode = 'PVP' }) {
                 </aside>
                 </div>
 
-                {/* Check Animation */}
-                {showCheckAnimation && (
-                    <div className="fixed inset-0 flex items-center justify-center z-40 pointer-events-none">
-                        <div className="text-8xl md:text-9xl font-black uppercase tracking-tighter text-red-500 animate-pulse drop-shadow-[0_0_40px_rgba(239,68,68,1)]">
-                            ¡JAQUE!
-                        </div>
-                    </div>
-                )}
+
 
                 {/* Promotion Selection Modal */}
                 {promotionPending && (
@@ -656,50 +684,63 @@ export default function GameArena({ auth, faction, mode = 'PVP' }) {
 
                 {/* Game Over Modal */}
                 {gameOver && (
-                    <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 animate-in fade-in duration-500">
-                        <div className={`bg-gradient-to-br from-[#1a1b1e] to-[#0d0e12] border-4 rounded-3xl p-10 max-w-lg mx-4 shadow-[0_0_80px_rgba(0,0,0,0.8)] ${
+                    <div className="fixed bottom-4 right-4 z-50 animate-in slide-in-from-bottom duration-500">
+                        <div className={`bg-gradient-to-br from-[#1a1b1e] to-[#0d0e12] border-2 rounded-2xl p-6 w-80 shadow-[0_0_60px_rgba(0,0,0,0.8)] relative ${
                             gameOver.type === 'checkmate' 
                                 ? gameOver.winner === 'white' ? 'border-primary shadow-neon-orange' : 'border-purple-500'
                                 : 'border-yellow-500'
                         }`}>
-                            <div className="text-center space-y-8">
-                                <div className="text-8xl animate-bounce">
-                                    {gameOver.type === 'checkmate' ? '👑' : '🤝'}
-                                </div>
-                                <div>
-                                    <h3 className={`text-4xl font-black uppercase tracking-tighter mb-2 ${
-                                        gameOver.type === 'checkmate'
-                                            ? gameOver.winner === 'white' ? 'text-primary' : 'text-purple-500'
-                                            : 'text-yellow-500'
-                                    }`}>
-                                        {gameOver.type === 'checkmate' ? '¡Jaque Mate!' : '¡Empate!'}
-                                    </h3>
-                                    <p className="text-white/80 text-xl font-bold">
-                                        {gameOver.message}
-                                    </p>
+                            {/* Botón Cerrar */}
+                            <button 
+                                onClick={() => setGameOver(null)}
+                                className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                            >
+                                ✕
+                            </button>
+                            
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="text-4xl">
+                                        {gameOver.type === 'checkmate' ? '👑' : '🤝'}
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className={`text-xl font-black uppercase tracking-tighter leading-tight ${
+                                            gameOver.type === 'checkmate'
+                                                ? gameOver.winner === 'white' ? 'text-primary' : 'text-purple-500'
+                                                : 'text-yellow-500'
+                                        }`}>
+                                            {gameOver.type === 'checkmate' ? '¡Jaque Mate!' : '¡Empate!'}
+                                        </h3>
+                                        <p className="text-white/60 text-xs">
+                                            {gameOver.message}
+                                        </p>
+                                    </div>
                                 </div>
                                 
                                 {moveHistory.length > 0 && (
-                                    <div className="bg-white/5 rounded-xl p-4 max-h-32 overflow-y-auto">
-                                        <p className="text-xs text-white/40 uppercase tracking-widest mb-2">Historial de Movimientos</p>
-                                        <div className="grid grid-cols-2 gap-2 text-white/60 text-sm font-mono">
+                                    <div className="bg-white/5 rounded-lg p-3 max-h-48 overflow-y-auto" style={{
+                                        scrollbarWidth: 'thin',
+                                        scrollbarColor: 'rgba(249, 122, 31, 0.3) rgba(255, 255, 255, 0.05)'
+                                    }}>
+                                        <p className="text-[9px] text-white/40 uppercase tracking-widest mb-2">Historial</p>
+                                        <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-white/60 text-xs font-mono">
                                             {moveHistory.map((move, i) => (
-                                                <div key={i}>{i + 1}. {move.san}</div>
+                                                <div key={i} className="truncate">{i + 1}. {move.san}</div>
                                             ))}
                                         </div>
                                     </div>
                                 )}
 
-                                <div className="flex gap-4 pt-4">
+                                <div className="flex gap-2 pt-2">
                                     <button 
-                                        onClick={() => router.visit(route('game.mode'))}
-                                        className="flex-1 py-4 bg-white/5 rounded-xl border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all font-black uppercase text-sm tracking-widest"
+                                        onClick={handleReturnToMenu}
+                                        className="flex-1 py-2.5 bg-white/5 rounded-lg border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all font-black uppercase text-xs tracking-widest"
                                     >
-                                        Menú Principal
+                                        Regresar
                                     </button>
                                     <button 
                                         onClick={resetGame}
-                                        className={`flex-1 py-4 rounded-xl text-white transition-all font-black uppercase text-sm tracking-widest ${
+                                        className={`flex-1 py-2.5 rounded-lg text-white transition-all font-black uppercase text-xs tracking-widest ${
                                             gameOver.type === 'checkmate'
                                                 ? gameOver.winner === 'white' 
                                                     ? 'bg-primary hover:brightness-110 shadow-neon-orange' 

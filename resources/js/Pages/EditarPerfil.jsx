@@ -62,7 +62,11 @@ export default function EditarPerfil({ auth, stats }) {
             return;
         }
 
-        patch(route('profile.update'));
+        patch(route('profile.update'), {
+            onSuccess: () => {
+                window.location.href = route('welcome');
+            }
+        });
     };
 
     const availableAvatars = [

@@ -1,7 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function FactionSelector({ auth, mode = 'PVP' }) {
+export default function FactionSelector({ auth, mode = 'PVP', player2Type = 'guest', player2 = null }) {
     const [selected, setSelected] = useState('Z_WARRIORS');
 
     return (
@@ -9,9 +9,12 @@ export default function FactionSelector({ auth, mode = 'PVP' }) {
             <Head title="Elige Tu Bando" />
             <div className="flex flex-col h-screen relative overflow-hidden bg-gradient-to-br from-[#0d0e12] via-[#1a1b1e] to-[#0d0e12]">
                 <header className="px-4 md:px-10 py-4 md:py-6 flex items-center justify-between border-b border-white/5 relative z-10 bg-black/20">
-                    <Link href={route('game.mode')} className="flex items-center gap-2 group text-white/60 hover:text-white transition-colors">
+                    <Link 
+                        href={mode === 'PVP' ? route('player2.select') : route('game.mode')} 
+                        className="flex items-center gap-2 group text-white/60 hover:text-white transition-colors"
+                    >
                         <span className="text-xl transition-transform group-hover:-translate-x-1">←</span>
-                        <span className="text-xs font-black uppercase tracking-widest">Cambiar Modo</span>
+                        <span className="text-xs font-black uppercase tracking-widest">{mode === 'PVP' ? 'Cambiar Jugador 2' : 'Cambiar Modo'}</span>
                     </Link>
                     <h2 className="hidden md:block text-xs font-black tracking-[0.5em] uppercase opacity-50 text-white">SELECTOR DE BANDO</h2>
                     <div className="w-12 md:w-24 h-[1px] bg-white/10"></div>
@@ -47,6 +50,16 @@ export default function FactionSelector({ auth, mode = 'PVP' }) {
                             </div>
                         </div>
 
+                        {mode === 'PVP' && player2Type === 'authenticated' && player2 && (
+                            <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-3 md:p-4">
+                                <p className="text-[10px] md:text-xs text-white/60 uppercase tracking-widest mb-2">Jugador 2</p>
+                                <div className="flex items-center gap-2 md:gap-3">
+                                    <img src={player2.avatar} alt="Player 2" className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-purple-500" />
+                                    <span className="text-sm md:text-base font-bold text-white">{player2.name}</span>
+                                </div>
+                            </div>
+                        )}
+                        
                         <Link 
                             href={route('game.arena', { faction: selected, mode: mode })}
                             className="w-full bg-primary h-14 md:h-16 rounded-2xl shadow-neon-orange font-black italic uppercase tracking-tighter text-lg md:text-2xl flex items-center justify-center gap-3 md:gap-4 hover:bg-orange-500 transition-all active:scale-95 group"

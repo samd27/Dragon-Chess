@@ -1,11 +1,10 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function Login({ status, canResetPassword }) {
+export default function LoginJugador2({ status }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
-        remember: false,
     });
     
     const [showPassword, setShowPassword] = useState(false);
@@ -13,31 +12,31 @@ export default function Login({ status, canResetPassword }) {
     const submit = (e) => {
         e.preventDefault();
 
-        post(route('login'), {
+        post(route('player2.authenticate'), {
             onFinish: () => reset('password'),
         });
     };
 
     return (
         <>
-            <Head title="Login - Dragon Chess" />
+            <Head title="Login Jugador 2 - Dragon Chess" />
             <div className="flex flex-col md:flex-row h-screen relative overflow-hidden bg-gradient-to-br from-[#0d0e12] via-[#1a1b1e] to-[#0d0e12]">
                 {/* Decorative Aura */}
-                <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-primary/10 blur-[120px] rounded-full pointer-events-none"></div>
-                <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] bg-secondary/5 blur-[120px] rounded-full pointer-events-none"></div>
+                <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-purple-500/10 blur-[120px] rounded-full pointer-events-none"></div>
+                <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] bg-primary/5 blur-[120px] rounded-full pointer-events-none"></div>
 
                 {/* Left Side - Branding */}
                 <div className="hidden lg:flex lg:w-1/2 relative items-center justify-center p-20">
                     <div className="relative z-10 max-w-md">
                         <div className="flex flex-col gap-0.5 transform -rotate-2 mb-8">
                             <h2 className="text-6xl font-black italic tracking-tighter uppercase leading-none text-white">
-                                DRAGON<br/>
-                                <span className="text-primary">CHESS</span>
+                                JUGADOR<br/>
+                                <span className="text-purple-500">2</span>
                             </h2>
-                            <div className="h-[3px] w-full bg-gradient-to-r from-primary to-transparent"></div>
+                            <div className="h-[3px] w-full bg-gradient-to-r from-purple-500 to-transparent"></div>
                         </div>
                         <p className="text-white/50 text-lg font-medium leading-relaxed">
-                            El campo de batalla definitivo de ajedrez de alto riesgo. Elige tu guerrero, domina tu Ki y conquista la arena.
+                            Inicia sesión para que tus estadísticas y progreso se guarden en esta batalla.
                         </p>
                     </div>
                 </div>
@@ -45,16 +44,16 @@ export default function Login({ status, canResetPassword }) {
                 {/* Right Side - Login Form */}
                 <div className="flex-1 flex items-center justify-center p-4 md:p-8 relative z-10">
                     <div className="w-full max-w-md">
-                        <Link href={route('welcome')} className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-6 md:mb-8">
+                        <Link href={route('player2.select')} className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-6 md:mb-8">
                             <span className="text-lg md:text-xl">←</span>
-                            <span className="text-[10px] md:text-xs font-black uppercase tracking-widest">Volver a la Arena</span>
+                            <span className="text-[10px] md:text-xs font-black uppercase tracking-widest">Volver</span>
                         </Link>
 
                         <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-2xl">
                             <h1 className="text-2xl md:text-3xl font-black italic tracking-tighter uppercase text-white mb-2">
-                                Acceder a la Arena
+                                Jugador 2
                             </h1>
-                            <p className="text-white/40 text-xs md:text-sm mb-6 md:mb-8">Ingresa tus credenciales para comenzar tu batalla</p>
+                            <p className="text-white/40 text-xs md:text-sm mb-6 md:mb-8">Ingresa tus credenciales para registrar tu partida</p>
 
                             {status && (
                                 <div className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-xl text-green-400 text-sm font-medium">
@@ -72,7 +71,7 @@ export default function Login({ status, canResetPassword }) {
                                         type="email"
                                         name="email"
                                         value={data.email}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                                         autoComplete="username"
                                         autoFocus
                                         onChange={(e) => setData('email', e.target.value)}
@@ -93,7 +92,7 @@ export default function Login({ status, canResetPassword }) {
                                             type={showPassword ? "text" : "password"}
                                             name="password"
                                             value={data.password}
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-12 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-12 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                                             autoComplete="current-password"
                                             onChange={(e) => setData('password', e.target.value)}
                                             placeholder="Ingresa tu contraseña"
@@ -120,41 +119,19 @@ export default function Login({ status, canResetPassword }) {
                                     )}
                                 </div>
 
-                                <div className="flex items-center">
-                                    <label className="flex items-center cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            name="remember"
-                                            checked={data.remember}
-                                            onChange={(e) => setData('remember', e.target.checked)}
-                                            className="w-4 h-4 rounded bg-white/5 border-white/10 text-primary focus:ring-primary focus:ring-offset-0"
-                                        />
-                                        <span className="ml-2 text-sm text-white/60">
-                                            Recordarme
-                                        </span>
-                                    </label>
-                                </div>
-
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="w-full bg-primary hover:bg-orange-500 text-white font-black italic uppercase tracking-tighter text-lg py-4 rounded-xl shadow-neon-orange transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full bg-purple-500 hover:bg-purple-600 text-white font-black italic uppercase tracking-tighter text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {processing ? 'Accediendo...' : 'Entrar a Batalla'}
+                                    {processing ? 'Accediendo...' : 'Continuar como Jugador 2'}
                                 </button>
 
-                                <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                                    {canResetPassword && (
-                                        <Link
-                                            href={route('password.request')}
-                                            className="text-sm text-white/60 hover:text-primary transition-colors"
-                                        >
-                                            ¿Olvidaste tu contraseña?
-                                        </Link>
-                                    )}
+                                <div className="flex items-center justify-center pt-4 border-t border-white/10">
+                                    <span className="text-sm text-white/60 mr-2">¿No tienes cuenta?</span>
                                     <Link
                                         href={route('register')}
-                                        className="text-sm text-primary hover:text-orange-400 font-bold transition-colors"
+                                        className="text-sm text-purple-400 hover:text-purple-300 font-bold transition-colors"
                                     >
                                         Crear Cuenta
                                     </Link>

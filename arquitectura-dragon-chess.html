@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arquitectura de Software - Dragon Chess</title>
+    <style>
+        body {
+            font-family: 'Calibri', 'Arial', sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            font-size: 28px;
+            text-align: center;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+            font-size: 22px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 8px;
+        }
+        h3 {
+            color: #34495e;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        h4 {
+            color: #7f8c8d;
+            margin-top: 15px;
+            font-size: 16px;
+            font-style: italic;
+        }
+        p {
+            text-align: justify;
+            margin-bottom: 12px;
+        }
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        .tech-box {
+            background-color: #ecf0f1;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .future-tech {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .reason-box {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin: 12px 0;
+            font-style: italic;
+        }
+        .sprint-box {
+            background-color: #f3e5f5;
+            border: 2px solid #9c27b0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .code-highlight {
+            background-color: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #c7254e;
+        }
+        .metadata {
+            text-align: right;
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #bdc3c7;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .current-phase {
+            background-color: #ffebee;
+            border: 3px solid #f44336;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="metadata">
+        <p><strong>Proyecto:</strong> Dragon Chess</p>
+        <p><strong>Fecha:</strong> Febrero 5, 2026</p>
+        <p><strong>Sprint Actual:</strong> Sprint 2 - Motor de Juego Core</p>
+    </div>
+
+    <h1>ARQUITECTURA DE SOFTWARE - DRAGON CHESS</h1>
+    <h2>Análisis Técnico Completo del Sistema</h2>
+
+    <div class="current-phase">
+        ⚡ ESTADO ACTUAL: El proyecto se encuentra en el Sprint 2 (11 Feb - 24 Feb): Motor de Juego Core
+    </div>
+
+    <h2>1. INTRODUCCIÓN AL PROYECTO</h2>
+    
+    <p>Dragon Chess es una aplicación web Full Stack que digitaliza el juego de ajedrez fusionándolo con la temática de Dragon Ball. El sistema no solo implementa las reglas tradicionales del ajedrez, sino que incorpora mecánicas de gamificación propias de los videojuegos de rol (RPG), incluyendo un sistema de progresión de experiencia denominado "Ki", gestión de inventario y eventos aleatorios en el tablero.</p>
+
+    <p>El proyecto abarca desde la gestión de usuarios y persistencia de datos hasta la simulación de partidas en tiempo real contra una Inteligencia Artificial (CPU) o en modo local multijugador en el mismo dispositivo.</p>
+
+    <h2>2. ARQUITECTURA GENERAL DEL SISTEMA</h2>
+
+    <h3>2.1. Patrón Arquitectónico Principal</h3>
+    
+    <div class="tech-box">
+        <h4>ARQUITECTURA MONOLÍTICA FULL-STACK CON SINGLE PAGE APPLICATION (SPA)</h4>
+        <p>El proyecto utiliza una arquitectura monolítica moderna que integra el backend y frontend en un único repositorio, pero mantiene una clara separación de responsabilidades mediante el uso de <strong>Inertia.js</strong> como puente.</p>
+    </div>
+
+    <div class="reason-box">
+        <strong>📌 Razón de ser:</strong> La arquitectura monolítica con SPA ofrece las siguientes ventajas para este proyecto específico:
+        <ul>
+            <li><strong>Desarrollo rápido:</strong> Al ser un proyecto individual con tiempo limitado (14 semanas), la arquitectura monolítica reduce la complejidad de mantener repositorios separados.</li>
+            <li><strong>Menor overhead:</strong> No se necesita configurar CORS, autenticación JWT, ni gestionar dos deployments separados.</li>
+            <li><strong>Experiencia de usuario fluida:</strong> Inertia.js permite crear una SPA sin necesidad de construir una API REST completa, eliminando la latencia de peticiones AJAX tradicionales.</li>
+            <li><strong>Hot Module Replacement:</strong> Durante el desarrollo, los cambios se reflejan instantáneamente sin recargar la página completa.</li>
+        </ul>
+    </div>
+
+    <h3>2.2. Modelo MVC Híbrido con Inertia.js</h3>
+    
+    <p>El proyecto implementa una variante moderna del patrón Modelo-Vista-Controlador (MVC) donde:</p>
+
+    <table>
+        <tr>
+            <th>Componente</th>
+            <th>Tecnología</th>
+            <th>Ubicación</th>
+            <th>Responsabilidad</th>
+        </tr>
+        <tr>
+            <td><strong>Modelo</strong></td>
+            <td>Eloquent ORM (Laravel)</td>
+            <td><span class="code-highlight">app/Models/</span></td>
+            <td>Representación de datos y lógica de negocio. Gestiona la comunicación con la base de datos.</td>
+        </tr>
+        <tr>
+            <td><strong>Controlador</strong></td>
+            <td>Controllers (Laravel)</td>
+            <td><span class="code-highlight">app/Http/Controllers/</span></td>
+            <td>Procesa las solicitudes HTTP, ejecuta lógica de negocio y retorna respuestas Inertia.</td>
+        </tr>
+        <tr>
+            <td><strong>Vista</strong></td>
+            <td>Componentes React (JSX)</td>
+            <td><span class="code-highlight">resources/js/Pages/</span></td>
+            <td>Renderiza la interfaz de usuario de forma dinámica y reactiva.</td>
+        </tr>
+    </table>
+
+    <div class="reason-box">
+        <strong>📌 Ventaja clave:</strong> A diferencia del MVC tradicional que usa templates Blade, este proyecto utiliza componentes React como "vistas", lo que permite:
+        <ul>
+            <li>Interfaces altamente interactivas (crucial para un juego de ajedrez)</li>
+            <li>Reutilización de componentes (tablero, piezas, HUD)</li>
+            <li>Estado local del cliente para evitar recargas innecesarias</li>
+            <li>Animaciones y transiciones fluidas</li>
+        </ul>
+    </div>
+
+    <h2>3. STACK TECNOLÓGICO DETALLADO</h2>
+
+    <h3>3.1. Backend: Laravel 11 (Framework PHP)</h3>
+
+    <div class="tech-box">
+        <h4>Laravel 11 - Framework Backend Principal</h4>
+        <p><strong>Versión:</strong> 11.x (última versión estable)<br>
+        <strong>Lenguaje:</strong> PHP 8.2+<br>
+        <strong>Patrón:</strong> MVC</p>
+    </div>
+
+    <p><strong>Características implementadas en el proyecto:</strong></p>
+    <ul>
+        <li><strong>Sistema de Rutas (Routing):</strong> Definido en <span class="code-highlight">routes/web.php</span>, gestiona todas las URL de la aplicación.</li>
+        <li><strong>Eloquent ORM:</strong> Mapeo objeto-relacional para interactuar con la base de datos usando modelos PHP en lugar de SQL crudo.</li>
+        <li><strong>Migraciones:</strong> Control de versiones de la base de datos ubicado en <span class="code-highlight">database/migrations/</span></li>
+        <li><strong>Middleware:</strong> Capa de seguridad para autenticación y autorización (<span class="code-highlight">app/Http/Middleware/</span>).</li>
+        <li><strong>Autenticación basada en sesiones:</strong> Sistema de autenticación tradicional de Laravel usando sesiones HTTP y cookies (NO usa tokens Sanctum).</li>
+        <li><strong>Laravel Breeze:</strong> Starter kit que proporciona los controladores de autenticación (Login, Registro, Reset Password).</li>
+    </ul>
+
+    <div class="reason-box">
+        <strong>📌 ¿Por qué Laravel?</strong>
+        <ul>
+            <li><strong>Ecosistema maduro:</strong> Laravel es el framework PHP más popular con documentación extensa y comunidad activa.</li>
+            <li><strong>Batteries included:</strong> Incluye herramientas para autenticación, validación, ORM, colas, cache, etc., sin necesidad de librerías externas.</li>
+            <li><strong>Seguridad integrada:</strong> Protección contra CSRF, XSS, SQL Injection mediante validación y escape automático.</li>
+            <li><strong>Integración nativa con Inertia:</strong> Laravel tiene soporte oficial para Inertia.js mediante <span class="code-highlight">inertiajs/inertia-laravel</span>.</li>
+            <li><strong>Artisan CLI:</strong> Herramienta de línea de comandos que acelera tareas repetitivas (crear modelos, controladores, migraciones, etc.).</li>
+        </ul>
+    </div>
+
+    <h4>3.1.1. Componentes Backend Específicos</h4>
+
+    <p><strong>A) Modelos Eloquent:</strong></p>
+    <ul>
+        <li><span class="code-highlight">User.php</span>: Representa a los jugadores registrados. Incluye atributos como nombre, email, contraseña (hasheada), y avatar.</li>
+        <li><span class="code-highlight">PlayerStats.php</span>: Almacena estadísticas del jugador (nivel, victorias, Ki acumulado). Relación 1:1 con User.</li>
+    </ul>
+
+    <div class="reason-box">
+        <strong>📌 Diseño de base de datos:</strong> La separación entre User y PlayerStats sigue el principio de responsabilidad única (SOLID). User gestiona autenticación/identidad, mientras PlayerStats maneja progresión del juego. Esto permite escalar el sistema agregando más tablas de estadísticas sin modificar el modelo User.
+    </div>
+
+    <p><strong>B) Controladores:</strong></p>
+    <ul>
+        <li><span class="code-highlight">ProfileController.php</span>: Gestiona edición y actualización de perfil de usuario.</li>
+        <li><strong>Closures en web.php:</strong> Para rutas simples que solo renderizan vistas Inertia, se usan closures anónimas en lugar de controladores completos (ejemplo: ruta <span class="code-highlight">/game-mode</span>).</li>
+    </ul>
+
+    <h3>3.2. Frontend: React 18 + Inertia.js</h3>
+
+    <div class="tech-box">
+        <h4>React 18 - Biblioteca JavaScript para Interfaces</h4>
+        <p><strong>Versión:</strong> 18.2.0<br>
+        <strong>Paradigma:</strong> Componentes funcionales con Hooks</p>
+    </div>
+
+    <p><strong>Características de React utilizadas en el proyecto:</strong></p>
+    <ul>
+        <li><strong>useState:</strong> Para gestionar el estado local (ej: posición de piezas, turno actual, tiempo del reloj).</li>
+        <li><strong>useEffect:</strong> Para efectos secundarios como el cronómetro de partida y la carga inicial del tablero.</li>
+        <li><strong>useRef:</strong> Para referencias a elementos DOM (ej: auto-scroll del historial de movimientos).</li>
+        <li><strong>Renderizado condicional:</strong> Mostrar/ocultar modales de victoria, selección de promoción, etc.</li>
+    </ul>
+
+    <div class="reason-box">
+        <strong>📌 ¿Por qué React?</strong>
+        <ul>
+            <li><strong>Virtual DOM:</strong> React optimiza las actualizaciones del DOM real, crucial para un juego que requiere renderizado constante del tablero.</li>
+            <li><strong>Unidireccional (One-way data flow):</strong> Facilita predecir cómo los datos fluyen desde el estado hasta la UI, esencial para debuggear lógica de juego.</li>
+            <li><strong>Ecosistema de librerías:</strong> Compatibilidad con chess.js y otras librerías JavaScript puras.</li>
+            <li><strong>Reutilización de componentes:</strong> Un componente "Pieza" puede renderizarse 32 veces con diferentes props (tipo, color, posición).</li>
+        </ul>
+    </div>
+
+    <h4>3.2.1. Inertia.js - El Puente Mágico</h4>
+
+    <div class="tech-box">
+        <h4>Inertia.js 2.0 - Adaptador Laravel-React</h4>
+        <p>Inertia.js permite usar React como capa de vista sin construir una API REST. El servidor Laravel renderiza respuestas Inertia que el frontend consume automáticamente.</p>
+    </div>
+
+    <p><strong>Flujo de una petición con Inertia:</strong></p>
+    <ol>
+        <li>El usuario hace clic en un enlace (ej: "Jugar").</li>
+        <li>Inertia.js intercepta la navegación y envía una petición XHR al servidor.</li>
+        <li>Laravel procesa la ruta y retorna <span class="code-highlight">Inertia::render('Batalla', ['faction' => 'Z_WARRIORS'])</span>.</li>
+        <li>Inertia recibe un JSON con el nombre del componente React y los props.</li>
+        <li>React renderiza <span class="code-highlight">Batalla.jsx</span> con los datos recibidos.</li>
+        <li>La URL del navegador se actualiza sin recargar la página.</li>
+    </ol>
+
+    <div class="reason-box">
+        <strong>📌 Ventajas de Inertia sobre API REST tradicional:</strong>
+        <ul>
+            <li><strong>Sin duplicación de rutas:</strong> Las rutas se definen una vez en Laravel, no necesitas crear endpoints REST separados.</li>
+            <li><strong>No hay waterfalls:</strong> Los datos se pasan directamente a React, eliminando el patrón "cargar página → hacer fetch → actualizar UI".</li>
+            <li><strong>Autenticación simplificada:</strong> Usa las sesiones HTTP tradicionales de Laravel (cookies), no necesitas JWT, tokens de Sanctum ni refresh tokens.</li>
+            <li><strong>SEO amigable:</strong> El servidor puede pre-renderizar HTML para motores de búsqueda.</li>
+        </ul>
+    </div>
+
+    <h4>3.2.2. Componentes React Principales</h4>
+
+    <p><strong>A) Inicio.jsx - Lobby Principal:</strong></p>
+    <ul>
+        <li>Pantalla de bienvenida con estadísticas del jugador.</li>
+        <li>Botones para login/registro o acceder al modo de juego.</li>
+        <li>Muestra el nivel, victorias y Ki del usuario autenticado.</li>
+    </ul>
+
+    <p><strong>B) ModoJuego.jsx - Selección de Modo:</strong></p>
+    <ul>
+        <li>Permite elegir entre PVP (Jugador vs Jugador local) o PVC (Jugador vs CPU).</li>
+        <li>Protegida por middleware <span class="code-highlight">auth</span> (solo usuarios autenticados).</li>
+    </ul>
+
+    <p><strong>C) SelectorBando.jsx - Selección de Facción:</strong></p>
+    <ul>
+        <li>El usuario elige entre "Guerreros Z" (piezas naranjas) o "Villanos" (piezas moradas).</li>
+        <li>Determina qué lado del tablero controla (blancas/negras).</li>
+    </ul>
+
+    <p><strong>D) Batalla.jsx - Arena de Juego (724 líneas):</strong></p>
+    <ul>
+        <li><strong>Estado del juego:</strong> Gestiona la instancia de Chess.js, tablero, movimientos válidos, historial, tiempo, piezas capturadas.</li>
+        <li><strong>Lógica de turnos:</strong> Validación de quién puede mover según el turno actual.</li>
+        <li><strong>Cronómetro:</strong> Sistema de tiempo (10 minutos por jugador) con useEffect.</li>
+        <li><strong>Condiciones de victoria:</strong> Detecta jaque mate, empate por ahogado, tiempo agotado.</li>
+        <li><strong>Promoción de peones:</strong> Modal para elegir pieza (reina, torre, alfil, caballo).</li>
+        <li><strong>Animaciones:</strong> Efecto visual cuando el rey está en jaque.</li>
+    </ul>
+
+    <h3>3.3. Librerías Especializadas</h3>
+
+    <h4>A) chess.js - Motor de Lógica de Ajedrez</h4>
+
+    <div class="tech-box">
+        <h4>chess.js v1.4.0</h4>
+        <p>Librería JavaScript que implementa todas las reglas oficiales de la FIDE (Federación Internacional de Ajedrez).</p>
+    </div>
+
+    <p><strong>Funcionalidades implementadas:</strong></p>
+    <ul>
+        <li><strong>Validación de movimientos:</strong> <span class="code-highlight">game.move({from: 'e2', to: 'e4'})</span> retorna null si el movimiento es ilegal.</li>
+        <li><strong>Generación de movimientos válidos:</strong> <span class="code-highlight">game.moves({square: 'e2'})</span> lista todos los movimientos posibles desde esa casilla.</li>
+        <li><strong>Detección de estado del juego:</strong> <span class="code-highlight">game.isCheckmate()</span>, <span class="code-highlight">game.isStalemate()</span>, <span class="code-highlight">game.isCheck()</span>.</li>
+        <li><strong>Historial:</strong> <span class="code-highlight">game.history()</span> retorna lista de movimientos en notación estándar (ej: "e4", "Nf3").</li>
+        <li><strong>Notación FEN:</strong> Capacidad de exportar/importar posición del tablero en formato FEN (Forsyth-Edwards Notation).</li>
+    </ul>
+
+    <div class="reason-box">
+        <strong>📌 ¿Por qué chess.js?</strong>
+        <ul>
+            <li><strong>Evita reinventar la rueda:</strong> Implementar las reglas de ajedrez desde cero tomaría semanas (enroque, captura al paso, regla de 50 movimientos, etc.).</li>
+            <li><strong>Testeado exhaustivamente:</strong> Librería con años de uso y comunidad activa.</li>
+            <li><strong>Ligero:</strong> ~10KB minificado, no afecta el rendimiento.</li>
+            <li><strong>Framework-agnostic:</strong> Funciona con React, Vue, Angular o JavaScript vanilla.</li>
+        </ul>
+    </div>
+
+    <h4>B) Tailwind CSS - Framework de Utilidades</h4>
+
+    <div class="tech-box">
+        <h4>Tailwind CSS 3.x</h4>
+        <p>Framework CSS basado en clases de utilidad que permite construir interfaces sin escribir CSS personalizado.</p>
+    </div>
+
+    <p><strong>Características utilizadas:</strong></p>
+    <ul>
+        <li><strong>Responsive design:</strong> Clases como <span class="code-highlight">md:flex</span>, <span class="code-highlight">lg:grid-cols-2</span> para adaptar el layout a diferentes pantallas.</li>
+        <li><strong>Animaciones:</strong> <span class="code-highlight">animate-pulse</span> para efectos visuales (ej: rey en jaque).</li>
+        <li><strong>Gradientes:</strong> Fondos degradados para el tema de Dragon Ball.</li>
+        <li><strong>Flexbox/Grid:</strong> Sistema de layout moderno sin librerías adicionales.</li>
+    </ul>
+
+    <div class="reason-box">
+        <strong>📌 ¿Por qué Tailwind?</strong>
+        <ul>
+            <li><strong>Desarrollo rápido:</strong> No necesitas nombrar clases ni crear archivos CSS separados.</li>
+            <li><strong>Tree-shaking:</strong> Solo las clases usadas se incluyen en producción (archivo CSS final ~20KB).</li>
+            <li><strong>Consistencia:</strong> Sistema de diseño predefinido (colores, espaciado, tipografía).</li>
+            <li><strong>Customizable:</strong> El archivo <span class="code-highlight">tailwind.config.js</span> permite definir colores personalizados (naranja de Goku, morado de Freezer).</li>
+        </ul>
+    </div>
+
+    <h4>C) Ziggy - Enrutamiento en JavaScript</h4>
+
+    <div class="tech-box">
+        <h4>Ziggy 2.0</h4>
+        <p>Librería que exporta las rutas de Laravel a JavaScript, permitiendo usar <span class="code-highlight">route('game.mode')</span> desde React.</p>
+    </div>
+
+    <div class="reason-box">
+        <strong>📌 Ventaja:</strong> Evita hardcodear URLs en el frontend. Si cambias una ruta en Laravel, automáticamente se actualiza en React.
+    </div>
+
+    <h3>3.4. Herramientas de Desarrollo</h3>
+
+    <h4>A) Vite - Build Tool</h4>
+
+    <div class="tech-box">
+        <h4>Vite 5.x</h4>
+        <p>Empaquetador de módulos ultrarrápido que reemplaza a Webpack.</p>
+    </div>
+
+    <p><strong>Características:</strong></p>
+    <ul>
+        <li><strong>Hot Module Replacement (HMR):</strong> Los cambios en React se reflejan en milisegundos sin recargar la página.</li>
+        <li><strong>ESM nativo:</strong> Usa módulos ES nativos del navegador en desarrollo (más rápido que bundling).</li>
+        <li><strong>Optimización automática:</strong> Code splitting, tree-shaking, minificación.</li>
+        <li><strong>Integración Laravel:</strong> El plugin <span class="code-highlight">laravel-vite-plugin</span> sincroniza assets entre Laravel y Vite.</li>
+    </ul>
+
+    <h4>B) Composer - Gestor de Dependencias PHP</h4>
+
+    <p>Gestiona las librerías de Laravel (Eloquent, Sanctum, Inertia, etc.). El archivo <span class="code-highlight">composer.json</span> define las dependencias del proyecto.</p>
+
+    <h4>C) NPM - Gestor de Paquetes JavaScript</h4>
+
+    <p>Gestiona las librerías de React (chess.js, Tailwind, etc.). El archivo <span class="code-highlight">package.json</span> define scripts como <span class="code-highlight">npm run dev</span> y <span class="code-highlight">npm run build</span>.</p>
+
+    <h2>4. FLUJO DE DATOS EN EL SISTEMA</h2>
+
+    <h3>4.1. Flujo de Autenticación</h3>
+
+    <div class="reason-box">
+        <strong>⚠️ Nota importante:</strong> Aunque Laravel Sanctum está instalado como dependencia (incluido en Laravel Breeze), <strong>NO se está usando</strong> en este proyecto. La aplicación utiliza autenticación tradicional basada en sesiones HTTP porque:
+        <ul>
+            <li>Inertia.js está diseñado para trabajar con sesiones, no con tokens API</li>
+            <li>No hay separación frontend/backend que requiera autenticación stateless</li>
+            <li>Las sesiones HTTP son más simples y seguras para aplicaciones monolíticas</li>
+            <li>Sanctum se usaría solo si se construyera una API REST separada o una mobile app</li>
+        </ul>
+    </div>
+
+    <ol>
+        <li>Usuario accede a <span class="code-highlight">/login</span>.</li>
+        <li>Laravel renderiza el componente <span class="code-highlight">Login.jsx</span> vía Inertia.</li>
+        <li>Usuario ingresa credenciales y envía formulario.</li>
+        <li>El controlador <span class="code-highlight">AuthenticatedSessionController</span> valida las credenciales contra la tabla <span class="code-highlight">users</span> usando <span class="code-highlight">Auth::attempt()</span>.</li>
+        <li>Si son correctas, Laravel crea una sesión HTTP (cookie encriptada con el session_id) y se redirige a <span class="code-highlight">/</span>.</li>
+        <li>El middleware <span class="code-highlight">auth</span> verifica la sesión en cada petición para proteger rutas como <span class="code-highlight">/game-mode</span>.</li>
+        <li>La sesión se almacena en el servidor (archivo o Redis) y solo el ID de sesión viaja en la cookie del cliente.</li>
+    </ol>
+
+    <h3>4.2. Flujo de una Partida</h3>
+
+    <ol>
+        <li><strong>Inicio:</strong> Usuario autenticado navega a <span class="code-highlight">/game-mode</span> y selecciona PVP o PVC.</li>
+        <li><strong>Selección de bando:</strong> Elige "Guerreros Z" o "Villanos" en <span class="code-highlight">/faction-select</span>.</li>
+        <li><strong>Carga de arena:</strong> Se navega a <span class="code-highlight">/game-arena</span> con parámetros <span class="code-highlight">?faction=Z_WARRIORS&mode=PVP</span>.</li>
+        <li><strong>Inicialización del tablero:</strong> El componente <span class="code-highlight">Batalla.jsx</span> crea una instancia de Chess.js.</li>
+        <li><strong>Loop de juego:</strong>
+            <ul>
+                <li>Jugador hace clic en una pieza → se calculan movimientos válidos.</li>
+                <li>Jugador hace clic en casilla destino → se valida el movimiento.</li>
+                <li>Si es válido, <span class="code-highlight">game.move()</span> actualiza el estado interno.</li>
+                <li>El tablero se re-renderiza mostrando la nueva posición.</li>
+                <li>Se verifica si hay jaque, jaque mate o empate.</li>
+            </ul>
+        </li>
+        <li><strong>Fin de partida:</strong> Se muestra modal de victoria/derrota (actualmente sin persistencia en BD).</li>
+    </ol>
+
+    <h2>5. TECNOLOGÍAS FUTURAS POR SPRINT</h2>
+
+    <div class="sprint-box">
+        <h3>Sprint 3 (25 Feb - 10 Mar): Integración Temática</h3>
+        <h4>Tecnologías a integrar:</h4>
+        <ul>
+            <li><strong>Sprites de Dragon Ball:</strong> Reemplazo de símbolos Unicode por imágenes PNG/SVG de personajes (Goku, Vegeta, Freezer, Cell, etc.).</li>
+            <li><strong>CSS Animations/Keyframes:</strong> Animaciones personalizadas para movimientos de piezas.</li>
+            <li><strong>Diseño de HUD:</strong> Barras de Ki, avatares de jugadores, indicadores de turno.</li>
+        </ul>
+        <div class="reason-box">
+            <strong>Objetivo:</strong> Transformar el tablero genérico en una experiencia temática inmersiva que refleje el universo de Dragon Ball.
+        </div>
+    </div>
+
+    <div class="sprint-box">
+        <h3>Sprint 4 (11 Mar - 24 Mar): Inteligencia Artificial</h3>
+        <h4>Tecnologías a integrar:</h4>
+        <ul>
+            <li><strong>Stockfish.js:</strong> Motor de ajedrez de clase mundial portado a JavaScript mediante WebAssembly (WASM).</li>
+            <li><strong>Web Workers:</strong> Ejecutar el cálculo de la IA en un hilo separado para no bloquear la UI.</li>
+            <li><strong>UCI Protocol:</strong> Protocolo estándar para comunicación con motores de ajedrez.</li>
+            <li><strong>Niveles de dificultad:</strong>
+                <ul>
+                    <li><strong>Fácil:</strong> Profundidad de búsqueda limitada (5 movimientos).</li>
+                    <li><strong>Medio:</strong> Profundidad 10-15 movimientos.</li>
+                    <li><strong>Difícil:</strong> Profundidad 20+ movimientos (ELO ~2000).</li>
+                </ul>
+            </li>
+        </ul>
+        <div class="reason-box">
+            <strong>¿Por qué Stockfish?</strong>
+            <ul>
+                <li>Motor de código abierto más fuerte del mundo (ha derrotado a campeones mundiales).</li>
+                <li>Stockfish.js es la versión JavaScript/WASM oficial.</li>
+                <li>Soporta configuración de ELO para ajustar dificultad.</li>
+                <li>No requiere servidor (se ejecuta completamente en el navegador).</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="sprint-box">
+        <h3>Sprint 5 (25 Mar - 07 Abr): Sistema de Persistencia y "Ki"</h3>
+        <h4>Tecnologías a integrar:</h4>
+        <ul>
+            <li><strong>TiDB Cloud:</strong> Base de datos SQL compatible con MySQL pero con capacidades de escalabilidad horizontal (NewSQL).</li>
+            <li><strong>API RESTful en Laravel:</strong> Endpoints para guardar/recuperar partidas:
+                <ul>
+                    <li><span class="code-highlight">POST /api/matches</span>: Guardar resultado de partida.</li>
+                    <li><span class="code-highlight">GET /api/matches/{userId}</span>: Obtener historial.</li>
+                    <li><span class="code-highlight">PATCH /api/users/{id}/stats</span>: Actualizar Ki y nivel.</li>
+                </ul>
+            </li>
+            <li><strong>Laravel Sanctum (activación):</strong> En este sprint se activará Sanctum para proteger los endpoints de la API con tokens, mientras que las rutas web continuarán usando sesiones.</li>
+            <li><strong>Algoritmo de Ki:</strong> Fórmula para calcular puntos:
+                <pre>Ki = (victorias × 100) + (capturas × 10) + (tiempo_restante × 0.5) - (derrotas × 50)</pre>
+            </li>
+            <li><strong>Sistema de niveles:</strong> Desbloqueo de personajes basado en umbrales de Ki (ej: 500 Ki = Nivel 2 → desbloquea Super Saiyan).</li>
+        </ul>
+        <div class="reason-box">
+            <strong>¿Por qué TiDB?</strong>
+            <ul>
+                <li><strong>Serverless:</strong> Escalamiento automático sin administrar servidores.</li>
+                <li><strong>Compatibilidad MySQL:</strong> Funciona con Eloquent sin cambios en el código.</li>
+                <li><strong>Transacciones ACID:</strong> Garantiza consistencia de datos (crucial para estadísticas de jugadores).</li>
+                <li><strong>Free Tier:</strong> Suficiente para desarrollo y producción inicial.</li>
+            </ul>
+            <strong>¿Por qué se activará Sanctum en este sprint?</strong>
+            <ul>
+                <li>Los endpoints <span class="code-highlight">/api/*</span> necesitarán autenticación stateless (sin sesiones) para permitir futuras integraciones (mobile apps, webhooks).</li>
+                <li>Sanctum proporcionará tokens personales de API que React puede usar en peticiones AJAX.</li>
+                <li>Las rutas web (<span class="code-highlight">/game-mode</span>, <span class="code-highlight">/game-arena</span>) seguirán usando sesiones HTTP.</li>
+                <li>Esto permite un modelo híbrido: sesiones para navegación, tokens para API.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="sprint-box">
+        <h3>Sprint 6 (08 Abr - 21 Abr): Eventos y Power-Ups</h3>
+        <h4>Tecnologías y mecánicas a integrar:</h4>
+        <ul>
+            <li><strong>Sistema de eventos aleatorios:</strong> Casillas especiales que activan efectos:
+                <ul>
+                    <li><strong>Cámara del Tiempo:</strong> Jugador gana un turno extra.</li>
+                <li><strong>Zona de Gravedad Aumentada:</strong> Pieza no puede moverse por 1 turno.</li>
+                    <li><strong>Dragon Ball:</strong> Resucitar una pieza capturada.</li>
+                </ul>
+            </li>
+            <li><strong>Sistema de inventario:</strong> Tabla en TiDB para almacenar ítems del jugador.</li>
+            <li><strong>Power-Ups consumibles:</strong>
+                <ul>
+                    <li><strong>Senzu:</strong> Restaura tiempo del reloj.</li>
+                    <li><strong>Kaioken:</strong> Permite mover dos piezas en un turno.</li>
+                    <li><strong>Super Saiyan:</strong> Transforma un peón en reina instantáneamente.</li>
+                </ul>
+            </li>
+            <li><strong>Animaciones avanzadas:</strong> Partículas, efectos de transformación usando CSS/Canvas.</li>
+        </ul>
+        <div class="reason-box">
+            <strong>Impacto en la arquitectura:</strong> Este sprint requiere extender el modelo de datos con nuevas tablas (<span class="code-highlight">items</span>, <span class="code-highlight">match_events</span>) y modificar la lógica de Chess.js para soportar reglas personalizadas.
+        </div>
+    </div>
+
+    <div class="sprint-box">
+        <h3>Sprint 7 (22 Abr - 01 May): Pulido y Despliegue</h3>
+        <h4>Tecnologías y herramientas:</h4>
+        <ul>
+            <li><strong>Plataforma de Hosting:</strong> Opciones consideradas:
+                <ul>
+                    <li><strong>Railway.app:</strong> Despliegue automático desde GitHub, soporta PHP/Laravel.</li>
+                    <li><strong>Vercel + PlanetScale:</strong> Frontend en Vercel, backend en Railway, BD en PlanetScale.</li>
+                    <li><strong>Laravel Forge:</strong> Gestión de servidores VPS (DigitalOcean, Linode).</li>
+                </ul>
+            </li>
+            <li><strong>Sistema de audio:</strong> Integración de efectos de sonido:
+                <ul>
+                    <li><strong>Howler.js:</strong> Librería JavaScript para reproducir audio (compatibilidad cross-browser).</li>
+                    <li><strong>Sonidos:</strong> Movimiento de pieza, captura, jaque, victoria, derrota.</li>
+                </ul>
+            </li>
+            <li><strong>Testing:</strong>
+                <ul>
+                    <li><strong>PHPUnit:</strong> Tests unitarios para modelos y controladores Laravel.</li>
+                    <li><strong>Laravel Dusk:</strong> Tests end-to-end del flujo completo (registro → jugar → guardar).</li>
+                </ul>
+            </li>
+            <li><strong>Optimizaciones:</strong>
+                <ul>
+                    <li>Minificación de assets con Vite.</li>
+                    <li>Caché de Laravel (<span class="code-highlight">php artisan optimize</span>).</li>
+                    <li>Lazy loading de componentes React.</li>
+                    <li>Compresión de imágenes (sprites).</li>
+                </ul>
+            </li>
+        </ul>
+        <div class="reason-box">
+            <strong>Objetivo final:</strong> Aplicación lista para producción con alta disponibilidad, rendimiento optimizado y experiencia de usuario pulida.
+        </div>
+    </div>
+
+    <h2>6. PRINCIPIOS DE DISEÑO APLICADOS</h2>
+
+    <h3>6.1. Separation of Concerns (Separación de Responsabilidades)</h3>
+    <ul>
+        <li><strong>Backend:</strong> Maneja autenticación, persistencia, lógica de negocio.</li>
+        <li><strong>Frontend:</strong> Maneja presentación, interacción del usuario, estado local del juego.</li>
+        <li><strong>Chess.js:</strong> Maneja reglas de ajedrez (validación, estado del juego).</li>
+    </ul>
+
+    <h3>6.2. DRY (Don't Repeat Yourself)</h3>
+    <ul>
+        <li>Componentes React reutilizables (botones, modales, tarjetas).</li>
+        <li>Middlewares de Laravel para lógica transversal (autenticación).</li>
+        <li>Tailwind para estilos consistentes sin duplicar CSS.</li>
+    </ul>
+
+    <h3>6.3. Progressive Enhancement</h3>
+    <ul>
+        <li>La aplicación funciona con JavaScript deshabilitado (formularios HTML nativos).</li>
+        <li>Inertia.js mejora la experiencia con SPA solo si JS está habilitado.</li>
+    </ul>
+
+    <h2>7. VENTAJAS DE LA ARQUITECTURA ELEGIDA</h2>
+
+    <table>
+        <tr>
+            <th>Aspecto</th>
+            <th>Ventaja</th>
+            <th>Impacto en el Proyecto</th>
+        </tr>
+        <tr>
+            <td><strong>Productividad</strong></td>
+            <td>Inertia elimina boilerplate de API REST</td>
+            <td>Desarrollo 30-40% más rápido que con API separada</td>
+        </tr>
+        <tr>
+            <td><strong>Rendimiento</strong></td>
+            <td>SPA evita recargas completas de página</td>
+            <td>Transiciones fluidas entre pantallas (lobby → juego)</td>
+        </tr>
+        <tr>
+            <td><strong>Seguridad</strong></td>
+            <td>Sesiones Laravel + Middleware auth + CSRF tokens</td>
+            <td>Protección contra CSRF, XSS, inyección SQL, session hijacking</td>
+        </tr>
+        <tr>
+            <td><strong>Mantenibilidad</strong></td>
+            <td>Código TypeScript/PHP bien tipado</td>
+            <td>Menos bugs, refactorización más segura</td>
+        </tr>
+        <tr>
+            <td><strong>Escalabilidad</strong></td>
+            <td>TiDB Serverless + componentes React modulares</td>
+            <td>Fácil agregar nuevas features (chat, matchmaking)</td>
+        </tr>
+    </table>
+
+    <h2>8. DESAFÍOS Y SOLUCIONES TÉCNICAS</h2>
+
+    <h3>8.1. Sincronización de Estado Cliente-Servidor</h3>
+    <p><strong>Problema:</strong> El estado del juego vive en el cliente (Chess.js), pero las estadísticas deben guardarse en el servidor.</p>
+    <p><strong>Solución:</strong> Al finalizar la partida, se serializa el estado del juego (notación FEN + historial) y se envía al backend vía petición POST Inertia.</p>
+
+    <h3>8.2. Ejecución de IA sin Bloquear UI</h3>
+    <p><strong>Problema:</strong> Stockfish puede tardar segundos en calcular movimientos, bloqueando la interfaz.</p>
+    <p><strong>Solución (Sprint 4):</strong> Web Workers ejecutan Stockfish en un hilo separado. El componente React usa <span class="code-highlight">postMessage()</span> para comunicarse con el worker.</p>
+
+    <h3>8.3. Validación de Movimientos en Tiempo Real</h3>
+    <p><strong>Problema:</strong> Necesidad de resaltar casillas válidas sin recalcular en cada render.</p>
+    <p><strong>Solución:</strong> Uso de <span class="code-highlight">useMemo</span> para cachear el resultado de <span class="code-highlight">game.moves()</span> y solo recalcular cuando cambia la posición.</p>
+
+    <h2>9. CONCLUSIÓN TÉCNICA</h2>
+
+    <p>La arquitectura de Dragon Chess representa un balance óptimo entre simplicidad y potencia para un proyecto de esta envergadura. La elección de <strong>Laravel + React + Inertia.js</strong> permite desarrollo rápido sin sacrificar escalabilidad.</p>
+
+    <p>La integración de <strong>chess.js</strong> elimina meses de desarrollo en lógica de juego, mientras que la futura incorporación de <strong>Stockfish.js</strong> proporcionará una IA de nivel profesional sin costo de servidores adicionales.</p>
+
+    <p>El diseño modular basado en componentes React facilita la extensión del sistema con nuevas features (eventos aleatorios, power-ups, chat en tiempo real) sin refactorizar código existente.</p>
+
+    <p>Finalmente, el uso de <strong>TiDB Cloud</strong> como base de datos garantiza que el sistema pueda escalar desde decenas hasta millones de usuarios sin cambios arquitectónicos mayores, cumpliendo con los objetivos de un proyecto Full Stack moderno y profesional.</p>
+
+    <hr style="margin: 40px 0; border: 2px solid #3498db;">
+
+    <h2>10. CRONOGRAMA VISUAL</h2>
+
+    <table>
+        <tr>
+            <th style="width: 15%;">Sprint</th>
+            <th style="width: 20%;">Fechas</th>
+            <th style="width: 30%;">Fase</th>
+            <th style="width: 35%;">Entregables Clave</th>
+        </tr>
+        <tr style="background-color: #c8e6c9;">
+            <td><strong>Sprint 1</strong></td>
+            <td>28 Ene - 10 Feb</td>
+            <td>Arquitectura y Navegación</td>
+            <td>Sistema de rutas, Auth, Dashboard</td>
+        </tr>
+        <tr style="background-color: #ffecb3;">
+            <td><strong>Sprint 2</strong></td>
+            <td>11 Feb - 24 Feb</td>
+            <td>Motor de Juego Core</td>
+            <td>Tablero funcional, chess.js integrado, validación</td>
+        </tr>
+        <tr>
+            <td><strong>Sprint 3</strong></td>
+            <td>25 Feb - 10 Mar</td>
+            <td>Integración Temática</td>
+            <td>Sprites Dragon Ball, HUD de batalla</td>
+        </tr>
+        <tr>
+            <td><strong>Sprint 4</strong></td>
+            <td>11 Mar - 24 Mar</td>
+            <td>Inteligencia Artificial</td>
+            <td>Stockfish.js, niveles de dificultad</td>
+        </tr>
+        <tr>
+            <td><strong>Sprint 5</strong></td>
+            <td>25 Mar - 07 Abr</td>
+            <td>Persistencia y Ki</td>
+            <td>TiDB Cloud, API REST, sistema de progresión</td>
+        </tr>
+        <tr>
+            <td><strong>Sprint 6</strong></td>
+            <td>08 Abr - 21 Abr</td>
+            <td>Eventos y Power-Ups</td>
+            <td>Casillas especiales, inventario, transformaciones</td>
+        </tr>
+        <tr>
+            <td><strong>Sprint 7</strong></td>
+            <td>22 Abr - 01 May</td>
+            <td>Pulido y Despliegue</td>
+            <td>QA, SFX, Deploy a producción</td>
+        </tr>
+    </table>
+
+    <div style="margin-top: 40px; padding: 20px; background-color: #e3f2fd; border-left: 4px solid #2196f3;">
+        <h3 style="margin-top: 0;">📊 Métricas del Proyecto Actual</h3>
+        <ul>
+            <li><strong>Líneas de código (aprox.):</strong> 2,500+ líneas (PHP + JSX)</li>
+            <li><strong>Componentes React:</strong> 6 páginas principales + componentes reutilizables</li>
+            <li><strong>Modelos Laravel:</strong> 2 (User, PlayerStats)</li>
+            <li><strong>Rutas definidas:</strong> 10+ (web.php + auth.php)</li>
+            <li><strong>Migraciones de BD:</strong> 5</li>
+            <li><strong>Dependencias:</strong> 50+ paquetes (Composer + NPM)</li>
+        </ul>
+    </div>
+
+    <div style="margin-top: 20px; text-align: center; color: #7f8c8d; font-size: 12px;">
+        <p>Documento generado el 5 de febrero de 2026</p>
+        <p><strong>Dragon Chess</strong> - Full Stack Chess Application with Dragon Ball Theme</p>
+    </div>
+
+</body>
+</html>
