@@ -5,7 +5,7 @@ export default function EditarPerfil({ auth, stats }) {
     const { data, setData, patch, processing, errors } = useForm({
         name: auth.user.name,
         email: auth.user.email,
-        avatar: auth.user.avatar || '/images/characters/Goku.png',
+        avatar: auth.user.avatar || '/images/characters/Guerreros/Torre/Goku.png',
     });
 
     const [clientErrors, setClientErrors] = useState({});
@@ -70,11 +70,11 @@ export default function EditarPerfil({ auth, stats }) {
     };
 
     const availableAvatars = [
-        { name: 'Goku', path: '/images/characters/Goku.png' },
-        { name: 'Vegeta', path: '/images/characters/Vegeta.png' },
-        { name: 'Bills', path: '/images/characters/Bills.png' },
-        { name: 'Bulma', path: '/images/characters/Bulma.png' },
-        { name: 'Freezer', path: '/images/characters/Freezer.png' },
+        { name: 'Goku', path: '/images/characters/Guerreros/Torre/Goku.png' },
+        { name: 'Vegeta', path: '/images/characters/Guerreros/Caballo/Vegeta.png' },
+        { name: 'Bills', path: '/images/characters/Guerreros/Rey/Bills.png' },
+        { name: 'Bulma', path: '/images/characters/Guerreros/Reina/Bulma.png' },
+        { name: 'Freezer', path: '/images/characters/Villanos/Rey/Freezer.png' },
     ];
 
     return (

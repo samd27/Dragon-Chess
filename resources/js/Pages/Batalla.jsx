@@ -27,7 +27,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null 
     
     const player = {
         name: auth.user?.name || 'Kakarot_99',
-        avatar: auth.user?.avatar || '/images/characters/Goku.png',
+        avatar: auth.user?.avatar || '/images/characters/Guerreros/Torre/Goku.png',
     };
 
     const handleAbortMission = () => {
@@ -54,8 +54,8 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null 
             ? 'CPU' 
             : (player2 ? player2.name : 'Invitado'),
         avatar: mode === 'PVC'
-            ? (faction === 'Z_WARRIORS' ? '/images/characters/Freezer.png' : '/images/characters/Goku.png')
-            : (player2 ? player2.avatar : (faction === 'Z_WARRIORS' ? '/images/characters/Freezer.png' : '/images/characters/Goku.png')),
+            ? (faction === 'Z_WARRIORS' ? '/images/characters/Villanos/Rey/Freezer.png' : '/images/characters/Guerreros/Torre/Goku.png')
+            : (player2 ? player2.avatar : (faction === 'Z_WARRIORS' ? '/images/characters/Villanos/Rey/Freezer.png' : '/images/characters/Guerreros/Torre/Goku.png')),
     };
 
     // Piezas Unicode para renderizar

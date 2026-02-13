@@ -7,7 +7,7 @@ export default function Welcome({ auth, stats }) {
     const player = {
         name: auth.user?.name || 'Kakarot_99',
         level: stats?.level || 1,
-        avatar: auth.user?.avatar || '/images/characters/Goku.png',
+        avatar: auth.user?.avatar || '/images/characters/Guerreros/Torre/Goku.png',
     };
 
     return (
