@@ -10,6 +10,7 @@ export default function EditarPerfil({ auth, stats }) {
 
     const [clientErrors, setClientErrors] = useState({});
     const [showAvatarSelector, setShowAvatarSelector] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState('Guerreros Z');
 
     const validateName = (name) => {
         if (!name || name.length === 0) {
@@ -70,16 +71,23 @@ export default function EditarPerfil({ auth, stats }) {
     };
 
     const availableAvatars = [
-        { name: 'Goku', path: '/images/characters/Guerreros/Torre/Goku.png' },
-        { name: 'Vegeta', path: '/images/characters/Guerreros/Caballo/Vegeta.png' },
-        { name: 'Bills', path: '/images/characters/Guerreros/Rey/Bills.png' },
-        { name: 'Bulma', path: '/images/characters/Guerreros/Reina/Bulma.png' },
-        { name: 'Freezer', path: '/images/characters/Villanos/Rey/Freezer.png' },
-        { name: 'Champa', path: '/images/characters/Villanos/Rey/Champa.png' },
-        { name: 'Dabura', path: '/images/characters/Villanos/Rey/Dabura.png' },
-        { name: 'Ginyu', path: '/images/characters/Villanos/Rey/Ginyu.png' },
-        { name: 'Moro', path: '/images/characters/Villanos/Rey/Moro.png' },
+        { name: 'Goku', path: '/images/characters/Guerreros/Torre/Goku.png', category: 'Guerreros Z' },
+        { name: 'Vegeta', path: '/images/characters/Guerreros/Caballo/Vegeta.png', category: 'Guerreros Z' },
+        { name: 'Bills', path: '/images/characters/Guerreros/Rey/Bills.png', category: 'Guerreros Z' },
+        { name: 'Bulma', path: '/images/characters/Guerreros/Reina/Bulma.png', category: 'Guerreros Z' },
+        { name: 'Freezer', path: '/images/characters/Villanos/Rey/Freezer.png', category: 'Villanos' },
+        { name: 'Champa', path: '/images/characters/Villanos/Rey/Champa.png', category: 'Villanos' },
+        { name: 'Dabura', path: '/images/characters/Villanos/Rey/Dabura.png', category: 'Villanos' },
+        { name: 'Ginyu', path: '/images/characters/Villanos/Rey/Ginyu.png', category: 'Villanos' },
+        { name: 'Moro', path: '/images/characters/Villanos/Rey/Moro.png', category: 'Villanos' },
+        { name: 'Arinsu', path: '/images/characters/Villanos/Reina/Arinsu.png', category: 'Villanos' },
+        { name: 'Cell', path: '/images/characters/Villanos/Reina/Cell.png', category: 'Villanos' },
+        { name: 'Freezer Black', path: '/images/characters/Villanos/Reina/Freezer_Black.png', category: 'Villanos' },
+        { name: 'Jiren', path: '/images/characters/Villanos/Reina/Jiren.png', category: 'Villanos' },
+        { name: 'Zamas', path: '/images/characters/Villanos/Reina/Zamas.png', category: 'Villanos' },
     ];
+
+    const filteredAvatars = availableAvatars.filter(avatar => avatar.category === selectedCategory);
 
     return (
         <>
@@ -137,8 +145,36 @@ export default function EditarPerfil({ auth, stats }) {
                                 </div>
 
                                 {showAvatarSelector && (
-                                    <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4 mt-3 md:mt-4 p-3 md:p-4 bg-black/20 rounded-xl border border-white/5">
-                                        {availableAvatars.map((avatar) => (
+                                    <div className="mt-3 md:mt-4 p-3 md:p-4 bg-black/20 rounded-xl border border-white/5">
+                                        {/* Category Buttons */}
+                                        <div className="flex gap-2 md:gap-3 mb-4">
+                                            <button
+                                                type="button"
+                                                onClick={() => setSelectedCategory('Guerreros Z')}
+                                                className={`flex-1 px-4 py-2 rounded-lg font-black uppercase text-xs tracking-widest transition-all ${
+                                                    selectedCategory === 'Guerreros Z'
+                                                        ? 'bg-primary text-black border-2 border-primary shadow-lg'
+                                                        : 'bg-white/5 text-white/60 border-2 border-white/10 hover:border-white/30'
+                                                }`}
+                                            >
+                                                ⚔️ Guerreros Z
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setSelectedCategory('Villanos')}
+                                                className={`flex-1 px-4 py-2 rounded-lg font-black uppercase text-xs tracking-widest transition-all ${
+                                                    selectedCategory === 'Villanos'
+                                                        ? 'bg-primary text-black border-2 border-primary shadow-lg'
+                                                        : 'bg-white/5 text-white/60 border-2 border-white/10 hover:border-white/30'
+                                                }`}
+                                            >
+                                                💀 Villanos
+                                            </button>
+                                        </div>
+
+                                        {/* Avatar Grid */}
+                                        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+                                            {filteredAvatars.map((avatar) => (
                                             <button
                                                 key={avatar.path}
                                                 type="button"
@@ -160,6 +196,7 @@ export default function EditarPerfil({ auth, stats }) {
                                                 <span className="block text-white text-[10px] md:text-xs font-bold mt-1 md:mt-2 text-center">{avatar.name}</span>
                                             </button>
                                         ))}
+                                        </div>
                                     </div>
                                 )}
                             </div>
