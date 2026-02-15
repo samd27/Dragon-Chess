@@ -70,24 +70,40 @@ export default function EditarPerfil({ auth, stats }) {
         });
     };
 
-    const availableAvatars = [
-        { name: 'Goku', path: '/images/characters/Guerreros/Torre/Goku.png', category: 'Guerreros Z' },
-        { name: 'Vegeta', path: '/images/characters/Guerreros/Caballo/Vegeta.png', category: 'Guerreros Z' },
+    // Guerreros Z
+    const guerrerosAvatars = [
         { name: 'Bills', path: '/images/characters/Guerreros/Rey/Bills.png', category: 'Guerreros Z' },
         { name: 'Bulma', path: '/images/characters/Guerreros/Reina/Bulma.png', category: 'Guerreros Z' },
-        { name: 'Freezer', path: '/images/characters/Villanos/Rey/Freezer.png', category: 'Villanos' },
-        { name: 'Champa', path: '/images/characters/Villanos/Rey/Champa.png', category: 'Villanos' },
-        { name: 'Dabura', path: '/images/characters/Villanos/Rey/Dabura.png', category: 'Villanos' },
-        { name: 'Ginyu', path: '/images/characters/Villanos/Rey/Ginyu.png', category: 'Villanos' },
-        { name: 'Moro', path: '/images/characters/Villanos/Rey/Moro.png', category: 'Villanos' },
-        { name: 'Arinsu', path: '/images/characters/Villanos/Reina/Arinsu.png', category: 'Villanos' },
-        { name: 'Cell', path: '/images/characters/Villanos/Reina/Cell.png', category: 'Villanos' },
-        { name: 'Freezer Black', path: '/images/characters/Villanos/Reina/Freezer_Black.png', category: 'Villanos' },
-        { name: 'Jiren', path: '/images/characters/Villanos/Reina/Jiren.png', category: 'Villanos' },
-        { name: 'Zamas', path: '/images/characters/Villanos/Reina/Zamas.png', category: 'Villanos' },
+        { name: 'Goku', path: '/images/characters/Guerreros/Torre/Goku.png', category: 'Guerreros Z' },
+        { name: 'Vegeta', path: '/images/characters/Guerreros/Caballo/Vegeta.png', category: 'Guerreros Z' },
     ];
 
-    const filteredAvatars = availableAvatars.filter(avatar => avatar.category === selectedCategory);
+    // Villanos
+    const villanosAvatars = [
+        { name: 'Androide 17', path: '/images/characters/Villanos/Caballo/Androide 17.png', category: 'Villanos' },
+        { name: 'Arinsu', path: '/images/characters/Villanos/Reina/Arinsu.png', category: 'Villanos' },
+        { name: 'Black Freezer', path: '/images/characters/Villanos/Reina/Freezer_Black.png', category: 'Villanos' },
+        { name: 'Broly Z', path: '/images/characters/Villanos/Torre/Broly_Z.png', category: 'Villanos' },
+        { name: 'Cell', path: '/images/characters/Villanos/Reina/Cell.png', category: 'Villanos' },
+        { name: 'Champa', path: '/images/characters/Villanos/Rey/Champa.png', category: 'Villanos' },
+        { name: 'Dabura', path: '/images/characters/Villanos/Rey/Dabura.png', category: 'Villanos' },
+        { name: 'Freezer', path: '/images/characters/Villanos/Rey/Freezer.png', category: 'Villanos' },
+        { name: 'Freezer 100%', path: '/images/characters/Villanos/Caballo/Freezer_100.png', category: 'Villanos' },
+        { name: 'Freezer 2da Forma', path: '/images/characters/Villanos/Torre/Freezer_2da Forma.png', category: 'Villanos' },
+        { name: 'Gas', path: '/images/characters/Villanos/Torre/Gas.png', category: 'Villanos' },
+        { name: 'Ginyu', path: '/images/characters/Villanos/Rey/Ginyu.png', category: 'Villanos' },
+        { name: 'Jeice', path: '/images/characters/Villanos/Caballo/Jeice.png', category: 'Villanos' },
+        { name: 'Jiren', path: '/images/characters/Villanos/Reina/Jiren.png', category: 'Villanos' },
+        { name: 'Kid Buu', path: '/images/characters/Villanos/Caballo/Kid Buu.png', category: 'Villanos' },
+        { name: 'Majin Buu', path: '/images/characters/Villanos/Torre/Majin Buu.png', category: 'Villanos' },
+        { name: 'Moro', path: '/images/characters/Villanos/Rey/Moro.png', category: 'Villanos' },
+        { name: 'Recoome', path: '/images/characters/Villanos/Torre/Recoome.png', category: 'Villanos' },
+        { name: 'Toppo', path: '/images/characters/Villanos/Torre/Toppo.png', category: 'Villanos' },
+        { name: 'Zamas Fusión', path: '/images/characters/Villanos/Reina/Zamas_fusion.png', category: 'Villanos' },
+        { name: 'Zamas', path: '/images/characters/Villanos/Caballo/Zamasu.png', category: 'Villanos' },
+    ];
+
+    const filteredAvatars = selectedCategory === 'Guerreros Z' ? guerrerosAvatars : villanosAvatars;
 
     return (
         <>
@@ -157,7 +173,7 @@ export default function EditarPerfil({ auth, stats }) {
                                                         : 'bg-white/5 text-white/60 border-2 border-white/10 hover:border-white/30'
                                                 }`}
                                             >
-                                                ⚔️ Guerreros Z
+                                                Guerreros Z
                                             </button>
                                             <button
                                                 type="button"
@@ -168,7 +184,7 @@ export default function EditarPerfil({ auth, stats }) {
                                                         : 'bg-white/5 text-white/60 border-2 border-white/10 hover:border-white/30'
                                                 }`}
                                             >
-                                                💀 Villanos
+                                                Villanos
                                             </button>
                                         </div>
 
