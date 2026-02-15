@@ -1,5 +1,6 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { ArrowDownTrayIcon } from '@heroicons/react/24/solid';
 
 export default function EditarPerfil({ auth, stats }) {
     const { data, setData, patch, processing, errors } = useForm({
@@ -124,8 +125,8 @@ export default function EditarPerfil({ auth, stats }) {
             <Head title="Personalizar Perfil" />
             <div className="min-h-screen flex flex-col relative overflow-hidden bg-gradient-to-br from-[#0d0e12] via-[#1a1b1e] to-[#0d0e12]">
                 {/* Decorative Aura */}
-                <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-primary/10 blur-[120px] rounded-full pointer-events-none"></div>
-                <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] bg-secondary/5 blur-[120px] rounded-full pointer-events-none"></div>
+                <div className="absolute -top-40 -right-40 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-primary/10 blur-[120px] rounded-full pointer-events-none"></div>
+                <div className="absolute -bottom-40 -left-40 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-secondary/5 blur-[120px] rounded-full pointer-events-none"></div>
 
                 {/* Header */}
                 <header className="flex items-center justify-between px-4 md:px-10 py-4 md:py-6 relative z-10 bg-black/20 backdrop-blur-lg border-b border-white/5">
@@ -203,7 +204,7 @@ export default function EditarPerfil({ auth, stats }) {
                                         </div>
 
                                         {/* Avatar Grid */}
-                                        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
                                             {filteredAvatars.map((avatar) => (
                                             <button
                                                 key={avatar.path}
@@ -221,9 +222,9 @@ export default function EditarPerfil({ auth, stats }) {
                                                 <img 
                                                     src={avatar.path} 
                                                     alt={avatar.name} 
-                                                    className="w-full h-16 md:h-20 object-cover rounded-lg"
+                                                    className="w-full h-20 sm:h-16 md:h-20 object-cover rounded-lg"
                                                 />
-                                                <span className="block text-white text-[10px] md:text-xs font-bold mt-1 md:mt-2 text-center">{avatar.name}</span>
+                                                <span className="block text-white text-xs md:text-sm font-bold mt-1 md:mt-2 text-center">{avatar.name}</span>
                                             </button>
                                         ))}
                                         </div>
@@ -273,18 +274,18 @@ export default function EditarPerfil({ auth, stats }) {
                             </div>
 
                             {/* Estadísticas (Solo lectura) */}
-                            <div className="grid grid-cols-3 gap-3 md:gap-4 p-3 md:p-4 bg-black/20 rounded-xl border border-white/5">
+                            <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 p-3 md:p-4 bg-black/20 rounded-xl border border-white/5">
                                 <div className="text-center">
                                     <span className="block text-xl md:text-2xl font-black text-primary italic">{stats?.level || 1}</span>
-                                    <span className="block text-[9px] md:text-[10px] font-black uppercase text-white/40 tracking-widest mt-1">Nivel</span>
+                                    <span className="block text-[10px] sm:text-xs md:text-sm font-black uppercase text-white/40 tracking-widest mt-1">Nivel</span>
                                 </div>
                                 <div className="text-center">
                                     <span className="block text-xl md:text-2xl font-black text-primary italic">{stats?.victories || 0}</span>
-                                    <span className="block text-[9px] md:text-[10px] font-black uppercase text-white/40 tracking-widest mt-1">Victorias</span>
+                                    <span className="block text-[10px] sm:text-xs md:text-sm font-black uppercase text-white/40 tracking-widest mt-1">Victorias</span>
                                 </div>
                                 <div className="text-center">
                                     <span className="block text-xl md:text-2xl font-black text-yellow-500 italic">{stats?.ki?.toLocaleString() || 0}</span>
-                                    <span className="block text-[9px] md:text-[10px] font-black uppercase text-white/40 tracking-widest mt-1">Ki</span>
+                                    <span className="block text-[10px] sm:text-xs md:text-sm font-black uppercase text-white/40 tracking-widest mt-1">Ki</span>
                                 </div>
                             </div>
 
@@ -298,7 +299,7 @@ export default function EditarPerfil({ auth, stats }) {
                                 <span className="text-lg md:text-xl font-black italic tracking-tighter uppercase relative z-10">
                                     {processing ? 'Guardando...' : 'Guardar Cambios'}
                                 </span>
-                                <span className="text-xl md:text-2xl relative z-10">💾</span>
+                                <ArrowDownTrayIcon className="w-6 h-6 md:w-7 md:h-7 relative z-10" />
                             </button>
                         </form>
                     </div>

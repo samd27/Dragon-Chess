@@ -74,15 +74,22 @@ Route::get('/game-arena', function () {
     $faction = request('faction', 'Z_WARRIORS');
     $mode = request('mode', 'PVP');
     $player2 = null;
+    $player1Preferences = auth()->user()->piece_preferences ?? \App\Http\Controllers\PieceCustomizationController::getDefaultPiecePreferences();
+    $player2Preferences = \App\Http\Controllers\PieceCustomizationController::getDefaultPiecePreferences(); // Default para invitados
     
     if ($mode === 'PVP' && session('player2_id')) {
         $player2 = \App\Models\User::with('stats')->find(session('player2_id'));
+        if ($player2) {
+            $player2Preferences = $player2->piece_preferences ?? \App\Http\Controllers\PieceCustomizationController::getDefaultPiecePreferences();
+        }
     }
     
     return Inertia::render('Batalla', [
         'faction' => $faction,
         'mode' => $mode,
         'player2' => $player2,
+        'player1Preferences' => $player1Preferences,
+        'player2Preferences' => $player2Preferences,
     ]);
 })->name('game.arena');
 

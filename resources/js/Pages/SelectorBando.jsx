@@ -25,7 +25,7 @@ export default function FactionSelector({ auth, mode = 'PVP', player2Type = 'gue
                     {/* Left: Selection Column */}
                     <div className="w-full md:w-1/3 flex flex-col justify-center gap-4 md:gap-8">
                         <div className="space-y-2">
-                            <h1 className="text-3xl md:text-5xl font-black italic tracking-tighter uppercase leading-tight text-white">Elige Tu<br/><span className="text-primary">Bando</span></h1>
+                            <h1 className="text-2xl md:text-4xl lg:text-5xl font-black italic tracking-tighter uppercase leading-tight text-white">Elige Tu<br/><span className="text-primary">Bando</span></h1>
                             <p className="text-white/40 text-xs md:text-sm font-medium max-w-xs leading-relaxed">Tu facción determina tus ventajas de batalla y los guerreros que comandarás en la arena.</p>
                         </div>
 

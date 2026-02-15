@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\PieceCustomizationController;
 use App\Models\User;
 use App\Models\PlayerStats;
 use Illuminate\Auth\Events\Registered;
@@ -61,6 +62,7 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'piece_preferences' => PieceCustomizationController::getDefaultPiecePreferences(),
         ]);
 
         // Crear estadísticas iniciales del jugador

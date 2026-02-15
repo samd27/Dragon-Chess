@@ -178,7 +178,7 @@ export default function PersonalizarPiezas({ auth, availablePieces, currentPrefe
                                             className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/5 transition-colors"
                                         >
                                             <div className="flex items-center gap-4">
-                                                <div className="w-16 h-16 rounded-lg border-2 border-primary/50 bg-black/40 flex items-center justify-center overflow-hidden aspect-square">
+                                                <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-lg border-2 border-primary/50 bg-black/40 flex items-center justify-center overflow-hidden aspect-square">
                                                     {currentSelection ? (
                                                         <img 
                                                             src={currentSelection} 
@@ -190,7 +190,7 @@ export default function PersonalizarPiezas({ auth, availablePieces, currentPrefe
                                                     )}
                                                 </div>
                                                 <div className="text-left">
-                                                    <h3 className="text-white font-black uppercase text-lg tracking-wider">
+                                                    <h3 className="text-white font-black uppercase text-base md:text-lg lg:text-xl tracking-wider">
                                                         {pieceNames[pieceType]}
                                                     </h3>
                                                     <p className="text-white/50 text-sm">
@@ -212,7 +212,7 @@ export default function PersonalizarPiezas({ auth, availablePieces, currentPrefe
                                         {isExpanded && (
                                             <div className="px-6 pb-6">
                                                 {availableForPiece.length > 0 ? (
-                                                    <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-3 mt-4">
+                                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-3 mt-4">
                                                         {availableForPiece.map((avatar) => (
                                                             <button
                                                                 key={avatar.path}
@@ -231,7 +231,7 @@ export default function PersonalizarPiezas({ auth, availablePieces, currentPrefe
                                                                         className="w-full h-full object-contain"
                                                                     />
                                                                 </div>
-                                                                <span className="block text-white text-xs font-bold mt-2 text-center truncate">
+                                                                <span className="block text-white text-[10px] sm:text-xs md:text-sm font-bold mt-2 text-center truncate">
                                                                     {getCharacterName(avatar.name)}
                                                                 </span>
                                                             </button>

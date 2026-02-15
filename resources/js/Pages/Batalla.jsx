@@ -1,12 +1,14 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
-import { TrophyIcon, HandRaisedIcon, XMarkIcon } from '@heroicons/react/24/solid';
+import { TrophyIcon, HandRaisedIcon, XMarkIcon, PauseIcon, PlayIcon, PhotoIcon } from '@heroicons/react/24/solid';
 
-export default function GameArena({ auth, faction, mode = 'PVP', player2 = null }) {
+export default function GameArena({ auth, faction, mode = 'PVP', player2 = null, player1Preferences = {}, player2Preferences = {} }) {
     const [game, setGame] = useState(new Chess());
     const [selectedSquare, setSelectedSquare] = useState(null);
     const [possibleMoves, setPossibleMoves] = useState([]);
+    const [showPauseMenu, setShowPauseMenu] = useState(false);
+    const [showPiecesReference, setShowPiecesReference] = useState(false);
     const [showConfirmAbort, setShowConfirmAbort] = useState(false);
     const [gameOver, setGameOver] = useState(null);
     const [moveHistory, setMoveHistory] = useState([]);
@@ -59,7 +61,93 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null 
             : (player2 ? player2.avatar : (faction === 'Z_WARRIORS' ? '/images/characters/Villanos/Rey/Freezer.png' : '/images/characters/Guerreros/Torre/Goku.png')),
     };
 
-    // Piezas Unicode para renderizar
+    // Mapeo de tipos de piezas de chess.js a nombres de carpetas
+    const pieceTypeMap = {
+        'p': 'peon',
+        'n': 'caballo',
+        'b': 'alfil',
+        'r': 'torre',
+        'q': 'reina',
+        'k': 'rey'
+    };
+
+    // Obtener la imagen de la pieza personalizada
+    const getPieceImage = (piece) => {
+        if (!piece) return null;
+        
+        const pieceKey = pieceTypeMap[piece.type];
+        const isPlayer1Piece = (piece.color === 'w' && playerIsWhite) || (piece.color === 'b' && !playerIsWhite);
+        
+        // Si no hay player2 (modo invitado), siempre usar player1Preferences
+        const preferences = (player2 === null || !player2) ? player1Preferences : (isPlayer1Piece ? player1Preferences : player2Preferences);
+        
+        // Determinar la facción: si es pieza del jugador 1, usa su facción elegida. Si es del jugador 2, usa la contraria.
+        let factionKey;
+        if (isPlayer1Piece) {
+            factionKey = faction === 'Z_WARRIORS' ? 'guerreros' : 'villanos';
+        } else {
+            factionKey = faction === 'Z_WARRIORS' ? 'villanos' : 'guerreros';
+        }
+        
+        // Obtener la imagen desde las preferencias
+        if (preferences && preferences[factionKey] && preferences[factionKey][pieceKey]) {
+            return preferences[factionKey][pieceKey];
+        }
+        
+        return null;
+    };
+
+    // Obtener imagen para pieza capturada (tipo string como 'p', 'n', etc)
+    const getCapturedPieceImage = (pieceType, isWhitePiece) => {
+        const pieceKey = pieceTypeMap[pieceType.toLowerCase()];
+        
+        // Determinar qué jugador poseyía esa pieza capturada
+        const wasPlayer1Piece = (isWhitePiece && playerIsWhite) || (!isWhitePiece && !playerIsWhite);
+        
+        // Si no hay player2 (modo invitado), siempre usar player1Preferences
+        const preferences = (player2 === null || !player2) ? player1Preferences : (wasPlayer1Piece ? player1Preferences : player2Preferences);
+        
+        // La facción de la pieza capturada es la que tenía cuando estaba en juego
+        let factionKey;
+        if (wasPlayer1Piece) {
+            factionKey = faction === 'Z_WARRIORS' ? 'guerreros' : 'villanos';
+        } else {
+            factionKey = faction === 'Z_WARRIORS' ? 'villanos' : 'guerreros';
+        }
+        
+        if (preferences && preferences[factionKey] && preferences[factionKey][pieceKey]) {
+            return preferences[factionKey][pieceKey];
+        }
+        
+        return null;
+    };
+
+    // Obtener imagen para promoción de peón
+    const getPromotionPieceImage = (pieceType) => {
+        const pieceKey = pieceTypeMap[pieceType];
+        
+        // La promoción es siempre del jugador actual (quien está moviendo)
+        const isPlayer1Turn = (game.turn() === 'w' && playerIsWhite) || (game.turn() === 'b' && !playerIsWhite);
+        
+        // Si no hay player2 (modo invitado), siempre usar player1Preferences
+        const preferences = (player2 === null || !player2) ? player1Preferences : (isPlayer1Turn ? player1Preferences : player2Preferences);
+        
+        // Determinar la facción según de quién es el turno
+        let factionKey;
+        if (isPlayer1Turn) {
+            factionKey = faction === 'Z_WARRIORS' ? 'guerreros' : 'villanos';
+        } else {
+            factionKey = faction === 'Z_WARRIORS' ? 'villanos' : 'guerreros';
+        }
+        
+        if (preferences && preferences[factionKey] && preferences[factionKey][pieceKey]) {
+            return preferences[factionKey][pieceKey];
+        }
+        
+        return null;
+    };
+
+    // Piezas Unicode para renderizar (fallback)
     const pieceSymbols = {
         'p': '\u265F', 'n': '\u265E', 'b': '\u265D', 'r': '\u265C', 'q': '\u265B', 'k': '\u265A',
         'P': '\u2659', 'N': '\u2658', 'B': '\u2657', 'R': '\u2656', 'Q': '\u2655', 'K': '\u2654'
@@ -67,7 +155,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null 
 
     // Cronómetro activo
     useEffect(() => {
-        if (gameOver) return;
+        if (gameOver || showPauseMenu) return;
         
         const interval = setInterval(() => {
             if (game.turn() === 'w') {
@@ -98,7 +186,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null 
         }, 1000);
         
         return () => clearInterval(interval);
-    }, [game, gameOver]);
+    }, [game, gameOver, showPauseMenu]);
 
     // Verificar estado del juego
     useEffect(() => {
@@ -180,9 +268,12 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null 
                     // Si se capturó una pieza, agregarla a la lista
                     if (move.captured) {
                         const capturedColor = move.color === 'w' ? 'black' : 'white';
+                        // Si blancas capturaron (move.color='w'), la pieza es negra (minúscula)
+                        // Si negras capturaron (move.color='b'), la pieza es blanca (MAYÚSCULA)
+                        const capturedPiece = move.color === 'w' ? move.captured : move.captured.toUpperCase();
                         setCapturedPieces(prev => ({
                             ...prev,
-                            [capturedColor]: [...prev[capturedColor], move.captured]
+                            [capturedColor]: [...prev[capturedColor], capturedPiece]
                         }));
                     }
                     
@@ -230,9 +321,12 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null 
                 // Si se capturó una pieza, agregarla a la lista
                 if (move.captured) {
                     const capturedColor = move.color === 'w' ? 'black' : 'white';
+                    // Si blancas capturaron (move.color='w'), la pieza es negra (minúscula)
+                    // Si negras capturaron (move.color='b'), la pieza es blanca (MAYÚSCULA)
+                    const capturedPiece = move.color === 'w' ? move.captured : move.captured.toUpperCase();
                     setCapturedPieces(prev => ({
                         ...prev,
-                        [capturedColor]: [...prev[capturedColor], move.captured]
+                        [capturedColor]: [...prev[capturedColor], capturedPiece]
                     }));
                 }
                 
@@ -264,9 +358,12 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null 
                 // Si se capturó una pieza, agregarla a la lista
                 if (move.captured) {
                     const capturedColor = move.color === 'w' ? 'black' : 'white';
+                    // Si blancas capturaron (move.color='w'), la pieza es negra (minúscula)
+                    // Si negras capturaron (move.color='b'), la pieza es blanca (MAYÚSCULA)
+                    const capturedPiece = move.color === 'w' ? move.captured : move.captured.toUpperCase();
                     setCapturedPieces(prev => ({
                         ...prev,
-                        [capturedColor]: [...prev[capturedColor], move.captured]
+                        [capturedColor]: [...prev[capturedColor], capturedPiece]
                     }));
                 }
                 
@@ -337,7 +434,15 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null 
                                 : (faction === 'Z_WARRIORS' ? 'drop-shadow-[0_0_25px_rgba(168,85,247,1)] scale-110' : 'drop-shadow-[0_0_25px_rgba(249,122,31,1)] scale-110'))
                             : 'drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]'
                     }`}>
-                        {pieceSymbols[piece.color === 'w' ? piece.type.toUpperCase() : piece.type]}
+                        {getPieceImage(piece) ? (
+                            <img 
+                                src={getPieceImage(piece)} 
+                                alt={`${piece.type}`}
+                                className="w-full h-full object-contain p-1"
+                            />
+                        ) : (
+                            pieceSymbols[piece.color === 'w' ? piece.type.toUpperCase() : piece.type]
+                        )}
                     </span>
                 )}
                 {isPossibleMove && (
@@ -392,9 +497,9 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null 
             <div className="flex flex-col h-screen relative overflow-hidden bg-[#0d0e12]">
                 {/* Top Header */}
                 <header className="px-4 md:px-10 py-3 md:py-4 flex items-center justify-between border-b border-white/5 bg-black/20 backdrop-blur-lg">
-                    <button onClick={() => setShowConfirmAbort(true)} className="flex items-center gap-2 group text-white/60 hover:text-red-500 transition-colors">
-                        <span className="text-lg md:text-xl transition-transform group-hover:-translate-x-1">←</span>
-                        <span className="text-[10px] md:text-xs font-black uppercase tracking-widest">Abortar Misión</span>
+                    <button onClick={() => setShowPauseMenu(true)} className="flex items-center gap-2 group text-white/60 hover:text-yellow-500 transition-colors">
+                        <PauseIcon className="w-5 h-5 md:w-6 md:h-6" />
+                        <span className="text-[10px] md:text-xs font-black uppercase tracking-widest">Pausa</span>
                     </button>
                     <div className="flex items-center gap-3 md:gap-4">
                         <div className={`w-3 h-3 rounded-full animate-pulse ${
@@ -471,11 +576,23 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null 
                                 scrollbarColor: 'rgba(249, 122, 31, 0.3) rgba(255, 255, 255, 0.05)'
                             }}
                         >
-                            {(playerIsWhite ? capturedPieces.black : capturedPieces.white).map((piece, i) => (
-                                <span key={i} className="text-2xl opacity-50">
-                                    {pieceSymbols[piece]}
-                                </span>
-                            ))}
+                            {(playerIsWhite ? capturedPieces.black : capturedPieces.white).map((piece, i) => {
+                                const isWhitePiece = piece === piece.toUpperCase();
+                                const capturedImage = getCapturedPieceImage(piece, isWhitePiece);
+                                return (
+                                    <div key={i} className="w-8 h-8 opacity-50">
+                                        {capturedImage ? (
+                                            <img 
+                                                src={capturedImage} 
+                                                alt={piece}
+                                                className="w-full h-full object-contain"
+                                            />
+                                        ) : (
+                                            <span className="text-2xl">{pieceSymbols[piece]}</span>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
 
@@ -608,11 +725,23 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null 
                                 scrollbarColor: 'rgba(168, 85, 247, 0.3) rgba(255, 255, 255, 0.05)'
                             }}
                         >
-                            {(playerIsWhite ? capturedPieces.white : capturedPieces.black).map((piece, i) => (
-                                <span key={i} className="text-2xl opacity-50">
-                                    {pieceSymbols[piece.toUpperCase()]}
-                                </span>
-                            ))}
+                            {(playerIsWhite ? capturedPieces.white : capturedPieces.black).map((piece, i) => {
+                                const isWhitePiece = piece === piece.toUpperCase();
+                                const capturedImage = getCapturedPieceImage(piece, isWhitePiece);
+                                return (
+                                    <div key={i} className="w-8 h-8 opacity-50">
+                                        {capturedImage ? (
+                                            <img 
+                                                src={capturedImage} 
+                                                alt={piece}
+                                                className="w-full h-full object-contain"
+                                            />
+                                        ) : (
+                                            <span className="text-2xl">{pieceSymbols[piece.toUpperCase()]}</span>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 </aside>
@@ -636,6 +765,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null 
                                         const pieceColor = isPieceForWhite 
                                             ? (playerIsWhite ? 'text-primary' : 'text-purple-500')
                                             : (playerIsWhite ? 'text-purple-500' : 'text-primary');
+                                        const promotionImage = getPromotionPieceImage(piece);
                                         
                                         return (
                                             <button
@@ -643,9 +773,19 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null 
                                                 onClick={() => handlePromotion(piece)}
                                                 className={`p-4 bg-white/5 rounded-xl border-2 border-white/10 hover:border-primary hover:bg-white/10 transition-all group`}
                                             >
-                                                <span className={`text-5xl ${pieceColor} group-hover:scale-110 transition-transform inline-block`}>
-                                                    {pieceSymbols[isPieceForWhite ? piece.toUpperCase() : piece]}
-                                                </span>
+                                                <div className="w-12 h-12 mx-auto group-hover:scale-110 transition-transform">
+                                                    {promotionImage ? (
+                                                        <img 
+                                                            src={promotionImage} 
+                                                            alt={pieceNames[piece]}
+                                                            className="w-full h-full object-contain"
+                                                        />
+                                                    ) : (
+                                                        <span className={`text-5xl ${pieceColor} inline-block`}>
+                                                            {pieceSymbols[isPieceForWhite ? piece.toUpperCase() : piece]}
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <p className="text-xs text-white/60 mt-2 font-bold">
                                                     {pieceNames[piece]}
                                                 </p>
@@ -658,7 +798,113 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null 
                     </div>
                 )}
 
-                {/* Confirmation Modal */}
+                {/* Pause Menu */}
+                {showPauseMenu && (
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+                        <div className="bg-gradient-to-br from-[#1a1b1e] to-[#0d0e12] border-2 border-yellow-500/30 rounded-3xl p-8 max-w-md w-full mx-4 shadow-[0_0_50px_rgba(234,179,8,0.3)]">
+                            <div className="space-y-4">
+                                <div className="text-center space-y-2 mb-6">
+                                    <PauseIcon className="w-16 h-16 text-yellow-500 mx-auto" />
+                                    <h3 className="text-2xl font-black uppercase tracking-tighter text-white">Juego Pausado</h3>
+                                </div>
+                                
+                                <button 
+                                    onClick={() => setShowPauseMenu(false)}
+                                    className="w-full py-4 bg-gradient-to-r from-green-500 to-green-600 rounded-xl text-white hover:from-green-600 hover:to-green-700 transition-all font-black uppercase text-sm tracking-widest shadow-[0_0_20px_rgba(34,197,94,0.4)] flex items-center justify-center gap-3"
+                                >
+                                    <PlayIcon className="w-5 h-5" />
+                                    Reanudar
+                                </button>
+                                
+                                <button 
+                                    onClick={() => { setShowPauseMenu(false); setShowPiecesReference(true); }}
+                                    className="w-full py-4 bg-white/5 rounded-xl border border-white/10 text-white hover:bg-white/10 transition-all font-black uppercase text-sm tracking-widest flex items-center justify-center gap-3"
+                                >
+                                    <PhotoIcon className="w-5 h-5" />
+                                    Ver Piezas
+                                </button>
+                                
+                                <button 
+                                    onClick={() => { setShowPauseMenu(false); setShowConfirmAbort(true); }}
+                                    className="w-full py-4 bg-white/5 rounded-xl border border-red-500/30 text-red-500 hover:bg-red-500/10 transition-all font-black uppercase text-sm tracking-widest flex items-center justify-center gap-3"
+                                >
+                                    <XMarkIcon className="w-5 h-5" />
+                                    Abortar Misión
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Pieces Reference Modal */}
+                {showPiecesReference && (
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="bg-gradient-to-br from-[#1a1b1e] to-[#0d0e12] border-2 border-blue-500/30 rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-[0_0_50px_rgba(59,130,246,0.3)]">
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h3 className="text-2xl font-black uppercase tracking-tighter text-white">Referencia de Piezas</h3>
+                                    <button 
+                                        onClick={() => setShowPiecesReference(false)}
+                                        className="text-white/60 hover:text-white transition-colors"
+                                    >
+                                        <XMarkIcon className="w-6 h-6" />
+                                    </button>
+                                </div>
+                                
+                                {/* Player 1 Pieces */}
+                                <div>
+                                    <h4 className="text-lg font-black uppercase tracking-wider text-primary mb-4">Mis Piezas ({faction === 'Z_WARRIORS' ? 'Guerreros Z' : 'Villanos'})</h4>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                        {Object.entries(pieceTypeMap).map(([key, name]) => {
+                                            const factionKey = faction === 'Z_WARRIORS' ? 'guerreros' : 'villanos';
+                                            const image = player1Preferences?.[factionKey]?.[name];
+                                            const pieceNames = { rey: 'Rey', reina: 'Reina', torre: 'Torre', caballo: 'Caballo', alfil: 'Alfil', peon: 'Peón' };
+                                            return (
+                                                <div key={key} className="bg-white/5 rounded-xl p-4 border border-white/10 hover:border-primary/50 transition-colors">
+                                                    <div className="aspect-square bg-white/5 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
+                                                        {image ? (
+                                                            <img src={image} alt={name} className="w-full h-full object-contain" />
+                                                        ) : (
+                                                            <span className="text-4xl">{pieceSymbols[key.toUpperCase()]}</span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-center text-white font-bold text-sm">{pieceNames[name]}</p>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                                
+                                {/* Opponent Pieces */}
+                                <div>
+                                    <h4 className="text-lg font-black uppercase tracking-wider text-purple-400 mb-4">Piezas Rivales ({faction === 'Z_WARRIORS' ? 'Villanos' : 'Guerreros Z'})</h4>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                        {Object.entries(pieceTypeMap).map(([key, name]) => {
+                                            const factionKey = faction === 'Z_WARRIORS' ? 'villanos' : 'guerreros';
+                                            const preferences = (player2 === null || !player2) ? player1Preferences : player2Preferences;
+                                            const image = preferences?.[factionKey]?.[name];
+                                            const pieceNames = { rey: 'Rey', reina: 'Reina', torre: 'Torre', caballo: 'Caballo', alfil: 'Alfil', peon: 'Peón' };
+                                            return (
+                                                <div key={key} className="bg-white/5 rounded-xl p-4 border border-white/10 hover:border-purple-400/50 transition-colors">
+                                                    <div className="aspect-square bg-white/5 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
+                                                        {image ? (
+                                                            <img src={image} alt={name} className="w-full h-full object-contain" />
+                                                        ) : (
+                                                            <span className="text-4xl">{pieceSymbols[key.toLowerCase()]}</span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-center text-white font-bold text-sm">{pieceNames[name]}</p>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Confirmation Abort Modal */}
                 {showConfirmAbort && (
                     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
                         <div className="bg-gradient-to-br from-[#1a1b1e] to-[#0d0e12] border-2 border-red-500/30 rounded-3xl p-8 max-w-md mx-4 shadow-[0_0_50px_rgba(239,68,68,0.3)]">

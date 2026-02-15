@@ -16,8 +16,8 @@ export default function Welcome({ auth, stats }) {
             <Head title="Dragon Chess - Prepare for Impact" />
             <div className="flex flex-col h-screen relative overflow-hidden bg-gradient-to-br from-[#0d0e12] via-[#1a1b1e] to-[#0d0e12]">
                 {/* Decorative Aura */}
-                <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-primary/10 blur-[120px] rounded-full pointer-events-none"></div>
-                <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] bg-secondary/5 blur-[120px] rounded-full pointer-events-none"></div>
+                <div className="absolute -top-40 -right-40 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-primary/10 blur-[120px] rounded-full pointer-events-none"></div>
+                <div className="absolute -bottom-40 -left-40 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-secondary/5 blur-[120px] rounded-full pointer-events-none"></div>
 
                 {/* Top Navigation Bar */}
                 <header className="flex items-center justify-between px-4 md:px-10 py-4 md:py-6 relative z-50 bg-black/20 backdrop-blur-lg border-b border-white/5">
@@ -113,7 +113,7 @@ export default function Welcome({ auth, stats }) {
                     <div className="max-w-lg flex flex-col gap-6 md:gap-8 text-left">
                         <div className="flex flex-col">
                             <span className="text-xs md:text-sm font-black text-primary tracking-[0.4em] md:tracking-[0.6em] uppercase mb-3 md:mb-4 animate-pulse">Prepárate Para el Combate</span>
-                            <h1 className="text-5xl md:text-8xl font-black italic tracking-tighter uppercase leading-[1.3] text-white drop-shadow-[0_0_30px_rgba(249,122,31,0.3)] pb-4 md:pb-8">
+                            <h1 className="text-4xl md:text-6xl lg:text-8xl font-black italic tracking-tighter uppercase leading-[1.3] text-white drop-shadow-[0_0_30px_rgba(249,122,31,0.3)] pb-4 md:pb-8">
                                 DRAGON<br/>
                                 <span className="inline-block text-transparent bg-clip-text bg-gradient-to-b from-primary to-orange-700 py-2 overflow-visible">CHESS</span>
                             </h1>

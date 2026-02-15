@@ -16,7 +16,7 @@ class PieceCustomizationController extends Controller
         $user = $request->user();
         
         // Get user's current piece preferences or set defaults
-        $currentPreferences = $user->piece_preferences ?? $this->getDefaultPiecePreferences();
+        $currentPreferences = $user->piece_preferences ?? self::getDefaultPiecePreferences();
         
         // Get available pieces from filesystem
         $availablePieces = $this->getAvailablePieces();
@@ -46,28 +46,49 @@ class PieceCustomizationController extends Controller
     }
 
     /**
-     * Get default piece preferences.
+     * Get default piece preferences (first character alphabetically for each piece type).
      */
-    private function getDefaultPiecePreferences(): array
+    public static function getDefaultPiecePreferences(): array
     {
-        return [
-            'guerreros' => [
-                'rey' => '/images/characters/Guerreros/Rey/Bills.png',
-                'reina' => '/images/characters/Guerreros/Reina/Bulma.png',
-                'torre' => '/images/characters/Guerreros/Torre/Goku.png',
-                'caballo' => '/images/characters/Guerreros/Caballo/Vegeta.png',
-                'alfil' => null,
-                'peon' => null,
-            ],
-            'villanos' => [
-                'rey' => '/images/characters/Villanos/Rey/Freezer.png',
-                'reina' => '/images/characters/Villanos/Reina/Cell.png',
-                'torre' => '/images/characters/Villanos/Torre/Broly_Z.png',
-                'caballo' => '/images/characters/Villanos/Caballo/Androide 17.png',
-                'alfil' => '/images/characters/Villanos/Alfil/Black Goku.png',
-                'peon' => '/images/characters/Villanos/Peon/Saibaiman.png',
-            ],
+        $basePath = public_path('images/characters');
+        $defaults = [
+            'guerreros' => [],
+            'villanos' => []
         ];
+
+        foreach (['Guerreros', 'Villanos'] as $faction) {
+            $factionPath = $basePath . '/' . $faction;
+            $factionKey = strtolower($faction);
+            
+            if (!is_dir($factionPath)) {
+                continue;
+            }
+
+            foreach (['Rey', 'Reina', 'Torre', 'Caballo', 'Alfil', 'Peon'] as $pieceType) {
+                $pieceTypePath = $factionPath . '/' . $pieceType;
+                $pieceKey = strtolower($pieceType);
+                
+                if (!is_dir($pieceTypePath)) {
+                    $defaults[$factionKey][$pieceKey] = null;
+                    continue;
+                }
+                
+                $files = scandir($pieceTypePath);
+                $pngFiles = array_filter($files, function($file) {
+                    return pathinfo($file, PATHINFO_EXTENSION) === 'png';
+                });
+                
+                sort($pngFiles); // Ordenar alfabéticamente
+                
+                if (count($pngFiles) > 0) {
+                    $defaults[$factionKey][$pieceKey] = '/images/characters/' . $faction . '/' . $pieceType . '/' . $pngFiles[0];
+                } else {
+                    $defaults[$factionKey][$pieceKey] = null;
+                }
+            }
+        }
+
+        return $defaults;
     }
 
     /**
