@@ -75,6 +75,8 @@ export default function EditarPerfil({ auth, stats }) {
         { name: 'Bills', path: '/images/characters/Guerreros/Rey/Bills.png', category: 'Guerreros Z' },
         { name: 'Bulma', path: '/images/characters/Guerreros/Reina/Bulma.png', category: 'Guerreros Z' },
         { name: 'Goku', path: '/images/characters/Guerreros/Torre/Goku.png', category: 'Guerreros Z' },
+        { name: 'Krillin', path: '/images/characters/Guerreros/Peon/Krillin.png', category: 'Guerreros Z' },
+        { name: 'Trunks', path: '/images/characters/Guerreros/Alfil/Trunks.png', category: 'Guerreros Z' },
         { name: 'Vegeta', path: '/images/characters/Guerreros/Caballo/Vegeta.png', category: 'Guerreros Z' },
     ];
 

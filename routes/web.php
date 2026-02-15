@@ -100,6 +100,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    // Piece Customization
+    Route::get('/pieces', [\App\Http\Controllers\PieceCustomizationController::class, 'index'])->name('pieces.index');
+    Route::patch('/pieces', [\App\Http\Controllers\PieceCustomizationController::class, 'update'])->name('pieces.update');
 });
 
 require __DIR__.'/auth.php';

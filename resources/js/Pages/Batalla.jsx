@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
+import { TrophyIcon, HandRaisedIcon, XMarkIcon } from '@heroicons/react/24/solid';
 
 export default function GameArena({ auth, faction, mode = 'PVP', player2 = null }) {
     const [game, setGame] = useState(new Chess());
@@ -624,7 +625,9 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null 
                     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
                         <div className="bg-gradient-to-br from-[#1a1b1e] to-[#0d0e12] border-2 border-primary/30 rounded-3xl p-8 max-w-md mx-4">
                             <div className="text-center space-y-6">
-                                <div className="text-6xl">👑</div>
+                                <div className="flex justify-center">
+                                    <TrophyIcon className="w-16 h-16 text-yellow-500" />
+                                </div>
                                 <h3 className="text-2xl font-black uppercase tracking-tighter text-white">Promoción de Peón</h3>
                                 <p className="text-white/60 text-sm">Selecciona la pieza a la que quieres promover:</p>
                                 <div className="grid grid-cols-4 gap-4 pt-4">
@@ -695,13 +698,17 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null 
                                 onClick={() => setGameOver(null)}
                                 className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded-lg transition-all"
                             >
-                                ✕
+                                <XMarkIcon className="w-5 h-5" />
                             </button>
                             
                             <div className="space-y-4">
                                 <div className="flex items-center gap-3">
                                     <div className="text-4xl">
-                                        {gameOver.type === 'checkmate' ? '👑' : '🤝'}
+                                        {gameOver.type === 'checkmate' ? (
+                                            <TrophyIcon className="w-12 h-12 text-yellow-500" />
+                                        ) : (
+                                            <HandRaisedIcon className="w-12 h-12 text-yellow-500" />
+                                        )}
                                     </div>
                                     <div className="flex-1">
                                         <h3 className={`text-xl font-black uppercase tracking-tighter leading-tight ${

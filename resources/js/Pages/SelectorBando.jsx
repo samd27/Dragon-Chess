@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
+import { ShieldCheckIcon, FireIcon, BoltIcon } from '@heroicons/react/24/solid';
 
 export default function FactionSelector({ auth, mode = 'PVP', player2Type = 'guest', player2 = null }) {
     const [selected, setSelected] = useState('Z_WARRIORS');
@@ -34,7 +35,7 @@ export default function FactionSelector({ auth, mode = 'PVP', player2Type = 'gue
                                 className={`p-4 md:p-6 rounded-2xl border transition-all duration-300 flex flex-col items-center justify-center gap-2 md:gap-3 cursor-pointer hover:scale-[1.02] active:scale-95 ${selected === 'Z_WARRIORS' ? 'bg-primary/10 border-primary shadow-neon-orange' : 'bg-white/5 border-white/10 opacity-60 hover:opacity-80'}`}
                             >
                                 <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-primary/20 flex items-center justify-center">
-                                    <span className="text-primary text-xl md:text-2xl">🛡️</span>
+                                    <ShieldCheckIcon className="w-6 h-6 md:w-7 md:h-7 text-primary" />
                                 </div>
                                 <h4 className="text-sm md:text-base font-black uppercase tracking-widest text-white text-center">Resistencia Terricola</h4>
                             </div>
@@ -44,7 +45,7 @@ export default function FactionSelector({ auth, mode = 'PVP', player2Type = 'gue
                                 className={`p-4 md:p-6 rounded-2xl border transition-all duration-300 flex flex-col items-center justify-center gap-2 md:gap-3 cursor-pointer hover:scale-[1.02] active:scale-95 ${selected === 'CONQUERORS' ? 'bg-purple-500/10 border-purple-500 shadow-neon-purple' : 'bg-white/5 border-white/10 opacity-60 hover:opacity-80'}`}
                             >
                                 <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                                    <span className="text-purple-500 text-xl md:text-2xl">💀</span>
+                                    <FireIcon className="w-6 h-6 md:w-7 md:h-7 text-purple-500" />
                                 </div>
                                 <h4 className="text-sm md:text-base font-black uppercase tracking-widest text-white text-center">Dominación Galáctica</h4>
                             </div>
@@ -66,7 +67,7 @@ export default function FactionSelector({ auth, mode = 'PVP', player2Type = 'gue
                         >
                             <span className="hidden md:inline">Confirmar Plan de Batalla</span>
                             <span className="md:hidden">Confirmar</span>
-                            <span className="font-black group-hover:translate-x-2 transition-transform text-xl md:text-2xl">⚡</span>
+                            <BoltIcon className="w-6 h-6 md:w-7 md:h-7 group-hover:translate-x-2 transition-transform" />
                         </Link>
                     </div>
 

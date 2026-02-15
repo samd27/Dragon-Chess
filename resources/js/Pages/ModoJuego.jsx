@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
+import { UsersIcon, CpuChipIcon } from '@heroicons/react/24/solid';
 
 export default function GameMode({ auth }) {
     const [selectedMode, setSelectedMode] = useState('PVP');
@@ -45,7 +46,7 @@ export default function GameMode({ auth }) {
                                 }`}
                             >
                                 <div className="relative z-10 space-y-6">
-                                    <div className="text-6xl md:text-7xl">👥</div>
+                                    <UsersIcon className="w-16 h-16 md:w-20 md:h-20 text-white" />
                                     <div>
                                         <h3 className="text-3xl md:text-4xl font-black italic tracking-tighter uppercase leading-none text-white mb-3">
                                             Jugador vs<br/>Jugador
@@ -76,7 +77,7 @@ export default function GameMode({ auth }) {
                                 }`}
                             >
                                 <div className="relative z-10 space-y-6">
-                                    <div className="text-6xl md:text-7xl">🤖</div>
+                                    <CpuChipIcon className="w-16 h-16 md:w-20 md:h-20 text-white" />
                                     <div>
                                         <h3 className="text-3xl md:text-4xl font-black italic tracking-tighter uppercase leading-none text-white mb-3">
                                             Jugador vs<br/>CPU

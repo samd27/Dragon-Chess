@@ -1,5 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import { UserIcon, LockClosedIcon, CheckIcon } from '@heroicons/react/24/solid';
 
 export default function SeleccionJugador2({ auth }) {
     const [selectedType, setSelectedType] = useState('guest');
@@ -55,7 +56,7 @@ export default function SeleccionJugador2({ auth }) {
                                 }`}
                             >
                                 <div className="relative z-10 space-y-6">
-                                    <div className="text-6xl md:text-7xl">👤</div>
+                                    <UserIcon className="w-16 h-16 md:w-20 md:h-20 text-white" />
                                     <div>
                                         <h3 className="text-3xl md:text-4xl font-black italic tracking-tighter uppercase leading-none text-white mb-3">
                                             Modo<br/>Invitado
@@ -71,7 +72,7 @@ export default function SeleccionJugador2({ auth }) {
                                 </div>
                                 {selectedType === 'guest' && (
                                     <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                                        <span className="text-white text-xl">✓</span>
+                                        <CheckIcon className="w-5 h-5 text-white" />
                                     </div>
                                 )}
                             </div>
@@ -86,7 +87,7 @@ export default function SeleccionJugador2({ auth }) {
                                 }`}
                             >
                                 <div className="relative z-10 space-y-6">
-                                    <div className="text-6xl md:text-7xl">🔐</div>
+                                    <LockClosedIcon className="w-16 h-16 md:w-20 md:h-20 text-white" />
                                     <div>
                                         <h3 className="text-3xl md:text-4xl font-black italic tracking-tighter uppercase leading-none text-white mb-3">
                                             Iniciar<br/>Sesión
@@ -104,7 +105,7 @@ export default function SeleccionJugador2({ auth }) {
                                 </div>
                                 {selectedType === 'login' && (
                                     <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center">
-                                        <span className="text-white text-xl">✓</span>
+                                        <CheckIcon className="w-5 h-5 text-white" />
                                     </div>
                                 )}
                             </div>

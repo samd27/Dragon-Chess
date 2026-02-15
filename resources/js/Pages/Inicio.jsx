@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
+import { FireIcon, UsersIcon, ShoppingBagIcon } from '@heroicons/react/24/solid';
 
 export default function Welcome({ auth, stats }) {
     const [showDropdown, setShowDropdown] = useState(false);
@@ -30,13 +31,16 @@ export default function Welcome({ auth, stats }) {
                         {auth.user && (
                             <nav className="hidden md:flex items-center gap-8">
                                 <button className="text-primary font-black uppercase text-xs tracking-widest flex items-center gap-2">
-                                    <span className="text-sm">⚔️</span> BATALLA
+                                    <FireIcon className="w-4 h-4" /> BATALLA
                                 </button>
+                                <Link 
+                                    href={route('pieces.index')}
+                                    className="text-white/40 hover:text-white font-black uppercase text-xs tracking-widest flex items-center gap-2 transition-colors"
+                                >
+                                    <UsersIcon className="w-4 h-4" /> PIEZAS
+                                </Link>
                                 <button className="text-white/40 hover:text-white font-black uppercase text-xs tracking-widest flex items-center gap-2 transition-colors">
-                                    <span className="text-sm">👥</span> PIEZAS
-                                </button>
-                                <button className="text-white/40 hover:text-white font-black uppercase text-xs tracking-widest flex items-center gap-2 transition-colors">
-                                    <span className="text-sm">🏪</span> TIENDA
+                                    <ShoppingBagIcon className="w-4 h-4" /> TIENDA
                                 </button>
                             </nav>
                         )}
@@ -125,7 +129,7 @@ export default function Welcome({ auth, stats }) {
                             >
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                                 <span className="text-xl md:text-2xl font-black italic tracking-tighter uppercase relative z-10">Entrar a Batalla</span>
-                                <span className="text-2xl md:text-3xl font-black rotate-45 group-hover:rotate-90 transition-transform relative z-10">⚔️</span>
+                                <FireIcon className="w-7 h-7 md:w-8 md:h-8 rotate-45 group-hover:rotate-90 transition-transform relative z-10" />
                             </Link>
                         </div>
                     </div>
