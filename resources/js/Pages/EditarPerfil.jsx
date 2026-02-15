@@ -75,6 +75,10 @@ export default function EditarPerfil({ auth, stats }) {
         { name: 'Bills', path: '/images/characters/Guerreros/Rey/Bills.png' },
         { name: 'Bulma', path: '/images/characters/Guerreros/Reina/Bulma.png' },
         { name: 'Freezer', path: '/images/characters/Villanos/Rey/Freezer.png' },
+        { name: 'Champa', path: '/images/characters/Villanos/Rey/Champa.png' },
+        { name: 'Dabura', path: '/images/characters/Villanos/Rey/Dabura.png' },
+        { name: 'Ginyu', path: '/images/characters/Villanos/Rey/Ginyu.png' },
+        { name: 'Moro', path: '/images/characters/Villanos/Rey/Moro.png' },
     ];
 
     return (
