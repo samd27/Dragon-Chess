@@ -1,7 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
-import { TrophyIcon, HandRaisedIcon, XMarkIcon, PauseIcon, PlayIcon, PhotoIcon } from '@heroicons/react/24/solid';
+import { TrophyIcon, HandRaisedIcon, XMarkIcon, PauseIcon, PlayIcon, PhotoIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/solid';
 
 export default function GameArena({ auth, faction, mode = 'PVP', player2 = null, player1Preferences = {}, player2Preferences = {} }) {
     const [game, setGame] = useState(new Chess());
@@ -17,6 +17,8 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
     const [capturedPieces, setCapturedPieces] = useState({ white: [], black: [] });
     const [promotionPending, setPromotionPending] = useState(null);
     const [showCheckAnimation, setShowCheckAnimation] = useState(false);
+    const [showCapturedPiecesModal, setShowCapturedPiecesModal] = useState(false);
+    const [showMoveHistoryModal, setShowMoveHistoryModal] = useState(false);
     
     // Refs para auto-scroll
     const moveHistoryRef = useRef(null);
@@ -630,6 +632,24 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
                 <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 relative">
                     <div className="absolute inset-0 pointer-events-none opacity-5 bg-[radial-gradient(circle_at_center,white_0%,transparent_70%)]"></div>
                     
+                    {/* Mobile Action Buttons - Arriba del tablero */}
+                    <div className="md:hidden flex gap-2 mb-4 w-full max-w-[350px]">
+                        <button
+                            onClick={() => setShowCapturedPiecesModal(true)}
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
+                        >
+                            <TrophyIcon className="w-4 h-4 text-primary" />
+                            <span className="text-xs font-bold text-white">Capturas</span>
+                        </button>
+                        <button
+                            onClick={() => setShowMoveHistoryModal(true)}
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
+                        >
+                            <ClipboardDocumentListIcon className="w-4 h-4 text-primary" />
+                            <span className="text-xs font-bold text-white">Movimientos</span>
+                        </button>
+                    </div>
+                    
                     {/* Check Warning - Arriba del tablero */}
                     {showCheckAnimation && (
                         <div className="absolute top-8 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
@@ -1004,6 +1024,146 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
                                         Revancha
                                     </button>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modal de Piezas Capturadas (Solo Móvil) */}
+                {showCapturedPiecesModal && (
+                    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 md:hidden p-4">
+                        <div className="bg-gradient-to-br from-[#1a1b1e] to-[#0d0e12] border-2 border-primary/30 rounded-2xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto">
+                            {/* Header */}
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-xl font-black uppercase tracking-tighter text-white flex items-center gap-2">
+                                    <TrophyIcon className="w-6 h-6 text-primary" />
+                                    Piezas Capturadas
+                                </h3>
+                                <button
+                                    onClick={() => setShowCapturedPiecesModal(false)}
+                                    className="p-2 text-white/60 hover:text-white transition-colors"
+                                >
+                                    <XMarkIcon className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            {/* Piezas del Jugador */}
+                            <div className="mb-6">
+                                <h4 className="text-sm font-black uppercase text-primary tracking-widest mb-3">
+                                    Tus Capturas
+                                </h4>
+                                <div className="flex flex-wrap gap-2 min-h-[60px] p-3 bg-white/5 rounded-lg border border-white/10">
+                                    {(playerIsWhite ? capturedPieces.black : capturedPieces.white).length === 0 ? (
+                                        <p className="text-white/40 text-xs italic w-full text-center py-4">
+                                            Aún no has capturado piezas
+                                        </p>
+                                    ) : (
+                                        (playerIsWhite ? capturedPieces.black : capturedPieces.white).map((piece, i) => {
+                                            const isWhitePiece = piece === piece.toUpperCase();
+                                            const capturedImage = getCapturedPieceImage(piece, isWhitePiece);
+                                            return (
+                                                <div key={i} className="w-10 h-10 opacity-70">
+                                                    {capturedImage ? (
+                                                        <img 
+                                                            src={capturedImage} 
+                                                            alt={piece}
+                                                            className="w-full h-full object-contain"
+                                                        />
+                                                    ) : (
+                                                        <span className="text-3xl">{pieceSymbols[piece]}</span>
+                                                    )}
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Piezas del Oponente */}
+                            <div>
+                                <h4 className="text-sm font-black uppercase text-purple-500 tracking-widest mb-3">
+                                    Capturas del Oponente
+                                </h4>
+                                <div className="flex flex-wrap gap-2 min-h-[60px] p-3 bg-white/5 rounded-lg border border-white/10">
+                                    {(playerIsWhite ? capturedPieces.white : capturedPieces.black).length === 0 ? (
+                                        <p className="text-white/40 text-xs italic w-full text-center py-4">
+                                            El oponente no ha capturado piezas
+                                        </p>
+                                    ) : (
+                                        (playerIsWhite ? capturedPieces.white : capturedPieces.black).map((piece, i) => {
+                                            const isWhitePiece = piece === piece.toUpperCase();
+                                            const capturedImage = getCapturedPieceImage(piece, isWhitePiece);
+                                            return (
+                                                <div key={i} className="w-10 h-10 opacity-70">
+                                                    {capturedImage ? (
+                                                        <img 
+                                                            src={capturedImage} 
+                                                            alt={piece}
+                                                            className="w-full h-full object-contain"
+                                                        />
+                                                    ) : (
+                                                        <span className="text-3xl">{pieceSymbols[piece.toUpperCase()]}</span>
+                                                    )}
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modal de Historial de Movimientos (Solo Móvil) */}
+                {showMoveHistoryModal && (
+                    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 md:hidden p-4">
+                        <div className="bg-gradient-to-br from-[#1a1b1e] to-[#0d0e12] border-2 border-primary/30 rounded-2xl p-6 w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col">
+                            {/* Header */}
+                            <div className="flex items-center justify-between mb-6 flex-shrink-0">
+                                <h3 className="text-xl font-black uppercase tracking-tighter text-white flex items-center gap-2">
+                                    <ClipboardDocumentListIcon className="w-6 h-6 text-primary" />
+                                    Registro de Combate
+                                </h3>
+                                <button
+                                    onClick={() => setShowMoveHistoryModal(false)}
+                                    className="p-2 text-white/60 hover:text-white transition-colors"
+                                >
+                                    <XMarkIcon className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            {/* Historial */}
+                            <div className="flex-1 overflow-y-auto space-y-2 pr-2" style={{
+                                scrollbarWidth: 'thin',
+                                scrollbarColor: 'rgba(249, 122, 31, 0.3) rgba(255, 255, 255, 0.05)'
+                            }}>
+                                {moveHistory.length === 0 ? (
+                                    <p className="text-white/40 text-sm italic text-center py-8">
+                                        Esperando primer movimiento...
+                                    </p>
+                                ) : (
+                                    moveHistory.map((move, i) => (
+                                        <div key={i} className={`flex items-start gap-3 p-3 rounded-lg ${
+                                            move.player === 'G' ? 'bg-primary/10 border border-primary/20' : 'bg-purple-500/10 border border-purple-500/20'
+                                        }`}>
+                                            <span className="text-xs text-white/40 font-bold min-w-[24px]">
+                                                {i + 1}.
+                                            </span>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className={`font-black text-sm ${
+                                                        move.player === 'G' ? 'text-primary' : 'text-purple-500'
+                                                    }`}>
+                                                        {move.player === 'G' ? 'Guerrero Z' : 'Villano'}
+                                                    </span>
+                                                </div>
+                                                <p className="text-white/60 text-xs font-mono">
+                                                    {pieceNames[move.piece]} • {move.from} → {move.to}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         </div>
                     </div>
