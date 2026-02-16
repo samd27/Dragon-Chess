@@ -2,6 +2,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
 import { TrophyIcon, HandRaisedIcon, XMarkIcon, PauseIcon, PlayIcon, PhotoIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/solid';
+import ElectricBorder from '@/Components/ElectricBorder';
 
 export default function GameArena({ auth, faction, mode = 'PVP', player2 = null, player1Preferences = {}, player2Preferences = {} }) {
     const [game, setGame] = useState(new Chess());
@@ -499,17 +500,23 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
             <div className="flex flex-col h-screen relative overflow-hidden bg-[#0d0e12]">
                 {/* Top Header */}
                 <header className="px-4 md:px-10 py-3 md:py-4 flex items-center justify-between border-b border-white/5 bg-black/20 backdrop-blur-lg">
-                    <button onClick={() => setShowPauseMenu(true)} className="flex items-center gap-2 group text-white/60 hover:text-yellow-500 transition-colors">
-                        <PauseIcon className="w-5 h-5 md:w-6 md:h-6" />
-                        <span className="text-[10px] md:text-xs font-black uppercase tracking-widest">Pausa</span>
-                    </button>
-                    <div className="flex items-center gap-3 md:gap-4">
+                    <div className="flex items-center gap-2 md:gap-3">
+                        <button onClick={() => setShowPauseMenu(true)} className="flex items-center gap-1 md:gap-2 group text-white/60 hover:text-yellow-500 transition-colors">
+                            <PauseIcon className="w-5 h-5 md:w-6 md:h-6" />
+                            <span className="text-[10px] md:text-xs font-black uppercase tracking-widest">Pausa</span>
+                        </button>
+                        <button onClick={() => setShowPiecesReference(true)} className="flex items-center gap-1 md:gap-2 group text-white/60 hover:text-blue-500 transition-colors">
+                            <PhotoIcon className="w-5 h-5 md:w-6 md:h-6" />
+                            <span className="text-[10px] md:text-xs font-black uppercase tracking-widest">Piezas</span>
+                        </button>
+                    </div>
+                    <div className="flex items-center gap-2 md:gap-4">
                         <div className={`w-3 h-3 rounded-full animate-pulse ${
                             game.turn() === 'w'
                                 ? 'bg-primary'
                                 : 'bg-purple-500'
                         }`}></div>
-                        <span className={`text-xs font-black tracking-[0.2em] md:tracking-[0.4em] uppercase ${
+                        <span className={`text-[9px] md:text-xs font-black tracking-[0.15em] md:tracking-[0.4em] uppercase ${
                             game.turn() === 'w'
                                 ? 'text-primary'
                                 : 'text-purple-500'
@@ -536,20 +543,27 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
                     }}
                     >
                     <div className="flex flex-row md:flex-col items-center gap-3 md:gap-4 flex-shrink-0">
-                        <div className="relative">
-                            <div className={`w-20 h-20 md:w-36 md:h-36 rounded-2xl md:rounded-3xl border-2 md:border-4 overflow-hidden bg-black p-1 transition-all duration-500 md:scale-110 -rotate-2 ${
-                                faction === 'Z_WARRIORS' 
-                                    ? 'border-primary shadow-neon-orange' 
-                                    : 'border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.4)]'
-                            }`}>
-                                <img src={player.avatar} alt="You" className="w-full h-full object-cover rounded-xl md:rounded-2xl" />
+                        <ElectricBorder 
+                            color={faction === 'Z_WARRIORS' ? '#F97A1F' : '#A855F7'}
+                            speed={2}
+                            chaos={0.2}
+                            active={((game.turn() === 'w' && playerIsWhite) || (game.turn() === 'b' && !playerIsWhite))}
+                        >
+                            <div className="relative transform -rotate-2">
+                                <div className={`w-20 h-20 md:w-36 md:h-36 rounded-2xl md:rounded-3xl border-2 md:border-4 overflow-hidden bg-black p-1 ${
+                                    faction === 'Z_WARRIORS' 
+                                        ? 'border-primary shadow-neon-orange' 
+                                        : 'border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.4)]'
+                                }`}>
+                                    <img src={player.avatar} alt="You" className="w-full h-full object-cover rounded-xl md:rounded-2xl" />
+                                </div>
+                                <div className={`absolute -bottom-1 -left-1 md:-bottom-2 md:-left-2 text-[8px] md:text-xs font-black px-2 md:px-4 py-0.5 md:py-1 rounded shadow-lg uppercase ${
+                                    faction === 'Z_WARRIORS' ? 'bg-primary' : 'bg-purple-500'
+                                }`}>
+                                    {faction === 'Z_WARRIORS' ? 'Guerrero Z' : 'Villano'}
+                                </div>
                             </div>
-                            <div className={`absolute -bottom-1 -left-1 md:-bottom-2 md:-left-2 text-[8px] md:text-xs font-black px-2 md:px-4 py-0.5 md:py-1 rounded shadow-lg uppercase ${
-                                faction === 'Z_WARRIORS' ? 'bg-primary' : 'bg-purple-500'
-                            }`}>
-                                {faction === 'Z_WARRIORS' ? 'Guerrero Z' : 'Villano'}
-                            </div>
-                        </div>
+                        </ElectricBorder>
                         <div className="text-left md:text-center">
                             <h3 className="text-lg md:text-2xl font-black italic uppercase tracking-tighter leading-none mb-1 md:mb-2 text-white">{player.name}</h3>
                         </div>
@@ -705,20 +719,27 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
                     }}
                     >
                     <div className="flex flex-row md:flex-col items-center gap-3 md:gap-4 flex-shrink-0">
-                        <div className="relative">
-                            <div className={`w-20 h-20 md:w-32 md:h-32 rounded-2xl md:rounded-3xl border-2 md:border-4 overflow-hidden bg-black p-1 rotate-3 ${
-                                faction === 'Z_WARRIORS' 
-                                    ? 'border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.4)]' 
-                                    : 'border-primary shadow-neon-orange'
-                            }`}>
-                                <img src={opponent.avatar} alt="Opponent" className="w-full h-full object-cover rounded-xl md:rounded-2xl" />
+                        <ElectricBorder 
+                            color={faction === 'Z_WARRIORS' ? '#A855F7' : '#F97A1F'}
+                            speed={2}
+                            chaos={0.2}
+                            active={((game.turn() === 'b' && playerIsWhite) || (game.turn() === 'w' && !playerIsWhite))}
+                        >
+                            <div className="relative transform rotate-3">
+                                <div className={`w-20 h-20 md:w-32 md:h-32 rounded-2xl md:rounded-3xl border-2 md:border-4 overflow-hidden bg-black p-1 ${
+                                    faction === 'Z_WARRIORS' 
+                                        ? 'border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.4)]' 
+                                        : 'border-primary shadow-neon-orange'
+                                }`}>
+                                    <img src={opponent.avatar} alt="Opponent" className="w-full h-full object-cover rounded-xl md:rounded-2xl" />
+                                </div>
+                                <div className={`absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 text-[8px] md:text-xs font-black px-2 md:px-4 py-0.5 md:py-1 rounded shadow-lg uppercase ${
+                                    faction === 'Z_WARRIORS' ? 'bg-purple-500' : 'bg-primary'
+                                }`}>
+                                    {faction === 'Z_WARRIORS' ? 'Villano' : 'Guerrero Z'}
+                                </div>
                             </div>
-                            <div className={`absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 text-[8px] md:text-xs font-black px-2 md:px-4 py-0.5 md:py-1 rounded shadow-lg uppercase ${
-                                faction === 'Z_WARRIORS' ? 'bg-purple-500' : 'bg-primary'
-                            }`}>
-                                {faction === 'Z_WARRIORS' ? 'Villano' : 'Guerrero Z'}
-                            </div>
-                        </div>
+                        </ElectricBorder>
                         <div className="text-left md:text-center">
                             <h3 className="text-lg md:text-2xl font-black italic uppercase tracking-tighter leading-none mb-1 md:mb-2 text-white">{opponent.name}</h3>
                         </div>
@@ -837,14 +858,6 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
                                 </button>
                                 
                                 <button 
-                                    onClick={() => { setShowPauseMenu(false); setShowPiecesReference(true); }}
-                                    className="w-full py-4 bg-white/5 rounded-xl border border-white/10 text-white hover:bg-white/10 transition-all font-black uppercase text-sm tracking-widest flex items-center justify-center gap-3"
-                                >
-                                    <PhotoIcon className="w-5 h-5" />
-                                    Ver Piezas
-                                </button>
-                                
-                                <button 
                                     onClick={() => { setShowPauseMenu(false); setShowConfirmAbort(true); }}
                                     className="w-full py-4 bg-white/5 rounded-xl border border-red-500/30 text-red-500 hover:bg-red-500/10 transition-all font-black uppercase text-sm tracking-widest flex items-center justify-center gap-3"
                                 >
@@ -873,14 +886,14 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
                                 
                                 {/* Player 1 Pieces */}
                                 <div>
-                                    <h4 className="text-lg font-black uppercase tracking-wider text-primary mb-4">Mis Piezas ({faction === 'Z_WARRIORS' ? 'Guerreros Z' : 'Villanos'})</h4>
+                                    <h4 className={`text-lg font-black uppercase tracking-wider mb-4 ${faction === 'Z_WARRIORS' ? 'text-primary' : 'text-purple-500'}`}>Mis Piezas ({faction === 'Z_WARRIORS' ? 'Guerreros Z' : 'Villanos'})</h4>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                         {Object.entries(pieceTypeMap).map(([key, name]) => {
                                             const factionKey = faction === 'Z_WARRIORS' ? 'guerreros' : 'villanos';
                                             const image = player1Preferences?.[factionKey]?.[name];
                                             const pieceNames = { rey: 'Rey', reina: 'Reina', torre: 'Torre', caballo: 'Caballo', alfil: 'Alfil', peon: 'Peón' };
                                             return (
-                                                <div key={key} className="bg-white/5 rounded-xl p-4 border border-white/10 hover:border-primary/50 transition-colors">
+                                                <div key={key} className={`bg-white/5 rounded-xl p-4 border border-white/10 transition-colors ${faction === 'Z_WARRIORS' ? 'hover:border-primary/50' : 'hover:border-purple-500/50'}`}>
                                                     <div className="aspect-square bg-white/5 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
                                                         {image ? (
                                                             <img src={image} alt={name} className="w-full h-full object-contain" />
@@ -897,7 +910,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
                                 
                                 {/* Opponent Pieces */}
                                 <div>
-                                    <h4 className="text-lg font-black uppercase tracking-wider text-purple-400 mb-4">Piezas Rivales ({faction === 'Z_WARRIORS' ? 'Villanos' : 'Guerreros Z'})</h4>
+                                    <h4 className={`text-lg font-black uppercase tracking-wider mb-4 ${faction === 'Z_WARRIORS' ? 'text-purple-500' : 'text-primary'}`}>Piezas Rivales ({faction === 'Z_WARRIORS' ? 'Villanos' : 'Guerreros Z'})</h4>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                         {Object.entries(pieceTypeMap).map(([key, name]) => {
                                             const factionKey = faction === 'Z_WARRIORS' ? 'villanos' : 'guerreros';
@@ -905,7 +918,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
                                             const image = preferences?.[factionKey]?.[name];
                                             const pieceNames = { rey: 'Rey', reina: 'Reina', torre: 'Torre', caballo: 'Caballo', alfil: 'Alfil', peon: 'Peón' };
                                             return (
-                                                <div key={key} className="bg-white/5 rounded-xl p-4 border border-white/10 hover:border-purple-400/50 transition-colors">
+                                                <div key={key} className={`bg-white/5 rounded-xl p-4 border border-white/10 transition-colors ${faction === 'Z_WARRIORS' ? 'hover:border-purple-500/50' : 'hover:border-primary/50'}`}>
                                                     <div className="aspect-square bg-white/5 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
                                                         {image ? (
                                                             <img src={image} alt={name} className="w-full h-full object-contain" />
@@ -954,11 +967,20 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
                 {/* Game Over Modal */}
                 {gameOver && (
                     <div className="fixed bottom-4 right-4 z-50 animate-in slide-in-from-bottom duration-500">
-                        <div className={`bg-gradient-to-br from-[#1a1b1e] to-[#0d0e12] border-2 rounded-2xl p-6 w-80 shadow-[0_0_60px_rgba(0,0,0,0.8)] relative ${
-                            gameOver.type === 'checkmate' 
-                                ? gameOver.winner === 'white' ? 'border-primary shadow-neon-orange' : 'border-purple-500'
-                                : 'border-yellow-500'
-                        }`}>
+                        <ElectricBorder 
+                            color={
+                                gameOver.type === 'checkmate' 
+                                    ? (gameOver.winner === 'white' ? '#F97A1F' : '#A855F7')
+                                    : '#3B82F6'
+                            }
+                            speed={1.5}
+                            chaos={0.15}
+                        >
+                            <div className={`bg-gradient-to-br from-[#1a1b1e] to-[#0d0e12] border-2 rounded-2xl p-6 w-80 shadow-[0_0_60px_rgba(0,0,0,0.8)] relative ${
+                                gameOver.type === 'checkmate' 
+                                    ? gameOver.winner === 'white' ? 'border-primary shadow-neon-orange' : 'border-purple-500'
+                                    : 'border-yellow-500'
+                            }`}>
                             {/* Botón Cerrar */}
                             <button 
                                 onClick={() => setGameOver(null)}
@@ -1026,6 +1048,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
                                 </div>
                             </div>
                         </div>
+                        </ElectricBorder>
                     </div>
                 )}
 

@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 import { FireIcon, UsersIcon, ShoppingBagIcon, Bars3Icon, XMarkIcon, UserIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/solid';
+import ElectricBorder from '@/Components/ElectricBorder';
 
 export default function Welcome({ auth, stats }) {
     const [showDropdown, setShowDropdown] = useState(false);
@@ -218,14 +219,16 @@ export default function Welcome({ auth, stats }) {
                         </div>
                         
                         <div className="flex items-center">
-                            <Link 
-                                href={auth.user ? route('game.mode') : route('login')}
-                                className="group relative bg-primary h-16 md:h-20 px-10 md:px-14 rounded-2xl flex items-center gap-3 md:gap-4 shadow-[0_15px_30px_rgba(249,122,31,0.3)] hover:shadow-[0_20px_40px_rgba(249,122,31,0.4)] transition-all hover:-translate-y-1 active:scale-95 overflow-hidden w-full md:w-auto justify-center"
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                                <span className="text-xl md:text-2xl font-black italic tracking-tighter uppercase relative z-10">Entrar a Batalla</span>
-                                <FireIcon className="w-7 h-7 md:w-8 md:h-8 rotate-45 group-hover:rotate-90 transition-transform relative z-10" />
-                            </Link>
+                            <ElectricBorder color="#F97A1F" speed={1.5} chaos={0.15} className="w-full md:w-auto" active={true}>
+                                <Link 
+                                    href={auth.user ? route('game.mode') : route('login')}
+                                    className="group relative bg-primary h-16 md:h-20 px-10 md:px-14 rounded-2xl flex items-center gap-3 md:gap-4 shadow-[0_15px_30px_rgba(249,122,31,0.3)] hover:shadow-[0_20px_40px_rgba(249,122,31,0.4)] transition-all hover:-translate-y-1 active:scale-95 overflow-hidden w-full md:w-auto justify-center"
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                                    <span className="text-xl md:text-2xl font-black italic tracking-tighter uppercase relative z-10">Entrar a Batalla</span>
+                                    <FireIcon className="w-7 h-7 md:w-8 md:h-8 rotate-45 group-hover:rotate-90 transition-transform relative z-10" />
+                                </Link>
+                            </ElectricBorder>
                         </div>
                     </div>
 
