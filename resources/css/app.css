@@ -13,3 +13,22 @@
         background-position: 0% 50%;
     }
 }
+
+/* Animación de pieza aterrizando en casilla destino */
+@keyframes piece-land {
+    0% {
+        transform: scale(1.35);
+        filter: brightness(1.6);
+    }
+    50% {
+        transform: scale(0.92);
+    }
+    100% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+}
+
+.animate-piece-land {
+    animation: piece-land 0.35s ease-out;
+}

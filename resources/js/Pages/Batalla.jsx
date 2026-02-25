@@ -1,10 +1,11 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Chess } from 'chess.js';
 import { TrophyIcon, HandRaisedIcon, XMarkIcon, PauseIcon, PlayIcon, PhotoIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/solid';
 import ElectricBorder from '@/Components/ElectricBorder';
+import useStockfish from '@/hooks/useStockfish';
 
-export default function GameArena({ auth, faction, mode = 'PVP', player2 = null, player1Preferences = {}, player2Preferences = {} }) {
+export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2, player2 = null, player1Preferences = {}, player2Preferences = {} }) {
     const [game, setGame] = useState(new Chess());
     const [selectedSquare, setSelectedSquare] = useState(null);
     const [possibleMoves, setPossibleMoves] = useState([]);
@@ -20,6 +21,12 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
     const [showCheckAnimation, setShowCheckAnimation] = useState(false);
     const [showCapturedPiecesModal, setShowCapturedPiecesModal] = useState(false);
     const [showMoveHistoryModal, setShowMoveHistoryModal] = useState(false);
+    const [cpuThinking, setCpuThinking] = useState(false);
+    const [showPiecesIntro, setShowPiecesIntro] = useState(true);
+    const [lastMove, setLastMove] = useState(null); // { from, to }
+
+    // Stockfish engine (solo se activa en modo PVC)
+    const { isReady: stockfishReady, isThinking, getBestMove, stop: stopStockfish } = useStockfish(mode === 'PVC' ? difficulty : 2);
     
     // Refs para auto-scroll
     const moveHistoryRef = useRef(null);
@@ -158,7 +165,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
 
     // Cronómetro activo
     useEffect(() => {
-        if (gameOver || showPauseMenu) return;
+        if (gameOver || showPauseMenu || showPiecesIntro) return;
         
         const interval = setInterval(() => {
             if (game.turn() === 'w') {
@@ -189,7 +196,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
         }, 1000);
         
         return () => clearInterval(interval);
-    }, [game, gameOver, showPauseMenu]);
+    }, [game, gameOver, showPauseMenu, showPiecesIntro]);
 
     // Verificar estado del juego
     useEffect(() => {
@@ -245,8 +252,17 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
         }
     }, [capturedPieces]);
 
+    // Si es PVC y la CPU juega blancas (jugador eligió Villanos), hacer primer movimiento automático
+    useEffect(() => {
+        if (mode === 'PVC' && !playerIsWhite && game.turn() === 'w' && moveHistory.length === 0 && !gameOver) {
+            setTimeout(() => makeComputerMove(), 800);
+        }
+    }, [mode, playerIsWhite, stockfishReady]);
+
     const handleSquareClick = (square) => {
         if (gameOver) return;
+        // Bloquear interacción mientras la CPU piensa
+        if (cpuThinking) return;
 
         // Si hay una pieza seleccionada y hacemos click en un movimiento válido
         if (selectedSquare && possibleMoves.includes(square)) {
@@ -289,6 +305,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
                         timestamp: new Date()
                     };
                     setMoveHistory([...moveHistory, moveInfo]);
+                    setLastMove({ from: move.from, to: move.to });
                     setGame(new Chess(game.fen()));
                     setSelectedSquare(null);
                     setPossibleMoves([]);
@@ -315,24 +332,67 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
         }
     };
 
-    const makeComputerMove = () => {
+    const makeComputerMove = useCallback(async () => {
+        if (game.isGameOver()) return;
+
+        setCpuThinking(true);
+
+        // Si Stockfish está listo, usarlo; si no, fallback a movimiento aleatorio
+        if (stockfishReady) {
+            try {
+                const bestMoveUci = await getBestMove(game.fen());
+                if (bestMoveUci && bestMoveUci !== '(none)') {
+                    const from = bestMoveUci.substring(0, 2);
+                    const to = bestMoveUci.substring(2, 4);
+                    const promotion = bestMoveUci.length > 4 ? bestMoveUci[4] : undefined;
+
+                    const moveObj = { from, to };
+                    if (promotion) moveObj.promotion = promotion;
+
+                    const move = game.move(moveObj);
+                    if (move) {
+                        if (move.captured) {
+                            const capturedColor = move.color === 'w' ? 'black' : 'white';
+                            const capturedPiece = move.color === 'w' ? move.captured : move.captured.toUpperCase();
+                            setCapturedPieces(prev => ({
+                                ...prev,
+                                [capturedColor]: [...prev[capturedColor], capturedPiece]
+                            }));
+                        }
+                        const moveInfo = {
+                            player: move.color === 'w' ? (playerIsWhite ? 'G' : 'V') : (playerIsWhite ? 'V' : 'G'),
+                            piece: move.piece,
+                            from: move.from,
+                            to: move.to,
+                            san: move.san,
+                            timestamp: new Date()
+                        };
+                        setMoveHistory(prev => [...prev, moveInfo]);
+                        setLastMove({ from: move.from, to: move.to });
+                        setGame(new Chess(game.fen()));
+                        setCpuThinking(false);
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.warn('Stockfish error, usando fallback:', err);
+            }
+        }
+
+        // Fallback: movimiento aleatorio
         const moves = game.moves({ verbose: true });
         if (moves.length > 0) {
             const randomMove = moves[Math.floor(Math.random() * moves.length)];
             const move = game.move(randomMove);
             if (move) {
-                // Si se capturó una pieza, agregarla a la lista
                 if (move.captured) {
                     const capturedColor = move.color === 'w' ? 'black' : 'white';
-                    // Si blancas capturaron (move.color='w'), la pieza es negra (minúscula)
-                    // Si negras capturaron (move.color='b'), la pieza es blanca (MAYÚSCULA)
                     const capturedPiece = move.color === 'w' ? move.captured : move.captured.toUpperCase();
                     setCapturedPieces(prev => ({
                         ...prev,
                         [capturedColor]: [...prev[capturedColor], capturedPiece]
                     }));
                 }
-                
                 const moveInfo = {
                     player: move.color === 'w' ? (playerIsWhite ? 'G' : 'V') : (playerIsWhite ? 'V' : 'G'),
                     piece: move.piece,
@@ -341,11 +401,13 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
                     san: move.san,
                     timestamp: new Date()
                 };
-                setMoveHistory([...moveHistory, moveInfo]);
+                setMoveHistory(prev => [...prev, moveInfo]);
             }
+            setLastMove({ from: randomMove.from, to: randomMove.to });
             setGame(new Chess(game.fen()));
         }
-    };
+        setCpuThinking(false);
+    }, [game, stockfishReady, getBestMove, playerIsWhite]);
     
     const handlePromotion = (pieceType) => {
         if (!promotionPending) return;
@@ -379,6 +441,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
                     timestamp: new Date()
                 };
                 setMoveHistory([...moveHistory, moveInfo]);
+                setLastMove({ from: move.from, to: move.to });
                 setGame(new Chess(game.fen()));
                 setSelectedSquare(null);
                 setPossibleMoves([]);
@@ -412,6 +475,8 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
         const isSelected = selectedSquare === square;
         const isPossibleMove = possibleMoves.includes(square);
         const isInCheck = game.isCheck() && piece && piece.type === 'k' && piece.color === game.turn();
+        const isLastMoveFrom = lastMove && lastMove.from === square;
+        const isLastMoveTo = lastMove && lastMove.to === square;
 
         return (
             <div 
@@ -421,12 +486,13 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
                     ${isDark ? 'bg-black' : 'bg-white'}
                     ${isSelected ? 'ring-4 ring-yellow-400' : ''}
                     ${isInCheck ? 'bg-red-500/50' : ''}
+                    ${isLastMoveFrom ? 'bg-yellow-500/20' : ''}
+                    ${isLastMoveTo ? 'bg-yellow-500/30' : ''}
                     hover:brightness-110
                 `}
             >
                 {piece && (
-                    <span className={`text-4xl md:text-5xl select-none transition-all ${
-                        // Si es una pieza del jugador actual
+                    <span className={`text-4xl md:text-5xl select-none transition-all duration-300 ${isLastMoveTo ? 'animate-piece-land' : ''} ${
                         (piece.color === 'w' && playerIsWhite) || (piece.color === 'b' && !playerIsWhite)
                             ? (faction === 'Z_WARRIORS' ? 'text-primary' : 'text-purple-500')
                             : (faction === 'Z_WARRIORS' ? 'text-purple-500' : 'text-primary')
@@ -464,6 +530,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
     };
 
     const resetGame = () => {
+        stopStockfish();
         setGame(new Chess());
         setSelectedSquare(null);
         setPossibleMoves([]);
@@ -474,6 +541,9 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
         setCapturedPieces({ white: [], black: [] });
         setPromotionPending(null);
         setShowCheckAnimation(false);
+        setCpuThinking(false);
+        setLastMove(null);
+        setShowPiecesIntro(true);
     };
     
     const getTurnText = () => {
@@ -742,6 +812,20 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
                         </ElectricBorder>
                         <div className="text-left md:text-center">
                             <h3 className="text-lg md:text-2xl font-black italic uppercase tracking-tighter leading-none mb-1 md:mb-2 text-white">{opponent.name}</h3>
+                            {mode === 'PVC' && (
+                                <div className="flex flex-col items-start md:items-center gap-1">
+                                    <span className={`text-[9px] md:text-xs font-bold uppercase tracking-widest ${
+                                        difficulty === 1 ? 'text-green-400' : difficulty === 2 ? 'text-yellow-400' : 'text-red-400'
+                                    }`}>
+                                        {difficulty === 1 ? 'Fácil' : difficulty === 2 ? 'Normal' : 'Difícil'}
+                                    </span>
+                                    {cpuThinking && (
+                                        <span className="text-[10px] md:text-xs text-purple-400 animate-pulse font-bold">
+                                            Pensando...
+                                        </span>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                         
@@ -1187,6 +1271,80 @@ export default function GameArena({ auth, faction, mode = 'PVP', player2 = null,
                                         </div>
                                     ))
                                 )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modal Intro de Piezas al inicio de partida */}
+                {showPiecesIntro && (
+                    <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 p-4">
+                        <div className="bg-gradient-to-br from-[#1a1b1e] to-[#0d0e12] border-2 border-primary/30 rounded-3xl p-5 md:p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-[0_0_80px_rgba(249,122,31,0.2)]">
+                            <div className="space-y-5 md:space-y-6">
+                                <div className="text-center space-y-2">
+                                    <h2 className="text-2xl md:text-4xl font-black italic uppercase tracking-tighter text-white">
+                                        Tus <span className="text-primary">Piezas</span>
+                                    </h2>
+                                    <p className="text-white/50 text-xs md:text-sm">Conoce a tus guerreros antes de la batalla</p>
+                                </div>
+
+                                {/* Piezas del Jugador */}
+                                <div>
+                                    <h3 className={`text-sm md:text-base font-black uppercase tracking-widest mb-3 ${faction === 'Z_WARRIORS' ? 'text-primary' : 'text-purple-500'}`}>
+                                        {faction === 'Z_WARRIORS' ? 'Guerreros Z' : 'Villanos'} — Tus Piezas
+                                    </h3>
+                                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 md:gap-3">
+                                        {Object.entries(pieceTypeMap).map(([key, name]) => {
+                                            const factionKey = faction === 'Z_WARRIORS' ? 'guerreros' : 'villanos';
+                                            const image = player1Preferences?.[factionKey]?.[name];
+                                            return (
+                                                <div key={key} className={`bg-white/5 rounded-xl p-2 md:p-3 border border-white/10 ${faction === 'Z_WARRIORS' ? 'hover:border-primary/50' : 'hover:border-purple-500/50'} transition-colors`}>
+                                                    <div className="aspect-square bg-white/5 rounded-lg flex items-center justify-center overflow-hidden mb-1">
+                                                        {image ? (
+                                                            <img src={image} alt={name} className="w-full h-full object-contain" />
+                                                        ) : (
+                                                            <span className="text-3xl md:text-4xl">{pieceSymbols[key.toUpperCase()]}</span>
+                                                        )}
+                                                    </div>
+                                                    <p className={`text-center font-black text-[10px] md:text-xs uppercase ${faction === 'Z_WARRIORS' ? 'text-primary' : 'text-purple-400'}`}>{pieceNames[key]}</p>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* Piezas del Oponente */}
+                                <div>
+                                    <h3 className={`text-sm md:text-base font-black uppercase tracking-widest mb-3 ${faction === 'Z_WARRIORS' ? 'text-purple-500' : 'text-primary'}`}>
+                                        {faction === 'Z_WARRIORS' ? 'Villanos' : 'Guerreros Z'} — Piezas Rivales
+                                    </h3>
+                                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 md:gap-3">
+                                        {Object.entries(pieceTypeMap).map(([key, name]) => {
+                                            const factionKey = faction === 'Z_WARRIORS' ? 'villanos' : 'guerreros';
+                                            const prefs = (player2 === null || !player2) ? player1Preferences : player2Preferences;
+                                            const image = prefs?.[factionKey]?.[name];
+                                            return (
+                                                <div key={key} className={`bg-white/5 rounded-xl p-2 md:p-3 border border-white/10 ${faction === 'Z_WARRIORS' ? 'hover:border-purple-500/50' : 'hover:border-primary/50'} transition-colors`}>
+                                                    <div className="aspect-square bg-white/5 rounded-lg flex items-center justify-center overflow-hidden mb-1">
+                                                        {image ? (
+                                                            <img src={image} alt={name} className="w-full h-full object-contain" />
+                                                        ) : (
+                                                            <span className="text-3xl md:text-4xl">{pieceSymbols[key]}</span>
+                                                        )}
+                                                    </div>
+                                                    <p className={`text-center font-black text-[10px] md:text-xs uppercase ${faction === 'Z_WARRIORS' ? 'text-purple-400' : 'text-primary'}`}>{pieceNames[key]}</p>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => setShowPiecesIntro(false)}
+                                    className="w-full py-3 md:py-4 bg-primary hover:bg-orange-500 rounded-2xl text-black font-black italic uppercase text-lg md:text-xl tracking-tighter transition-all active:scale-95 shadow-neon-orange"
+                                >
+                                    ¡A Combatir!
+                                </button>
                             </div>
                         </div>
                     </div>

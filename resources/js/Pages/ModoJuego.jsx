@@ -1,9 +1,10 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
-import { UsersIcon, CpuChipIcon } from '@heroicons/react/24/solid';
+import { UsersIcon, CpuChipIcon, AcademicCapIcon, BoltIcon, FireIcon } from '@heroicons/react/24/solid';
 
 export default function GameMode({ auth }) {
     const [selectedMode, setSelectedMode] = useState('PVP');
+    const [difficulty, setDifficulty] = useState(2); // 1=Fácil, 2=Normal, 3=Difícil
 
     return (
         <>
@@ -101,9 +102,45 @@ export default function GameMode({ auth }) {
                             </div>
                         </div>
 
+                        {/* Difficulty Selector (solo PVC) */}
+                        {selectedMode === 'PVC' && (
+                            <div className="bg-white/5 border border-purple-500/20 rounded-2xl p-4 md:p-6 space-y-4 animate-in fade-in duration-300">
+                                <h3 className="text-lg md:text-xl font-black italic uppercase tracking-tighter text-white text-center">
+                                    Nivel de <span className="text-purple-400">Dificultad</span>
+                                </h3>
+                                <div className="grid grid-cols-3 gap-3 md:gap-4">
+                                    {[
+                                        { level: 1, label: 'Fácil', desc: 'Para aprender', Icon: AcademicCapIcon, color: 'green' },
+                                        { level: 2, label: 'Normal', desc: 'Desafío justo', Icon: BoltIcon, color: 'yellow' },
+                                        { level: 3, label: 'Difícil', desc: 'Sin piedad', Icon: FireIcon, color: 'red' },
+                                    ].map(({ level, label, desc, Icon, color }) => (
+                                        <button
+                                            key={level}
+                                            type="button"
+                                            onClick={() => setDifficulty(level)}
+                                            className={`relative rounded-xl border-2 p-3 md:p-4 transition-all duration-300 text-center ${
+                                                difficulty === level
+                                                    ? `border-${color}-500 bg-${color}-500/10 ring-4 ring-${color}-500/20 scale-105`
+                                                    : 'border-white/10 bg-white/5 opacity-60 hover:opacity-80 hover:scale-[1.02]'
+                                            }`}
+                                        >
+                                            <Icon className={`w-7 h-7 md:w-9 md:h-9 mx-auto mb-1 ${
+                                                difficulty === level ? `text-${color}-500` : 'text-white/60'
+                                            }`} />
+                                            <p className="text-sm md:text-base font-black uppercase tracking-wider text-white">{label}</p>
+                                            <p className="text-[10px] md:text-xs text-white/50 mt-1">{desc}</p>
+                                            {difficulty === level && (
+                                                <div className={`absolute -top-2 -right-2 w-6 h-6 rounded-full bg-${color}-500 flex items-center justify-center text-xs text-white font-bold`}>✓</div>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Continue Button */}
                         <Link 
-                            href={selectedMode === 'PVP' ? route('player2.select') : route('faction.select', { mode: selectedMode })}
+                            href={selectedMode === 'PVP' ? route('player2.select') : route('faction.select', { mode: selectedMode, difficulty: difficulty })}
                             className="w-full group relative bg-primary h-16 md:h-20 rounded-2xl flex items-center justify-center gap-4 shadow-[0_0_20px_rgba(249,122,31,0.25),0_0_40px_rgba(249,122,31,0.1)] hover:shadow-[0_0_25px_rgba(249,122,31,0.35),0_0_50px_rgba(249,122,31,0.15)] transition-all hover:-translate-y-1 active:scale-95 overflow-hidden"
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>

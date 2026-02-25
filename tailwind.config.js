@@ -10,6 +10,13 @@ export default {
         './resources/js/**/*.jsx',
     ],
 
+    safelist: [
+        // Clases dinámicas del selector de dificultad
+        'border-green-500', 'bg-green-500/10', 'ring-green-500/20', 'bg-green-500', 'text-green-500',
+        'border-yellow-500', 'bg-yellow-500/10', 'ring-yellow-500/20', 'bg-yellow-500', 'text-yellow-500',
+        'border-red-500', 'bg-red-500/10', 'ring-red-500/20', 'bg-red-500', 'text-red-500',
+    ],
+
     theme: {
         extend: {
             fontFamily: {

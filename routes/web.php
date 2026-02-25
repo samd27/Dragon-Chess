@@ -57,6 +57,7 @@ Route::post('/player2-authenticate', function () {
 Route::get('/faction-select', function () {
     $mode = request('mode', 'PVP');
     $player2Type = request('player2Type', 'guest');
+    $difficulty = (int) request('difficulty', 2);
     $player2 = null;
     
     if ($player2Type === 'authenticated' && session('player2_id')) {
@@ -67,12 +68,14 @@ Route::get('/faction-select', function () {
         'mode' => $mode,
         'player2Type' => $player2Type,
         'player2' => $player2,
+        'difficulty' => $difficulty,
     ]);
 })->middleware(['auth'])->name('faction.select');
 
 Route::get('/game-arena', function () {
     $faction = request('faction', 'Z_WARRIORS');
     $mode = request('mode', 'PVP');
+    $difficulty = (int) request('difficulty', 2);
     $player2 = null;
     $player1Preferences = auth()->user()->piece_preferences ?? \App\Http\Controllers\PieceCustomizationController::getDefaultPiecePreferences();
     $player2Preferences = \App\Http\Controllers\PieceCustomizationController::getDefaultPiecePreferences(); // Default para invitados
@@ -87,6 +90,7 @@ Route::get('/game-arena', function () {
     return Inertia::render('Batalla', [
         'faction' => $faction,
         'mode' => $mode,
+        'difficulty' => $difficulty,
         'player2' => $player2,
         'player1Preferences' => $player1Preferences,
         'player2Preferences' => $player2Preferences,

@@ -2,7 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 import { ShieldCheckIcon, FireIcon, BoltIcon } from '@heroicons/react/24/solid';
 
-export default function FactionSelector({ auth, mode = 'PVP', player2Type = 'guest', player2 = null }) {
+export default function FactionSelector({ auth, mode = 'PVP', player2Type = 'guest', player2 = null, difficulty = 2 }) {
     const [selected, setSelected] = useState('Z_WARRIORS');
 
     return (
@@ -62,7 +62,7 @@ export default function FactionSelector({ auth, mode = 'PVP', player2Type = 'gue
                         )}
                         
                         <Link 
-                            href={route('game.arena', { faction: selected, mode: mode })}
+                            href={route('game.arena', { faction: selected, mode: mode, difficulty: difficulty })}
                             className="w-full bg-primary h-14 md:h-16 rounded-2xl shadow-neon-orange font-black italic uppercase tracking-tighter text-lg md:text-2xl flex items-center justify-center gap-3 md:gap-4 hover:bg-orange-500 transition-all active:scale-95 group"
                         >
                             <span className="hidden md:inline">Confirmar Plan de Batalla</span>
