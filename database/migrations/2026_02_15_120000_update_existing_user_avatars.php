@@ -14,15 +14,15 @@ return new class extends Migration
         DB::table('users')
             ->whereNull('avatar')
             ->orWhere('avatar', '')
-            ->update(['avatar' => '/images/characters/Guerreros/Torre/Goku.png']);
+            ->update(['avatar' => '/images/characters/Guerreros/Torre/Goku.webp']);
 
         DB::table('users')
             ->where('avatar', '/images/characters/Goku.png')
-            ->update(['avatar' => '/images/characters/Guerreros/Torre/Goku.png']);
+            ->update(['avatar' => '/images/characters/Guerreros/Torre/Goku.webp']);
 
         DB::table('users')
             ->where('avatar', '/images/characters/Freezer.png')
-            ->update(['avatar' => '/images/characters/Villanos/Rey/Freezer.png']);
+            ->update(['avatar' => '/images/characters/Villanos/Rey/Freezer.webp']);
     }
 
     /**
@@ -31,11 +31,11 @@ return new class extends Migration
     public function down(): void
     {
         DB::table('users')
-            ->where('avatar', '/images/characters/Guerreros/Torre/Goku.png')
+            ->where('avatar', '/images/characters/Guerreros/Torre/Goku.webp')
             ->update(['avatar' => '/images/characters/Goku.png']);
 
         DB::table('users')
-            ->where('avatar', '/images/characters/Villanos/Rey/Freezer.png')
+            ->where('avatar', '/images/characters/Villanos/Rey/Freezer.webp')
             ->update(['avatar' => '/images/characters/Freezer.png']);
     }
 };

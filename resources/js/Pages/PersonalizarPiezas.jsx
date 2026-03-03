@@ -211,9 +211,10 @@ export default function PersonalizarPiezas({ auth, availablePieces, currentPrefe
                                             <div className="flex items-center gap-4">
                                                 <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-lg border-2 border-primary/50 bg-black/40 flex items-center justify-center overflow-hidden aspect-square">
                                                     {currentSelection ? (
-                                                        <img 
-                                                            src={currentSelection} 
-                                                            alt={pieceNames[pieceType]} 
+                                                        <img
+                                                            src={currentSelection}
+                                                            alt={pieceNames[pieceType]}
+                                                            loading="lazy"
                                                             className="w-full h-full object-contain"
                                                         />
                                                     ) : (
@@ -256,9 +257,10 @@ export default function PersonalizarPiezas({ auth, availablePieces, currentPrefe
                                                                 }`}
                                                             >
                                                                 <div className="w-full aspect-square rounded-lg overflow-hidden bg-black/20">
-                                                                    <img 
-                                                                        src={avatar.path} 
-                                                                        alt={getCharacterName(avatar.name)} 
+                                                                    <img
+                                                                        src={avatar.path}
+                                                                        alt={getCharacterName(avatar.name)}
+                                                                        loading="lazy"
                                                                         className="w-full h-full object-contain"
                                                                     />
                                                                 </div>

@@ -74,14 +74,14 @@ class PieceCustomizationController extends Controller
                 }
                 
                 $files = scandir($pieceTypePath);
-                $pngFiles = array_filter($files, function($file) {
-                    return pathinfo($file, PATHINFO_EXTENSION) === 'png';
+                $webpFiles = array_filter($files, function($file) {
+                    return pathinfo($file, PATHINFO_EXTENSION) === 'webp';
                 });
                 
-                sort($pngFiles); // Ordenar alfabéticamente
+                sort($webpFiles); // Ordenar alfabéticamente
                 
-                if (count($pngFiles) > 0) {
-                    $defaults[$factionKey][$pieceKey] = '/images/characters/' . $faction . '/' . $pieceType . '/' . $pngFiles[0];
+                if (count($webpFiles) > 0) {
+                    $defaults[$factionKey][$pieceKey] = '/images/characters/' . $faction . '/' . $pieceType . '/' . reset($webpFiles);
                 } else {
                     $defaults[$factionKey][$pieceKey] = null;
                 }
@@ -124,7 +124,7 @@ class PieceCustomizationController extends Controller
                 $pieces[$factionKey][$pieceKey] = [];
 
                 foreach (scandir($pieceTypePath) as $file) {
-                    if (pathinfo($file, PATHINFO_EXTENSION) === 'png') {
+                    if (pathinfo($file, PATHINFO_EXTENSION) === 'webp') {
                         $pieces[$factionKey][$pieceKey][] = [
                             'name' => pathinfo($file, PATHINFO_FILENAME),
                             'path' => '/images/characters/' . $faction . '/' . $pieceType . '/' . $file,
