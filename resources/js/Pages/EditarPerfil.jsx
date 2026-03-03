@@ -73,40 +73,41 @@ export default function EditarPerfil({ auth, stats }) {
 
     // Guerreros Z
     const guerrerosAvatars = [
-        { name: 'Caulifla', path: '/images/characters/Guerreros/Alfil/caulifla.webp', category: 'Guerreros Z' },
-        { name: 'Hit', path: '/images/characters/Guerreros/Alfil/hit.webp', category: 'Guerreros Z' },
-        { name: 'Ten Shin Han', path: '/images/characters/Guerreros/Alfil/ten.webp', category: 'Guerreros Z' },
-        { name: 'Trunks', path: '/images/characters/Guerreros/Alfil/Trunks.webp', category: 'Guerreros Z' },
-        { name: 'Yamcha', path: '/images/characters/Guerreros/Alfil/yamcha.webp', category: 'Guerreros Z' },
-        { name: 'Gohan', path: '/images/characters/Guerreros/Caballo/gohan.webp', category: 'Guerreros Z' },
-        { name: 'Granola', path: '/images/characters/Guerreros/Caballo/granola.webp', category: 'Guerreros Z' },
-        { name: 'Kyabe', path: '/images/characters/Guerreros/Caballo/kyabe.webp', category: 'Guerreros Z' },
-        { name: 'Tapion', path: '/images/characters/Guerreros/Caballo/tapion.webp', category: 'Guerreros Z' },
-        { name: 'Vegeta', path: '/images/characters/Guerreros/Caballo/vegetta.webp', category: 'Guerreros Z' },
-        { name: 'Chaos', path: '/images/characters/Guerreros/Peon/chaos.webp', category: 'Guerreros Z' },
-        { name: 'Gohan Niño', path: '/images/characters/Guerreros/Peon/gohan_niño.webp', category: 'Guerreros Z' },
-        { name: 'Krillin', path: '/images/characters/Guerreros/Peon/krilin.webp', category: 'Guerreros Z' },
-        { name: 'Pan', path: '/images/characters/Guerreros/Peon/pan.webp', category: 'Guerreros Z' },
-        { name: 'Roshi', path: '/images/characters/Guerreros/Peon/roshi.webp', category: 'Guerreros Z' },
-        { name: 'Mr. Satan', path: '/images/characters/Guerreros/Peon/satan.webp', category: 'Guerreros Z' },
-        { name: 'Videl', path: '/images/characters/Guerreros/Peon/videl.webp', category: 'Guerreros Z' },
         { name: 'Bulma', path: '/images/characters/Guerreros/Reina/Bulma.webp', category: 'Guerreros Z' },
+        { name: 'Caulifla', path: '/images/characters/Guerreros/Alfil/caulifla.webp', category: 'Guerreros Z' },
+        { name: 'Chaos', path: '/images/characters/Guerreros/Peon/chaos.webp', category: 'Guerreros Z' },
         { name: 'Daishinkan', path: '/images/characters/Guerreros/Reina/daishinkan.webp', category: 'Guerreros Z' },
-        { name: 'Gogeta', path: '/images/characters/Guerreros/Reina/gogetta.webp', category: 'Guerreros Z' },
-        { name: 'Goku UI', path: '/images/characters/Guerreros/Reina/goku_ui.webp', category: 'Guerreros Z' },
-        { name: 'Vegetto', path: '/images/characters/Guerreros/Reina/vegetto.webp', category: 'Guerreros Z' },
-        { name: 'Whis', path: '/images/characters/Guerreros/Reina/whiss.webp', category: 'Guerreros Z' },
         { name: 'Bills', path: '/images/characters/Guerreros/Rey/Bills.webp', category: 'Guerreros Z' },
-        { name: 'Kami Sama', path: '/images/characters/Guerreros/Rey/kami.webp', category: 'Guerreros Z' },
-        { name: 'Karim', path: '/images/characters/Guerreros/Rey/karim.webp', category: 'Guerreros Z' },
-        { name: 'Zen-Oh', path: '/images/characters/Guerreros/Rey/zen.webp', category: 'Guerreros Z' },
+        { name: 'Bills 2', path: '/images/characters/Guerreros/Rey/Bills_muychistoso.webp', category: 'Guerreros Z' },
+        { name: 'Gohan', path: '/images/characters/Guerreros/Caballo/gohan.webp', category: 'Guerreros Z' },
         { name: 'Gohan Adolescente', path: '/images/characters/Guerreros/Torre/gohan_adolescente.webp', category: 'Guerreros Z' },
+        { name: 'Gohan Niño', path: '/images/characters/Guerreros/Peon/gohan_niño.webp', category: 'Guerreros Z' },
+        { name: 'Gogeta', path: '/images/characters/Guerreros/Reina/gogetta.webp', category: 'Guerreros Z' },
         { name: 'Goku', path: '/images/characters/Guerreros/Torre/Goku.webp', category: 'Guerreros Z' },
         { name: 'Goku SS1', path: '/images/characters/Guerreros/Torre/gokuss1.webp', category: 'Guerreros Z' },
         { name: 'Goku SS2', path: '/images/characters/Guerreros/Torre/gokuss2.webp', category: 'Guerreros Z' },
+        { name: 'Goku UI', path: '/images/characters/Guerreros/Reina/goku_ui.webp', category: 'Guerreros Z' },
+        { name: 'Granola', path: '/images/characters/Guerreros/Caballo/granola.webp', category: 'Guerreros Z' },
+        { name: 'Hit', path: '/images/characters/Guerreros/Alfil/hit.webp', category: 'Guerreros Z' },
+        { name: 'Kami Sama', path: '/images/characters/Guerreros/Rey/kami.webp', category: 'Guerreros Z' },
+        { name: 'Karim', path: '/images/characters/Guerreros/Rey/karim.webp', category: 'Guerreros Z' },
+        { name: 'Krillin', path: '/images/characters/Guerreros/Peon/krilin.webp', category: 'Guerreros Z' },
+        { name: 'Kyabe', path: '/images/characters/Guerreros/Caballo/kyabe.webp', category: 'Guerreros Z' },
+        { name: 'Mr. Satan', path: '/images/characters/Guerreros/Peon/satan.webp', category: 'Guerreros Z' },
+        { name: 'Pan', path: '/images/characters/Guerreros/Peon/pan.webp', category: 'Guerreros Z' },
         { name: 'Piccolo', path: '/images/characters/Guerreros/Torre/piccolo.webp', category: 'Guerreros Z' },
         { name: 'Popo', path: '/images/characters/Guerreros/Torre/popo.webp', category: 'Guerreros Z' },
+        { name: 'Roshi', path: '/images/characters/Guerreros/Peon/roshi.webp', category: 'Guerreros Z' },
+        { name: 'Tapion', path: '/images/characters/Guerreros/Caballo/tapion.webp', category: 'Guerreros Z' },
+        { name: 'Ten Shin Han', path: '/images/characters/Guerreros/Alfil/ten.webp', category: 'Guerreros Z' },
+        { name: 'Trunks', path: '/images/characters/Guerreros/Alfil/Trunks.webp', category: 'Guerreros Z' },
+        { name: 'Vegeta', path: '/images/characters/Guerreros/Caballo/vegetta.webp', category: 'Guerreros Z' },
+        { name: 'Vegetto', path: '/images/characters/Guerreros/Reina/vegetto.webp', category: 'Guerreros Z' },
+        { name: 'Videl', path: '/images/characters/Guerreros/Peon/videl.webp', category: 'Guerreros Z' },
+        { name: 'Whis', path: '/images/characters/Guerreros/Reina/whiss.webp', category: 'Guerreros Z' },
         { name: 'Yajirobe', path: '/images/characters/Guerreros/Torre/yajirobe.webp', category: 'Guerreros Z' },
+        { name: 'Yamcha', path: '/images/characters/Guerreros/Alfil/yamcha.webp', category: 'Guerreros Z' },
+        { name: 'Zen-Oh', path: '/images/characters/Guerreros/Rey/zen.webp', category: 'Guerreros Z' },
     ];
 
     // Villanos
@@ -250,6 +251,7 @@ export default function EditarPerfil({ auth, stats }) {
                                                 <img 
                                                     src={avatar.path} 
                                                     alt={avatar.name} 
+                                                    loading="lazy"
                                                     className="w-full h-20 sm:h-16 md:h-20 object-cover rounded-lg"
                                                 />
                                                 <span className="block text-white text-xs md:text-sm font-bold mt-1 md:mt-2 text-center">{avatar.name}</span>
