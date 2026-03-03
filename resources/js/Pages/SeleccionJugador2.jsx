@@ -2,7 +2,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { UserIcon, LockClosedIcon, CheckIcon } from '@heroicons/react/24/solid';
 
-export default function SeleccionJugador2({ auth }) {
+export default function SeleccionJugador2() {
     const [selectedType, setSelectedType] = useState('guest');
 
     const handleContinue = () => {

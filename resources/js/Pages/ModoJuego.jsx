@@ -2,7 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 import { UsersIcon, CpuChipIcon, AcademicCapIcon, BoltIcon, FireIcon } from '@heroicons/react/24/solid';
 
-export default function GameMode({ auth }) {
+export default function GameMode() {
     const [selectedMode, setSelectedMode] = useState('PVP');
     const [difficulty, setDifficulty] = useState(2); // 1=Fácil, 2=Normal, 3=Difícil
 

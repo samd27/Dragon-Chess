@@ -2,7 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 import { ShieldCheckIcon, FireIcon, BoltIcon } from '@heroicons/react/24/solid';
 
-export default function FactionSelector({ auth, mode = 'PVP', player2Type = 'guest', player2 = null, difficulty = 2 }) {
+export default function FactionSelector({ mode = 'PVP', player2Type = 'guest', player2 = null, difficulty = 2 }) {
     const [selected, setSelected] = useState('Z_WARRIORS');
 
     return (

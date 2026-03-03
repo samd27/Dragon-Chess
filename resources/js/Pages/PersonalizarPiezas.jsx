@@ -1,7 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function PersonalizarPiezas({ auth, availablePieces, currentPreferences }) {
+export default function PersonalizarPiezas({ availablePieces, currentPreferences }) {
     const [selectedFaction, setSelectedFaction] = useState('guerreros');
     const [expandedPiece, setExpandedPiece] = useState(null);
 

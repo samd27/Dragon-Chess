@@ -26,7 +26,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
     const [lastMove, setLastMove] = useState(null); // { from, to }
 
     // Stockfish engine (solo se activa en modo PVC)
-    const { isReady: stockfishReady, isThinking, getBestMove, stop: stopStockfish } = useStockfish(mode === 'PVC' ? difficulty : 2);
+    const { isReady: stockfishReady, getBestMove, stop: stopStockfish } = useStockfish(mode === 'PVC' ? difficulty : 2);
     
     // Refs para auto-scroll
     const moveHistoryRef = useRef(null);
@@ -40,7 +40,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
     
     const player = {
         name: auth.user?.name || 'Kakarot_99',
-        avatar: auth.user?.avatar || '/images/characters/Guerreros/Torre/Goku.png',
+        avatar: auth.user?.avatar || '/images/characters/Guerreros/Torre/Goku.webp',
     };
 
     const handleAbortMission = () => {
@@ -67,8 +67,8 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
             ? 'CPU' 
             : (player2 ? player2.name : 'Invitado'),
         avatar: mode === 'PVC'
-            ? (faction === 'Z_WARRIORS' ? '/images/characters/Villanos/Rey/Freezer.png' : '/images/characters/Guerreros/Torre/Goku.png')
-            : (player2 ? player2.avatar : (faction === 'Z_WARRIORS' ? '/images/characters/Villanos/Rey/Freezer.png' : '/images/characters/Guerreros/Torre/Goku.png')),
+            ? (faction === 'Z_WARRIORS' ? '/images/characters/Villanos/Rey/Freezer.webp' : '/images/characters/Guerreros/Torre/Goku.webp')
+            : (player2 ? player2.avatar : (faction === 'Z_WARRIORS' ? '/images/characters/Villanos/Rey/Freezer.webp' : '/images/characters/Guerreros/Torre/Goku.webp')),
     };
 
     // Mapeo de tipos de piezas de chess.js a nombres de carpetas

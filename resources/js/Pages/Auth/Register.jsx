@@ -90,11 +90,7 @@ export default function Register() {
             return;
         }
 
-        post(route('register'), {
-            onFinish: () => {
-                // Reset password fields after submission
-            },
-        });
+        post(route('register'));
     };
 
     return (
