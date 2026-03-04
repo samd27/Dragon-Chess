@@ -1,8 +1,9 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import { ArrowDownTrayIcon } from '@heroicons/react/24/solid';
+import { ArrowDownTrayIcon, LockClosedIcon } from '@heroicons/react/24/solid';
+import { ALL_CHARACTERS, charPath, isUnlocked } from '@/data/characters';
 
-export default function EditarPerfil({ auth, stats }) {
+export default function EditarPerfil({ auth, stats, unlock_all }) {
     const { data, setData, patch, processing, errors } = useForm({
         name: auth.user.name,
         email: auth.user.email,
@@ -71,81 +72,11 @@ export default function EditarPerfil({ auth, stats }) {
         });
     };
 
-    // Guerreros Z
-    const guerrerosAvatars = [
-        { name: 'Bulma', path: '/images/characters/Guerreros/Reina/Bulma.webp', category: 'Guerreros Z' },
-        { name: 'Caulifla', path: '/images/characters/Guerreros/Alfil/caulifla.webp', category: 'Guerreros Z' },
-        { name: 'Chaos', path: '/images/characters/Guerreros/Peon/chaos.webp', category: 'Guerreros Z' },
-        { name: 'Daishinkan', path: '/images/characters/Guerreros/Reina/daishinkan.webp', category: 'Guerreros Z' },
-        { name: 'Bills', path: '/images/characters/Guerreros/Rey/Bills.webp', category: 'Guerreros Z' },
-        { name: 'Bills 2', path: '/images/characters/Guerreros/Rey/Bills_muychistoso.webp', category: 'Guerreros Z' },
-        { name: 'Gohan', path: '/images/characters/Guerreros/Caballo/gohan.webp', category: 'Guerreros Z' },
-        { name: 'Gohan Adolescente', path: '/images/characters/Guerreros/Torre/gohan_adolescente.webp', category: 'Guerreros Z' },
-        { name: 'Gohan Niño', path: '/images/characters/Guerreros/Peon/gohan_niño.webp', category: 'Guerreros Z' },
-        { name: 'Gogeta', path: '/images/characters/Guerreros/Reina/gogetta.webp', category: 'Guerreros Z' },
-        { name: 'Goku', path: '/images/characters/Guerreros/Torre/Goku.webp', category: 'Guerreros Z' },
-        { name: 'Goku SS1', path: '/images/characters/Guerreros/Torre/gokuss1.webp', category: 'Guerreros Z' },
-        { name: 'Goku SS2', path: '/images/characters/Guerreros/Torre/gokuss2.webp', category: 'Guerreros Z' },
-        { name: 'Goku UI', path: '/images/characters/Guerreros/Reina/goku_ui.webp', category: 'Guerreros Z' },
-        { name: 'Granola', path: '/images/characters/Guerreros/Caballo/granola.webp', category: 'Guerreros Z' },
-        { name: 'Hit', path: '/images/characters/Guerreros/Alfil/hit.webp', category: 'Guerreros Z' },
-        { name: 'Kami Sama', path: '/images/characters/Guerreros/Rey/kami.webp', category: 'Guerreros Z' },
-        { name: 'Karim', path: '/images/characters/Guerreros/Rey/karim.webp', category: 'Guerreros Z' },
-        { name: 'Krillin', path: '/images/characters/Guerreros/Peon/krilin.webp', category: 'Guerreros Z' },
-        { name: 'Kyabe', path: '/images/characters/Guerreros/Caballo/kyabe.webp', category: 'Guerreros Z' },
-        { name: 'Mr. Satan', path: '/images/characters/Guerreros/Peon/satan.webp', category: 'Guerreros Z' },
-        { name: 'Pan', path: '/images/characters/Guerreros/Peon/pan.webp', category: 'Guerreros Z' },
-        { name: 'Piccolo', path: '/images/characters/Guerreros/Torre/piccolo.webp', category: 'Guerreros Z' },
-        { name: 'Popo', path: '/images/characters/Guerreros/Torre/popo.webp', category: 'Guerreros Z' },
-        { name: 'Roshi', path: '/images/characters/Guerreros/Peon/roshi.webp', category: 'Guerreros Z' },
-        { name: 'Tapion', path: '/images/characters/Guerreros/Caballo/tapion.webp', category: 'Guerreros Z' },
-        { name: 'Ten Shin Han', path: '/images/characters/Guerreros/Alfil/ten.webp', category: 'Guerreros Z' },
-        { name: 'Trunks', path: '/images/characters/Guerreros/Alfil/Trunks.webp', category: 'Guerreros Z' },
-        { name: 'Vegeta', path: '/images/characters/Guerreros/Caballo/vegetta.webp', category: 'Guerreros Z' },
-        { name: 'Vegetto', path: '/images/characters/Guerreros/Reina/vegetto.webp', category: 'Guerreros Z' },
-        { name: 'Videl', path: '/images/characters/Guerreros/Peon/videl.webp', category: 'Guerreros Z' },
-        { name: 'Whis', path: '/images/characters/Guerreros/Reina/whiss.webp', category: 'Guerreros Z' },
-        { name: 'Yajirobe', path: '/images/characters/Guerreros/Torre/yajirobe.webp', category: 'Guerreros Z' },
-        { name: 'Yamcha', path: '/images/characters/Guerreros/Alfil/yamcha.webp', category: 'Guerreros Z' },
-        { name: 'Zen-Oh', path: '/images/characters/Guerreros/Rey/zen.webp', category: 'Guerreros Z' },
-    ];
+    const unlockedIds = stats?.unlocked_characters ?? [];
 
-    // Villanos
-    const villanosAvatars = [
-        { name: 'Androide 17', path: '/images/characters/Villanos/Caballo/Androide 17.webp', category: 'Villanos' },
-        { name: 'Androide 18', path: '/images/characters/Villanos/Alfil/Androide 18.webp', category: 'Villanos' },
-        { name: 'Arinsu', path: '/images/characters/Villanos/Reina/Arinsu.webp', category: 'Villanos' },
-        { name: 'Black Freezer', path: '/images/characters/Villanos/Reina/Freezer_Black.webp', category: 'Villanos' },
-        { name: 'Black Goku', path: '/images/characters/Villanos/Alfil/Black Goku.webp', category: 'Villanos' },
-        { name: 'Broly Super', path: '/images/characters/Villanos/Alfil/Broly Super.webp', category: 'Villanos' },
-        { name: 'Broly Z', path: '/images/characters/Villanos/Torre/Broly_Z.webp', category: 'Villanos' },
-        { name: 'Burter', path: '/images/characters/Villanos/Alfil/Burter.webp', category: 'Villanos' },
-        { name: 'Cell', path: '/images/characters/Villanos/Reina/Cell.webp', category: 'Villanos' },
-        { name: 'Champa', path: '/images/characters/Villanos/Rey/Champa.webp', category: 'Villanos' },
-        { name: 'Dabura', path: '/images/characters/Villanos/Rey/Dabura.webp', category: 'Villanos' },
-        { name: 'Dyspo', path: '/images/characters/Villanos/Alfil/Dyspo.webp', category: 'Villanos' },
-        { name: 'Freezer', path: '/images/characters/Villanos/Rey/Freezer.webp', category: 'Villanos' },
-        { name: 'Freezer 100%', path: '/images/characters/Villanos/Caballo/Freezer_100.webp', category: 'Villanos' },
-        { name: 'Freezer 1ra forma', path: '/images/characters/Villanos/Peon/Freezer_1ra forma.webp', category: 'Villanos' },
-        { name: 'Freezer 2da Forma', path: '/images/characters/Villanos/Torre/Freezer_2da Forma.webp', category: 'Villanos' },
-        { name: 'Gas', path: '/images/characters/Villanos/Torre/Gas.webp', category: 'Villanos' },
-        { name: 'Ginyu', path: '/images/characters/Villanos/Rey/Ginyu.webp', category: 'Villanos' },
-        { name: 'Guldo', path: '/images/characters/Villanos/Peon/Guldo.webp', category: 'Villanos' },
-        { name: 'Janemba', path: '/images/characters/Villanos/Alfil/Janemba.webp', category: 'Villanos' },
-        { name: 'Jeice', path: '/images/characters/Villanos/Caballo/Jeice.webp', category: 'Villanos' },
-        { name: 'Jiren', path: '/images/characters/Villanos/Reina/Jiren.webp', category: 'Villanos' },
-        { name: 'Kid Buu', path: '/images/characters/Villanos/Caballo/Kid Buu.webp', category: 'Villanos' },
-        { name: 'Majin Buu', path: '/images/characters/Villanos/Torre/Majin Buu.webp', category: 'Villanos' },
-        { name: 'Moro', path: '/images/characters/Villanos/Rey/Moro.webp', category: 'Villanos' },
-        { name: 'Pilaf', path: '/images/characters/Villanos/Peon/Pilaf.webp', category: 'Villanos' },
-        { name: 'Recoome', path: '/images/characters/Villanos/Torre/Recoome.webp', category: 'Villanos' },
-        { name: 'Saibaiman', path: '/images/characters/Villanos/Peon/Saibaiman.webp', category: 'Villanos' },
-        { name: 'Super Buu', path: '/images/characters/Villanos/Alfil/Super Buu.webp', category: 'Villanos' },
-        { name: 'Toppo', path: '/images/characters/Villanos/Torre/Toppo.webp', category: 'Villanos' },
-        { name: 'Zamas Fusión', path: '/images/characters/Villanos/Reina/Zamas_fusion.webp', category: 'Villanos' },
-        { name: 'Zamas', path: '/images/characters/Villanos/Caballo/Zamasu.webp', category: 'Villanos' },
-        { name: 'Zoirei', path: '/images/characters/Villanos/Peon/Zoirei.webp', category: 'Villanos' },
-    ];
+    // Avatares desde el catálogo centralizado
+    const guerrerosAvatars = ALL_CHARACTERS.filter(c => c.faction === 'guerreros');
+    const villanosAvatars = ALL_CHARACTERS.filter(c => c.faction === 'villanos');
 
     const filteredAvatars = selectedCategory === 'Guerreros Z' ? guerrerosAvatars : villanosAvatars;
 
@@ -234,29 +165,47 @@ export default function EditarPerfil({ auth, stats }) {
 
                                         {/* Avatar Grid */}
                                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-                                            {filteredAvatars.map((avatar) => (
-                                            <button
-                                                key={avatar.path}
-                                                type="button"
-                                                onClick={() => {
-                                                    setData('avatar', avatar.path);
-                                                    setShowAvatarSelector(false);
-                                                }}
-                                                className={`p-2 rounded-xl border-2 transition-all ${
-                                                    data.avatar === avatar.path
-                                                        ? 'border-primary bg-primary/20'
-                                                        : 'border-white/10 hover:border-white/30'
-                                                }`}
-                                            >
-                                                <img 
-                                                    src={avatar.path} 
-                                                    alt={avatar.name} 
-                                                    loading="lazy"
-                                                    className="w-full h-20 sm:h-16 md:h-20 object-cover rounded-lg"
-                                                />
-                                                <span className="block text-white text-xs md:text-sm font-bold mt-1 md:mt-2 text-center">{avatar.name}</span>
-                                            </button>
-                                        ))}
+                                            {filteredAvatars.map((avatar) => {
+                                                const unlocked = isUnlocked(avatar.id, unlockedIds, unlock_all);
+                                                const avatarPath = charPath(avatar.id);
+                                                return (
+                                                    <button
+                                                        key={avatar.id}
+                                                        type="button"
+                                                        disabled={!unlocked}
+                                                        title={unlocked ? avatar.displayName : `Bloqueado — ${avatar.displayName}`}
+                                                        onClick={() => {
+                                                            if (!unlocked) return;
+                                                            setData('avatar', avatarPath);
+                                                            setShowAvatarSelector(false);
+                                                        }}
+                                                        className={`relative p-2 rounded-xl border-2 transition-all ${
+                                                            data.avatar === avatarPath
+                                                                ? 'border-primary bg-primary/20'
+                                                                : unlocked
+                                                                    ? 'border-white/10 hover:border-white/30'
+                                                                    : 'border-white/5 opacity-50 cursor-not-allowed'
+                                                        }`}
+                                                    >
+                                                        <div className="relative">
+                                                            <img
+                                                                src={avatarPath}
+                                                                alt={avatar.displayName}
+                                                                loading="lazy"
+                                                                className={`w-full h-20 sm:h-16 md:h-20 object-cover rounded-lg ${
+                                                                    !unlocked ? 'grayscale brightness-50' : ''
+                                                                }`}
+                                                            />
+                                                            {!unlocked && (
+                                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                                    <LockClosedIcon className="w-6 h-6 text-gray-300 drop-shadow" />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <span className="block text-white text-xs md:text-sm font-bold mt-1 md:mt-2 text-center truncate">{avatar.displayName}</span>
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 )}

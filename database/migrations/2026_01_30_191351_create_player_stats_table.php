@@ -16,7 +16,9 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->integer('level')->default(1);
             $table->integer('victories')->default(0);
-            $table->integer('ki')->default(0);
+            $table->unsignedInteger('losses')->default(0);
+            $table->unsignedInteger('draws')->default(0);
+            $table->integer('ki')->default(1000);
             $table->timestamps();
         });
     }

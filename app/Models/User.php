@@ -23,6 +23,7 @@ class User extends Authenticatable
         'password',
         'avatar',
         'piece_preferences',
+        'unlock_all',
     ];
 
     /**
@@ -44,8 +45,9 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
             'piece_preferences' => 'array',
+            'unlock_all'        => 'boolean',
         ];
     }
 

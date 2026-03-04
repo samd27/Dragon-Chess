@@ -1,9 +1,72 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Chess } from 'chess.js';
-import { TrophyIcon, HandRaisedIcon, XMarkIcon, PauseIcon, PlayIcon, PhotoIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/solid';
+import { TrophyIcon, HandRaisedIcon, XMarkIcon, PauseIcon, PlayIcon, PhotoIcon, ClipboardDocumentListIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/solid';
 import ElectricBorder from '@/Components/ElectricBorder';
 import useStockfish from '@/hooks/useStockfish';
+
+// Tarjeta de recompensas para un jugador (definida fuera del componente para evitar remounts)
+function RewardCard({ name, avatar, rewards, levelUp, accentClass }) {
+    return (
+        <div className="bg-gradient-to-br from-[#1a1b1e] to-[#0d0e12] border border-white/10 rounded-2xl p-5 flex flex-col gap-4 w-full">
+            {/* Avatar + nombre */}
+            <div className="flex items-center gap-3">
+                <img
+                    src={avatar}
+                    alt={name}
+                    className="w-12 h-12 rounded-full object-cover border-2 border-white/20 bg-white/5 shrink-0"
+                />
+                <span className={`font-black uppercase tracking-tighter text-base leading-tight ${accentClass}`}>{name}</span>
+            </div>
+
+            {/* Ki | EXP | Senzu */}
+            <div className="grid grid-cols-3 gap-2">
+                <div className="bg-white/5 rounded-xl p-2.5 flex flex-col items-center border border-white/10">
+                    <span className={`text-xl font-black tabular-nums ${(rewards?.ki ?? 0) >= 0 ? 'text-yellow-400' : 'text-red-400'}`}>
+                        {(rewards?.ki ?? 0) >= 0 ? '+' : ''}{rewards?.ki ?? 0}
+                    </span>
+                    <span className="text-[9px] font-black uppercase text-white/40 tracking-widest mt-0.5">Ki</span>
+                </div>
+                <div className="bg-white/5 rounded-xl p-2.5 flex flex-col items-center border border-white/10">
+                    <span className="text-xl font-black text-orange-400 tabular-nums">+{rewards?.exp ?? 0}</span>
+                    <span className="text-[9px] font-black uppercase text-white/40 tracking-widest mt-0.5">EXP</span>
+                </div>
+                <div className="bg-white/5 rounded-xl p-2.5 flex flex-col items-center border border-white/10">
+                    <span className="text-xl font-black text-green-400 tabular-nums">+{rewards?.senzu ?? 0}</span>
+                    <span className="text-[9px] font-black uppercase text-white/40 tracking-widest mt-0.5">Senzu</span>
+                </div>
+            </div>
+
+            {/* Level Up Banner */}
+            {levelUp?.leveled_up && (
+                <div className="bg-yellow-400/10 border border-yellow-400/40 rounded-xl p-3 text-center">
+                    <p className="text-yellow-400 font-black text-base uppercase tracking-tighter">
+                        ¡Nivel {levelUp.new_level}!
+                    </p>
+                    <p className="text-white/50 text-[10px] mt-0.5">
+                        {levelUp.old_level} → {levelUp.new_level}
+                    </p>
+                </div>
+            )}
+
+            {/* Barra de progreso */}
+            {levelUp && (
+                <div className="space-y-1">
+                    <div className="flex justify-between text-[10px] text-white/40">
+                        <span>Nv. {levelUp.new_level}</span>
+                        <span>{levelUp.level_progress}%</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                        <div
+                            className="h-full bg-gradient-to-r from-primary to-orange-400 rounded-full transition-all duration-700"
+                            style={{ width: `${levelUp.level_progress}%` }}
+                        />
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
 
 export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2, player2 = null, player1Preferences = {}, player2Preferences = {} }) {
     const [game, setGame] = useState(new Chess());
@@ -24,14 +87,17 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
     const [cpuThinking, setCpuThinking] = useState(false);
     const [showPiecesIntro, setShowPiecesIntro] = useState(true);
     const [lastMove, setLastMove] = useState(null); // { from, to }
+    const [gameRewards, setGameRewards] = useState(null);
+    const [gameOverMinimized, setGameOverMinimized] = useState(false);
 
     // Stockfish engine (solo se activa en modo PVC)
     const { isReady: stockfishReady, getBestMove, stop: stopStockfish } = useStockfish(mode === 'PVC' ? difficulty : 2);
     
     // Refs para auto-scroll
-    const moveHistoryRef = useRef(null);
-    const playerCapturedRef = useRef(null);
+    const moveHistoryRef  = useRef(null);
+    const playerCapturedRef   = useRef(null);
     const opponentCapturedRef = useRef(null);
+    const rewardsSavedRef     = useRef(false); // evita guardar el mismo resultado 2 veces
     
     // Determinar qué jugador es blanco y cuál es negro
     // Guerrero Z controla blancas (naranjas) y mueve primero
@@ -258,6 +324,51 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
             setTimeout(() => makeComputerMove(), 800);
         }
     }, [mode, playerIsWhite, stockfishReady]);
+
+    // Guardar resultado de la partida al terminar y obtener recompensas
+    useEffect(() => {
+        if (!gameOver || !auth.user || rewardsSavedRef.current) return;
+        rewardsSavedRef.current = true;
+
+        let result = 'draw';
+        if (gameOver.type === 'checkmate' || gameOver.type === 'timeout') {
+            const playerWon =
+                (gameOver.winner === 'white' && playerIsWhite) ||
+                (gameOver.winner === 'black' && !playerIsWhite);
+            result = playerWon ? 'win' : 'loss';
+        }
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+        fetch(route('game.save-result'), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+            },
+            body: JSON.stringify({
+                result,
+                mode,
+                difficulty,
+                opponent_ki: player2?.stats?.ki ?? null,
+                player2_id: player2?.id ?? null,
+                player2_result: result === 'win' ? 'loss' : result === 'loss' ? 'win' : 'draw',
+            }),
+        })
+            .then(async (r) => {
+                const text = await r.text();
+                if (!r.ok) {
+                    console.error('Error al guardar resultado HTTP', r.status, text);
+                    return;
+                }
+                try {
+                    const data = JSON.parse(text);
+                    setGameRewards(data);
+                } catch (e) {
+                    console.error('Respuesta no es JSON:', text);
+                }
+            })
+            .catch((err) => console.error('Fetch falló:', err));
+    }, [gameOver]);
 
     const handleSquareClick = (square) => {
         if (gameOver) return;
@@ -544,6 +655,9 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
         setCpuThinking(false);
         setLastMove(null);
         setShowPiecesIntro(true);
+        setGameRewards(null);
+        setGameOverMinimized(false);
+        rewardsSavedRef.current = false;
     };
     
     const getTurnText = () => {
@@ -1051,9 +1165,29 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                 {/* Game Over Modal */}
                 {gameOver && (
                     <div className="fixed bottom-4 right-4 z-50 animate-in slide-in-from-bottom duration-500">
-                        <ElectricBorder 
+                        {/* ── MINIMIZADO: chip flotante ── */}
+                        {gameOverMinimized ? (
+                            <button
+                                onClick={() => setGameOverMinimized(false)}
+                                className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border-2 font-black uppercase text-sm tracking-widest shadow-[0_0_30px_rgba(0,0,0,0.7)] transition-all hover:brightness-110 ${
+                                    gameOver.type === 'checkmate'
+                                        ? gameOver.winner === 'white'
+                                            ? 'bg-[#1a1b1e] border-primary text-primary shadow-neon-orange'
+                                            : 'bg-[#1a1b1e] border-purple-500 text-purple-400'
+                                        : 'bg-[#1a1b1e] border-yellow-500 text-yellow-400'
+                                }`}
+                            >
+                                {gameOver.type === 'checkmate'
+                                    ? <TrophyIcon className="w-4 h-4" />
+                                    : <HandRaisedIcon className="w-4 h-4" />}
+                                {gameOver.type === 'checkmate' ? '¡Jaque Mate!' : '¡Empate!'}
+                                <ChevronUpIcon className="w-4 h-4 opacity-60" />
+                            </button>
+                        ) : (
+                        /* ── EXPANDIDO: modal completo ── */
+                        <ElectricBorder
                             color={
-                                gameOver.type === 'checkmate' 
+                                gameOver.type === 'checkmate'
                                     ? (gameOver.winner === 'white' ? '#F97A1F' : '#A855F7')
                                     : '#3B82F6'
                             }
@@ -1061,78 +1195,82 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                             chaos={0.15}
                         >
                             <div className={`bg-gradient-to-br from-[#1a1b1e] to-[#0d0e12] border-2 rounded-2xl p-6 w-80 shadow-[0_0_60px_rgba(0,0,0,0.8)] relative ${
-                                gameOver.type === 'checkmate' 
+                                gameOver.type === 'checkmate'
                                     ? gameOver.winner === 'white' ? 'border-primary shadow-neon-orange' : 'border-purple-500'
                                     : 'border-yellow-500'
                             }`}>
-                            {/* Botón Cerrar */}
-                            <button 
-                                onClick={() => setGameOver(null)}
-                                className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-                            >
-                                <XMarkIcon className="w-5 h-5" />
-                            </button>
-                            
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="text-4xl">
-                                        {gameOver.type === 'checkmate' ? (
-                                            <TrophyIcon className="w-12 h-12 text-yellow-500" />
-                                        ) : (
-                                            <HandRaisedIcon className="w-12 h-12 text-yellow-500" />
-                                        )}
-                                    </div>
-                                    <div className="flex-1">
-                                        <h3 className={`text-xl font-black uppercase tracking-tighter leading-tight ${
-                                            gameOver.type === 'checkmate'
-                                                ? gameOver.winner === 'white' ? 'text-primary' : 'text-purple-500'
-                                                : 'text-yellow-500'
-                                        }`}>
-                                            {gameOver.type === 'checkmate' ? '¡Jaque Mate!' : '¡Empate!'}
-                                        </h3>
-                                        <p className="text-white/60 text-xs">
-                                            {gameOver.message}
-                                        </p>
-                                    </div>
+                                {/* Barra de acciones: minimizar */}
+                                <div className="absolute top-2 right-2 flex items-center gap-1">
+                                    <button
+                                        onClick={() => setGameOverMinimized(true)}
+                                        title="Minimizar para ver el tablero"
+                                        className="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                                    >
+                                        <ChevronDownIcon className="w-5 h-5" />
+                                    </button>
                                 </div>
-                                
-                                {moveHistory.length > 0 && (
-                                    <div className="bg-white/5 rounded-lg p-3 max-h-48 overflow-y-auto" style={{
-                                        scrollbarWidth: 'thin',
-                                        scrollbarColor: 'rgba(249, 122, 31, 0.3) rgba(255, 255, 255, 0.05)'
-                                    }}>
-                                        <p className="text-[9px] text-white/40 uppercase tracking-widest mb-2">Historial</p>
-                                        <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-white/60 text-xs font-mono">
-                                            {moveHistory.map((move, i) => (
-                                                <div key={i} className="truncate">{i + 1}. {move.san}</div>
-                                            ))}
+
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="text-4xl">
+                                            {gameOver.type === 'checkmate' ? (
+                                                <TrophyIcon className="w-12 h-12 text-yellow-500" />
+                                            ) : (
+                                                <HandRaisedIcon className="w-12 h-12 text-yellow-500" />
+                                            )}
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className={`text-xl font-black uppercase tracking-tighter leading-tight ${
+                                                gameOver.type === 'checkmate'
+                                                    ? gameOver.winner === 'white' ? 'text-primary' : 'text-purple-500'
+                                                    : 'text-yellow-500'
+                                            }`}>
+                                                {gameOver.type === 'checkmate' ? '¡Jaque Mate!' : '¡Empate!'}
+                                            </h3>
+                                            <p className="text-white/60 text-xs">
+                                                {gameOver.message}
+                                            </p>
                                         </div>
                                     </div>
-                                )}
 
-                                <div className="flex gap-2 pt-2">
-                                    <button 
-                                        onClick={handleReturnToMenu}
-                                        className="flex-1 py-2.5 bg-white/5 rounded-lg border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all font-black uppercase text-xs tracking-widest"
-                                    >
-                                        Regresar
-                                    </button>
-                                    <button 
-                                        onClick={resetGame}
-                                        className={`flex-1 py-2.5 rounded-lg text-white transition-all font-black uppercase text-xs tracking-widest ${
-                                            gameOver.type === 'checkmate'
-                                                ? gameOver.winner === 'white' 
-                                                    ? 'bg-primary hover:brightness-110 shadow-neon-orange' 
-                                                    : 'bg-purple-500 hover:brightness-110 shadow-[0_0_20px_rgba(168,85,247,0.4)]'
-                                                : 'bg-yellow-500 hover:brightness-110'
-                                        }`}
-                                    >
-                                        Revancha
-                                    </button>
+                                    {moveHistory.length > 0 && (
+                                        <div className="bg-white/5 rounded-lg p-3 max-h-48 overflow-y-auto" style={{
+                                            scrollbarWidth: 'thin',
+                                            scrollbarColor: 'rgba(249, 122, 31, 0.3) rgba(255, 255, 255, 0.05)'
+                                        }}>
+                                            <p className="text-[9px] text-white/40 uppercase tracking-widest mb-2">Historial</p>
+                                            <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-white/60 text-xs font-mono">
+                                                {moveHistory.map((move, i) => (
+                                                    <div key={i} className="truncate">{i + 1}. {move.san}</div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="flex gap-2 pt-2">
+                                        <button
+                                            onClick={handleReturnToMenu}
+                                            className="flex-1 py-2.5 bg-white/5 rounded-lg border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all font-black uppercase text-xs tracking-widest"
+                                        >
+                                            Regresar
+                                        </button>
+                                        <button
+                                            onClick={resetGame}
+                                            className={`flex-1 py-2.5 rounded-lg text-white transition-all font-black uppercase text-xs tracking-widest ${
+                                                gameOver.type === 'checkmate'
+                                                    ? gameOver.winner === 'white'
+                                                        ? 'bg-primary hover:brightness-110 shadow-neon-orange'
+                                                        : 'bg-purple-500 hover:brightness-110 shadow-[0_0_20px_rgba(168,85,247,0.4)]'
+                                                    : 'bg-yellow-500 hover:brightness-110'
+                                            }`}
+                                        >
+                                            Revancha
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
                         </ElectricBorder>
+                        )}
                     </div>
                 )}
 
@@ -1350,6 +1488,62 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                     </div>
                 )}
             </div>
+
+                {/* Modal de Recompensas post-partida */}
+                {gameRewards && (
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
+                        <div className={`relative animate-in fade-in zoom-in duration-300 w-full ${gameRewards.player2 ? 'max-w-xl' : 'max-w-sm'}`}>
+                            {/* Header */}
+                            <div className="flex items-center justify-between mb-4 px-1">
+                                <h3 className="text-2xl font-black uppercase tracking-tighter text-white">
+                                    Recompensas
+                                </h3>
+                                <button
+                                    onClick={() => setGameRewards(null)}
+                                    className="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                                >
+                                    <XMarkIcon className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            {gameRewards.player2 ? (
+                                /* PVP dos cuentas: dos tarjetas */
+                                <div className="grid grid-cols-2 gap-3">
+                                    <RewardCard
+                                        name={auth.user?.name}
+                                        avatar={auth.user?.avatar || '/images/characters/Guerreros/Torre/Goku.webp'}
+                                        rewards={gameRewards.rewards}
+                                        levelUp={gameRewards.level_up}
+                                        accentClass="text-primary"
+                                    />
+                                    <RewardCard
+                                        name={gameRewards.player2.name}
+                                        avatar={gameRewards.player2.avatar}
+                                        rewards={gameRewards.player2.rewards}
+                                        levelUp={gameRewards.player2.level_up}
+                                        accentClass="text-purple-400"
+                                    />
+                                </div>
+                            ) : (
+                                /* PVC o PVP invitado: tarjeta única */
+                                <RewardCard
+                                    name={auth.user?.name}
+                                    avatar={auth.user?.avatar || '/images/characters/Guerreros/Torre/Goku.webp'}
+                                    rewards={gameRewards.rewards}
+                                    levelUp={gameRewards.level_up}
+                                    accentClass="text-primary"
+                                />
+                            )}
+
+                            <button
+                                onClick={() => setGameRewards(null)}
+                                className="w-full mt-4 py-3 bg-primary hover:bg-orange-500 rounded-xl text-black font-black uppercase tracking-widest transition-all active:scale-95"
+                            >
+                                Continuar
+                            </button>
+                        </div>
+                    </div>
+                )}
         </>
     );
 }

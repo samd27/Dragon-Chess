@@ -16,14 +16,14 @@ class PieceCustomizationController extends Controller
         $user = $request->user();
         
         // Get user's current piece preferences or set defaults
-        $currentPreferences = $user->piece_preferences ?? self::getDefaultPiecePreferences();
-        
-        // Get available pieces from filesystem
-        $availablePieces = $this->getAvailablePieces();
-        
+        $currentPreferences = self::normalizePreferences(
+            $user->piece_preferences ?? self::getDefaultPiecePreferences()
+        );
+
         return Inertia::render('PersonalizarPiezas', [
             'currentPreferences' => $currentPreferences,
-            'availablePieces' => $availablePieces,
+            'stats'              => $user->stats,
+            'unlock_all'         => (bool) $user->unlock_all,
         ]);
     }
 
@@ -43,6 +43,34 @@ class PieceCustomizationController extends Controller
         $user->save();
 
         return back()->with('success', 'Preferencias de piezas actualizadas exitosamente');
+    }
+
+    /**
+     * Convierte cualquier valor en formato ID (guerreros/torre/Goku) a ruta de imagen.
+     * Protección hacia atrás por si algún usuario tiene datos en el formato antiguo.
+     */
+    public static function normalizePreferences(array $prefs): array
+    {
+        $factionDir  = ['guerreros' => 'Guerreros', 'villanos' => 'Villanos'];
+        $pieceDir    = ['rey' => 'Rey', 'reina' => 'Reina', 'torre' => 'Torre',
+                        'caballo' => 'Caballo', 'alfil' => 'Alfil', 'peon' => 'Peon'];
+
+        foreach ($prefs as $faction => &$pieces) {
+            if (!is_array($pieces)) continue;
+            foreach ($pieces as $pieceType => &$value) {
+                if ($value && !str_starts_with($value, '/')) {
+                    // Es un ID: convertir a ruta
+                    $parts = explode('/', $value, 3);
+                    if (count($parts) === 3) {
+                        [$f, $p, $filename] = $parts;
+                        $fDir = $factionDir[$f]  ?? ucfirst($f);
+                        $pDir = $pieceDir[$p]    ?? ucfirst($p);
+                        $value = "/images/characters/{$fDir}/{$pDir}/{$filename}.webp";
+                    }
+                }
+            }
+        }
+        return $prefs;
     }
 
     /**

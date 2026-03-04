@@ -1,306 +1,185 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { LockClosedIcon } from '@heroicons/react/24/solid';
+import AppNavBar from '@/Components/AppNavBar';
+import {
+    ALL_CHARACTERS,
+    PIECE_TYPES,
+    PIECE_TYPE_DISPLAY,
+    FACTION_DISPLAY,
+    isUnlocked,
+} from '@/data/characters';
 
-export default function PersonalizarPiezas({ availablePieces, currentPreferences }) {
+const FACTIONS = ['guerreros', 'villanos'];
+
+export default function PersonalizarPiezas({ auth, stats, currentPreferences, unlock_all }) {
     const [selectedFaction, setSelectedFaction] = useState('guerreros');
     const [expandedPiece, setExpandedPiece] = useState(null);
 
+    const unlockedIds = stats?.unlocked_characters ?? [];
+
     const { data, setData, patch, processing } = useForm({
         piece_preferences: currentPreferences || {
-            guerreros: {
-                rey: null,
-                reina: null,
-                torre: null,
-                caballo: null,
-                alfil: null,
-                peon: null,
-            },
-            villanos: {
-                rey: null,
-                reina: null,
-                torre: null,
-                caballo: null,
-                alfil: null,
-                peon: null,
-            }
-        }
+            guerreros: { rey: null, reina: null, torre: null, caballo: null, alfil: null, peon: null },
+            villanos:  { rey: null, reina: null, torre: null, caballo: null, alfil: null, peon: null },
+        },
     });
 
-    const pieceNames = {
-        rey: 'Rey',
-        reina: 'Reina',
-        torre: 'Torre',
-        caballo: 'Caballo',
-        alfil: 'Alfil',
-        peon: 'Peón'
-    };
+    // Obtener personajes de characters.js para una facción+tipo
+    function getCharsFor(faction, pieceType) {
+        return ALL_CHARACTERS.filter(c => c.faction === faction && c.pieceType === pieceType);
+    }
 
-    // Mapeo de nombres de avatares basado en EditarPerfil
-    const characterNames = {
-        // Villanos
-        'Androide 17': 'Androide 17',
-        'Androide 18': 'Androide 18',
-        'Arinsu': 'Arinsu',
-        'Black Goku': 'Black Goku',
-        'Broly Super': 'Broly Super',
-        'Broly_Z': 'Broly Z',
-        'Burter': 'Burter',
-        'Cell': 'Cell',
-        'Champa': 'Champa',
-        'Dabura': 'Dabura',
-        'Dyspo': 'Dyspo',
-        'Freezer': 'Freezer',
-        'Freezer_100': 'Freezer 100%',
-        'Freezer_1ra forma': 'Freezer 1ra forma',
-        'Freezer_2da Forma': 'Freezer 2da Forma',
-        'Freezer_2da forma': 'Freezer 2da forma',
-        'Freezer_Black': 'Black Freezer',
-        'Gas': 'Gas',
-        'Ginyu': 'Ginyu',
-        'Guldo': 'Guldo',
-        'Janemba': 'Janemba',
-        'Jeice': 'Jeice',
-        'Jiren': 'Jiren',
-        'Kid Buu': 'Kid Buu',
-        'Majin Buu': 'Majin Buu',
-        'Moro': 'Moro',
-        'Pilaf': 'Pilaf',
-        'Recoome': 'Recoome',
-        'Saibaiman': 'Saibaiman',
-        'Super Buu': 'Super Buu',
-        'Toppo': 'Toppo',
-        'Zamas_fusion': 'Zamas Fusión',
-        'Zamasu': 'Zamas',
-        'Zoirei': 'Zoirei',
-        // Guerreros Z
-        'bills': 'Bills',
-        'bulma': 'Bulma',
-        'caulifla': 'Caulifla',
-        'chaos': 'Chaos',
-        'daishinkan': 'Daishinkan',
-        'gohan': 'Gohan',
-        'gohan_adolescente': 'Gohan Adolescente',
-        'gohan_niño': 'Gohan Niño',
-        'gogetta': 'Gogeta',
-        'Goku': 'Goku',
-        'goku_ui': 'Goku UI',
-        'gokuss1': 'Goku SS1',
-        'gokuss2': 'Goku SS2',
-        'granola': 'Granola',
-        'hit': 'Hit',
-        'kami': 'Kami Sama',
-        'karim': 'Karim',
-        'krilin': 'Krillin',
-        'kyabe': 'Kyabe',
-        'pan': 'Pan',
-        'piccolo': 'Piccolo',
-        'popo': 'Popo',
-        'roshi': 'Roshi',
-        'satan': 'Mr. Satan',
-        'tapion': 'Tapion',
-        'ten': 'Ten Shin Han',
-        'trunks': 'Trunks',
-        'vegetta': 'Vegeta',
-        'vegetto': 'Vegetto',
-        'videl': 'Videl',
-        'whiss': 'Whis',
-        'yajirobe': 'Yajirobe',
-        'yamcha': 'Yamcha',
-        'zen': 'Zen-Oh'
-    };
-
-    const getCharacterName = (filename) => {
-        return characterNames[filename] || filename;
-    };
-
-    const handlePieceSelection = (faction, pieceType, imagePath) => {
+    function selectPiece(pieceType, character) {
+        if (!isUnlocked(character.id, unlockedIds, unlock_all)) return;
         setData('piece_preferences', {
             ...data.piece_preferences,
-            [faction]: {
-                ...data.piece_preferences[faction],
-                [pieceType]: imagePath
-            }
+            [selectedFaction]: {
+                ...data.piece_preferences[selectedFaction],
+                [pieceType]: character.path, // guardar ruta completa para Batalla.jsx
+            },
         });
-    };
+    }
 
-    const handleSubmit = (e) => {
+    function handleSubmit(e) {
         e.preventDefault();
-        patch(route('pieces.update'), {
-            preserveScroll: false,
-            onSuccess: () => {
-                window.location.href = route('welcome');
-            }
-        });
-    };
+        patch(route('pieces.update'));
+    }
 
-    const getCurrentSelection = (faction, pieceType) => {
-        return data.piece_preferences?.[faction]?.[pieceType];
-    };
-
-    const togglePieceExpansion = (pieceType) => {
-        setExpandedPiece(expandedPiece === pieceType ? null : pieceType);
-    };
+    const currentPref = data.piece_preferences[selectedFaction] || {};
 
     return (
         <>
             <Head title="Personalizar Piezas" />
-            
-            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-                {/* Header */}
-                <div className="border-b border-white/10 backdrop-blur-xl bg-black/40">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <Link
-                                href={route('welcome')}
-                                className="text-white/60 hover:text-white transition-colors"
+            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 text-white">
+                <AppNavBar auth={auth} stats={stats} />
+
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                    <h1 className="text-3xl font-bold text-white mb-2">Personalizar Piezas</h1>
+                    <p className="text-gray-400 mb-8 text-sm">
+                        Elige qué personaje representa cada tipo de pieza en batalla.
+                    </p>
+
+                    {/* Selector de facción */}
+                    <div className="flex gap-3 mb-8">
+                        {FACTIONS.map(f => (
+                            <button
+                                key={f}
+                                onClick={() => { setSelectedFaction(f); setExpandedPiece(null); }}
+                                className={`px-6 py-2 rounded-lg font-semibold transition-all ${
+                                    selectedFaction === f
+                                        ? f === 'guerreros'
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-red-600 text-white'
+                                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                }`}
                             >
-                                ← Volver
-                            </Link>
-                            <h1 className="text-white font-black text-xl md:text-2xl uppercase tracking-wider">
-                                Personalizar Piezas
-                            </h1>
-                        </div>
+                                {FACTION_DISPLAY[f]}
+                            </button>
+                        ))}
                     </div>
-                </div>
 
-                {/* Content */}
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8">
-                        
-                        {/* Faction Tabs */}
-                        <div className="flex gap-3 mb-8">
-                            <button
-                                type="button"
-                                onClick={() => setSelectedFaction('guerreros')}
-                                className={`flex-1 px-6 py-3 rounded-xl font-black uppercase text-sm tracking-widest transition-all ${
-                                    selectedFaction === 'guerreros'
-                                        ? 'bg-primary text-black border-2 border-primary shadow-lg'
-                                        : 'bg-white/5 text-white/60 border-2 border-white/10 hover:border-white/30'
-                                }`}
-                            >
-                                Guerreros Z
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setSelectedFaction('villanos')}
-                                className={`flex-1 px-6 py-3 rounded-xl font-black uppercase text-sm tracking-widest transition-all ${
-                                    selectedFaction === 'villanos'
-                                        ? 'bg-primary text-black border-2 border-primary shadow-lg'
-                                        : 'bg-white/5 text-white/60 border-2 border-white/10 hover:border-white/30'
-                                }`}
-                            >
-                                Villanos
-                            </button>
-                        </div>
-
-                        {/* Pieces Grid */}
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            {Object.keys(pieceNames).map((pieceType) => {
-                                const availableForPiece = availablePieces?.[selectedFaction]?.[pieceType] || [];
-                                const currentSelection = getCurrentSelection(selectedFaction, pieceType);
+                    <form onSubmit={handleSubmit}>
+                        <div className="space-y-4">
+                            {PIECE_TYPES.map(pieceType => {
+                                const chars = getCharsFor(selectedFaction, pieceType);
+                                const selectedPath = currentPref[pieceType];
+                                // buscar el personaje por ruta de imagen
+                                const selectedChar = ALL_CHARACTERS.find(c => c.path === selectedPath);
                                 const isExpanded = expandedPiece === pieceType;
 
                                 return (
-                                    <div key={pieceType} className="bg-black/20 rounded-xl border border-white/5 overflow-hidden">
-                                        {/* Piece Header */}
+                                    <div
+                                        key={pieceType}
+                                        className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden"
+                                    >
+                                        {/* Header del tipo de pieza */}
                                         <button
                                             type="button"
-                                            onClick={() => togglePieceExpansion(pieceType)}
-                                            className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/5 transition-colors"
+                                            className="w-full flex items-center gap-4 p-4 hover:bg-gray-700/30 transition-colors text-left"
+                                            onClick={() => setExpandedPiece(isExpanded ? null : pieceType)}
                                         >
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-lg border-2 border-primary/50 bg-black/40 flex items-center justify-center overflow-hidden aspect-square">
-                                                    {currentSelection ? (
-                                                        <img
-                                                            src={currentSelection}
-                                                            alt={pieceNames[pieceType]}
-                                                            loading="lazy"
-                                                            className="w-full h-full object-contain"
-                                                        />
-                                                    ) : (
-                                                        <span className="text-white/30 text-2xl font-bold">?</span>
-                                                    )}
+                                            {selectedChar ? (
+                                                <img
+                                                    src={selectedChar.path}
+                                                    alt={selectedChar.displayName}
+                                                    className="w-12 h-12 rounded-lg object-cover border-2 border-blue-500"
+                                                />
+                                            ) : (
+                                                <div className="w-12 h-12 rounded-lg bg-gray-700 flex items-center justify-center text-gray-500 text-xs">
+                                                    Sin selección
                                                 </div>
-                                                <div className="text-left">
-                                                    <h3 className="text-white font-black uppercase text-base md:text-lg lg:text-xl tracking-wider">
-                                                        {pieceNames[pieceType]}
-                                                    </h3>
-                                                    <p className="text-white/50 text-sm">
-                                                        {availableForPiece.length} {availableForPiece.length === 1 ? 'opción disponible' : 'opciones disponibles'}
-                                                    </p>
-                                                </div>
+                                            )}
+                                            <div className="flex-1">
+                                                <p className="font-semibold text-white">{PIECE_TYPE_DISPLAY[pieceType]}</p>
+                                                <p className="text-sm text-gray-400">
+                                                    {selectedChar ? selectedChar.displayName : 'Ninguno seleccionado'}
+                                                </p>
                                             </div>
-                                            <svg 
-                                                className={`w-6 h-6 text-white/60 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                                                fill="none" 
-                                                viewBox="0 0 24 24" 
-                                                stroke="currentColor"
-                                            >
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                            </svg>
+                                            <span className="text-gray-400 text-sm">{isExpanded ? '▲' : '▼'}</span>
                                         </button>
 
-                                        {/* Avatar Grid */}
+                                        {/* Galería de personajes */}
                                         {isExpanded && (
-                                            <div className="px-6 pb-6">
-                                                {availableForPiece.length > 0 ? (
-                                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-3 mt-4">
-                                                        {availableForPiece.map((avatar) => (
+                                            <div className="border-t border-gray-700/50 p-4">
+                                                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+                                                    {chars.map(character => {
+                                                        const unlocked = isUnlocked(character.id, unlockedIds, unlock_all);
+                                                        const isSelected = selectedPath === character.path;
+
+                                                        return (
                                                             <button
-                                                                key={avatar.path}
+                                                                key={character.id}
                                                                 type="button"
-                                                                onClick={() => handlePieceSelection(selectedFaction, pieceType, avatar.path)}
-                                                                className={`p-2 rounded-xl border-2 transition-all ${
-                                                                    currentSelection === avatar.path
-                                                                        ? 'border-primary bg-primary/20 scale-105'
-                                                                        : 'border-white/10 hover:border-white/30 hover:scale-105'
+                                                                disabled={!unlocked}
+                                                                title={unlocked ? character.displayName : `Bloqueado — ${character.displayName}`}
+                                                                onClick={() => selectPiece(pieceType, character)}
+                                                                className={`relative rounded-lg overflow-hidden transition-all aspect-square ${
+                                                                    isSelected
+                                                                        ? 'ring-2 ring-blue-400 scale-105'
+                                                                        : unlocked
+                                                                            ? 'hover:ring-2 hover:ring-blue-400/50 hover:scale-105'
+                                                                            : 'cursor-not-allowed opacity-50'
                                                                 }`}
                                                             >
-                                                                <div className="w-full aspect-square rounded-lg overflow-hidden bg-black/20">
-                                                                    <img
-                                                                        src={avatar.path}
-                                                                        alt={getCharacterName(avatar.name)}
-                                                                        loading="lazy"
-                                                                        className="w-full h-full object-contain"
-                                                                    />
-                                                                </div>
-                                                                <span className="block text-white text-[10px] sm:text-xs md:text-sm font-bold mt-2 text-center truncate">
-                                                                    {getCharacterName(avatar.name)}
-                                                                </span>
+                                                                <img
+                                                                    src={character.path}
+                                                                    alt={character.displayName}
+                                                                    className={`w-full h-full object-cover ${!unlocked ? 'grayscale brightness-50' : ''}`}
+                                                                />
+                                                                {!unlocked && (
+                                                                    <div className="absolute inset-0 flex items-center justify-center">
+                                                                        <LockClosedIcon className="w-5 h-5 text-gray-300 drop-shadow" />
+                                                                    </div>
+                                                                )}
+                                                                {isSelected && (
+                                                                    <div className="absolute inset-0 bg-blue-500/20 flex items-end justify-center pb-1">
+                                                                        <span className="text-[9px] font-bold text-blue-200 bg-blue-900/80 px-1 rounded">
+                                                                            ✓
+                                                                        </span>
+                                                                    </div>
+                                                                )}
                                                             </button>
-                                                        ))}
-                                                    </div>
-                                                ) : (
-                                                    <div className="mt-4 p-8 text-center">
-                                                        <p className="text-white/50 text-sm">
-                                                            No hay avatares disponibles para esta pieza aún.
-                                                        </p>
-                                                    </div>
-                                                )}
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
                                         )}
                                     </div>
                                 );
                             })}
+                        </div>
 
-                            {/* Save Button */}
-                            <div className="pt-6 flex justify-end gap-4">
-                                <Link
-                                    href={route('welcome')}
-                                    className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white font-bold transition-all"
-                                >
-                                    Cancelar
-                                </Link>
-                                <button
-                                    type="submit"
-                                    disabled={processing}
-                                    className="px-8 py-3 bg-primary hover:bg-primary/90 rounded-xl text-black font-black uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary/50"
-                                >
-                                    {processing ? 'Guardando...' : 'Guardar Personalización'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                        <div className="mt-8 flex justify-end">
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-xl font-semibold text-white transition-colors"
+                            >
+                                {processing ? 'Guardando...' : 'Guardar preferencias'}
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </>

@@ -67,10 +67,15 @@ class RegisteredUserController extends Controller
 
         // Crear estadísticas iniciales del jugador
         PlayerStats::create([
-            'user_id' => $user->id,
-            'level' => 1,
-            'victories' => 0,
-            'ki' => 0,
+            'user_id'              => $user->id,
+            'level'                => 1,
+            'victories'            => 0,
+            'losses'               => 0,
+            'draws'                => 0,
+            'ki'                   => 1000,
+            'experience'           => 0,
+            'senzu_seeds'          => 0,
+            'unlocked_characters'  => [],
         ]);
 
         event(new Registered($user));

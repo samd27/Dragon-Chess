@@ -1,19 +1,23 @@
 <?php
 
+use App\Http\Controllers\GameController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    $stats = null;
+    $stats      = null;
+    $unlockAll  = false;
     if (auth()->check()) {
-        $stats = auth()->user()->stats;
+        $stats     = auth()->user()->stats;
+        $unlockAll = auth()->user()->unlock_all ?? false;
     }
     
     return Inertia::render('Inicio', [
-        'canLogin' => Route::has('login'),
+        'canLogin'    => Route::has('login'),
         'canRegister' => Route::has('register'),
-        'stats' => $stats,
+        'stats'       => $stats,
+        'unlock_all'  => $unlockAll,
     ]);
 })->name('welcome');
 
@@ -42,6 +46,13 @@ Route::post('/player2-authenticate', function () {
     $user = \App\Models\User::where('email', $credentials['email'])->first();
     
     if ($user && \Illuminate\Support\Facades\Hash::check($credentials['password'], $user->password)) {
+        // Verificar que el jugador 2 no sea la misma cuenta que el jugador 1
+        if ($user->id === auth()->id()) {
+            return back()->withErrors([
+                'email' => 'El jugador 2 no puede iniciar sesión con la misma cuenta que el jugador 1.',
+            ]);
+        }
+
         // Guardar el jugador 2 en sesión
         session(['player2_id' => $user->id]);
         return redirect()->route('faction.select', ['mode' => 'PVP', 'player2Type' => 'authenticated']);
@@ -75,13 +86,17 @@ Route::get('/game-arena', function () {
     $mode = request('mode', 'PVP');
     $difficulty = (int) request('difficulty', 2);
     $player2 = null;
-    $player1Preferences = auth()->user()->piece_preferences ?? \App\Http\Controllers\PieceCustomizationController::getDefaultPiecePreferences();
+    $player1Preferences = \App\Http\Controllers\PieceCustomizationController::normalizePreferences(
+        auth()->user()->piece_preferences ?? \App\Http\Controllers\PieceCustomizationController::getDefaultPiecePreferences()
+    );
     $player2Preferences = \App\Http\Controllers\PieceCustomizationController::getDefaultPiecePreferences(); // Default para invitados
     
     if ($mode === 'PVP' && session('player2_id')) {
         $player2 = \App\Models\User::with('stats')->find(session('player2_id'));
         if ($player2) {
-            $player2Preferences = $player2->piece_preferences ?? \App\Http\Controllers\PieceCustomizationController::getDefaultPiecePreferences();
+            $player2Preferences = \App\Http\Controllers\PieceCustomizationController::normalizePreferences(
+                $player2->piece_preferences ?? \App\Http\Controllers\PieceCustomizationController::getDefaultPiecePreferences()
+            );
         }
     }
     
@@ -109,6 +124,18 @@ Route::middleware('auth')->group(function () {
     // Piece Customization
     Route::get('/pieces', [\App\Http\Controllers\PieceCustomizationController::class, 'index'])->name('pieces.index');
     Route::patch('/pieces', [\App\Http\Controllers\PieceCustomizationController::class, 'update'])->name('pieces.update');
+
+    // Game results & progression
+    Route::post('/game/save-result', [GameController::class, 'saveResult'])->name('game.save-result');
+
+    // Shop — compra con Semillas Senzu
+    Route::post('/shop/purchase', [GameController::class, 'purchaseCharacter'])->name('shop.purchase');
+
+    // Battle Pass
+    Route::get('/battle-pass', [GameController::class, 'battlePass'])->name('battle.pass');
+
+    // Tienda
+    Route::get('/shop', [GameController::class, 'shop'])->name('shop.index');
 });
 
 require __DIR__.'/auth.php';
