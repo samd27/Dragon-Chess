@@ -734,6 +734,27 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                     }
 
                     setGame(new Chess(game.fen()));
+                    
+                        // Verificar si el juego terminó después del movimiento (crítico para segundo movimiento de time_chamber)
+                        if (game.isCheckmate()) {
+                            setGameOver({
+                                type: 'checkmate',
+                                winner: game.turn() === 'w' ? 'black' : 'white',
+                                message: game.turn() === 'w' ? '¡Negras Ganan por Jaque Mate!' : '¡Blancas Ganan por Jaque Mate!'
+                            });
+                            setSelectedSquare(null);
+                            setPossibleMoves([]);
+                            return;
+                        } else if (game.isDraw() || game.isStalemate()) {
+                            setGameOver({
+                                type: game.isStalemate() ? 'stalemate' : 'draw',
+                                message: game.isStalemate() ? '¡Empate por Ahogado!' : '¡Empate!'
+                            });
+                            setSelectedSquare(null);
+                            setPossibleMoves([]);
+                            return;
+                        }
+                    
                     setSelectedSquare(null);
                     setPossibleMoves([]);
 
@@ -838,6 +859,16 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                                 setGame(new Chess(game.fen()));
                                 setCpuThinking(false);
                                 
+                                    // Verificar fin de juego después del movimiento forzado
+                                    if (game.isCheckmate()) {
+                                        setGameOver({
+                                            type: 'checkmate',
+                                            winner: game.turn() === 'w' ? 'black' : 'white',
+                                            message: game.turn() === 'w' ? '¡Negras Ganan por Jaque Mate!' : '¡Blancas Ganan por Jaque Mate!'
+                                        });
+                                        return;
+                                    }
+                                
                                 // Si la CPU activó time_chamber en el movimiento forzado, programar su próximo movimiento
                                 if (activatedTimeChamber && isCpuMode && !game.isGameOver()) {
                                     setTimeout(() => makeComputerMove(), 600);
@@ -888,6 +919,16 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                         
                         setGame(new Chess(game.fen()));
                         setCpuThinking(false);
+                        
+                            // Verificar fin de juego después del movimiento de CPU
+                            if (game.isCheckmate()) {
+                                setGameOver({
+                                    type: 'checkmate',
+                                    winner: game.turn() === 'w' ? 'black' : 'white',
+                                    message: game.turn() === 'w' ? '¡Negras Ganan por Jaque Mate!' : '¡Blancas Ganan por Jaque Mate!'
+                                });
+                                return;
+                            }
                         
                         // Si la CPU activó time_chamber, programar su próximo movimiento inmediatamente
                         if (activatedTimeChamber && isCpuMode && !game.isGameOver()) {
@@ -949,6 +990,17 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
             setLastMove({ from: randomMove.from, to: randomMove.to });
             setGame(new Chess(game.fen()));
             
+                // Verificar fin de juego después del movimiento aleatorio
+                if (game.isCheckmate()) {
+                    setGameOver({
+                        type: 'checkmate',
+                        winner: game.turn() === 'w' ? 'black' : 'white',
+                        message: game.turn() === 'w' ? '¡Negras Ganan por Jaque Mate!' : '¡Blancas Ganan por Jaque Mate!'
+                    });
+                    setCpuThinking(false);
+                    return;
+                }
+            
             // Si la CPU activó time_chamber, programar su próximo movimiento inmediatamente
             if (activatedTimeChamber && isCpuMode && !game.isGameOver()) {
                 setTimeout(() => makeComputerMove(), 600);
@@ -995,6 +1047,29 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                     triggerTileEffects(game, move, nextHistory);
                 }
                 setGame(new Chess(game.fen()));
+                
+                    // Verificar si el juego terminó después de la promoción
+                    if (game.isCheckmate()) {
+                        setGameOver({
+                            type: 'checkmate',
+                            winner: game.turn() === 'w' ? 'black' : 'white',
+                            message: game.turn() === 'w' ? '¡Negras Ganan por Jaque Mate!' : '¡Blancas Ganan por Jaque Mate!'
+                        });
+                        setSelectedSquare(null);
+                        setPossibleMoves([]);
+                        setPromotionPending(null);
+                        return;
+                    } else if (game.isDraw() || game.isStalemate()) {
+                        setGameOver({
+                            type: game.isStalemate() ? 'stalemate' : 'draw',
+                            message: game.isStalemate() ? '¡Empate por Ahogado!' : '¡Empate!'
+                        });
+                        setSelectedSquare(null);
+                        setPossibleMoves([]);
+                        setPromotionPending(null);
+                        return;
+                    }
+                
                 setSelectedSquare(null);
                 setPossibleMoves([]);
                 setPromotionPending(null);
@@ -1335,9 +1410,9 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                     
                     {/* Special Tile Message - Arriba del tablero */}
                     {specialMessage && (
-                        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-none w-full max-w-2xl px-4">
-                            <div className="text-center bg-gradient-to-r from-yellow-500/90 to-orange-500/90 backdrop-blur-sm px-6 py-4 rounded-2xl border-2 border-yellow-300/50 shadow-[0_0_30px_rgba(234,179,8,0.6)]">
-                                <div className="text-2xl md:text-3xl font-black tracking-tight text-white drop-shadow-[0_0_20px_rgba(0,0,0,0.8)]">
+                            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-none w-full max-w-lg px-4">
+                                <div className="text-center bg-gradient-to-r from-yellow-500/80 to-orange-500/80 backdrop-blur-sm px-3 py-2 rounded-xl border border-yellow-300/50 shadow-[0_0_20px_rgba(234,179,8,0.4)]">
+                                    <div className="text-xs md:text-sm font-bold tracking-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                                     {specialMessage}
                                 </div>
                             </div>
