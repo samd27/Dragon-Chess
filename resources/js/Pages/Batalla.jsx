@@ -824,10 +824,24 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                                 const nextHistory = [...moveHistory, moveInfoForced];
                                 setMoveHistory(nextHistory);
                                 setLastMove({ from: forcedMove.from, to: forcedMove.to });
+                                
+                                let activatedTimeChamber = false;
+                                if (isDragonMode) {
+                                    const tileType = specialTiles[forcedMove.to];
+                                    if (tileType === 'time_chamber') {
+                                        activatedTimeChamber = true;
+                                    }
+                                }
+                                
                                 triggerTileEffects(game, forcedMove, nextHistory);
                                 setForcedExtraMove(null);
                                 setGame(new Chess(game.fen()));
                                 setCpuThinking(false);
+                                
+                                // Si la CPU activó time_chamber en el movimiento forzado, programar su próximo movimiento
+                                if (activatedTimeChamber && isCpuMode && !game.isGameOver()) {
+                                    setTimeout(() => makeComputerMove(), 600);
+                                }
                                 return;
                             }
                         }
@@ -857,15 +871,28 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                         const nextHistory = [...moveHistory, moveInfo];
                         setMoveHistory(nextHistory);
                         setLastMove({ from: move.from, to: move.to });
+                        
+                        let activatedTimeChamber = false;
                         if (isDragonMode) {
+                            const tileType = specialTiles[move.to];
+                            if (tileType === 'time_chamber') {
+                                activatedTimeChamber = true;
+                            }
+                            
                             triggerTileEffects(game, move, nextHistory);
 
                             if (forcedExtraMove && move.from === forcedExtraMove.square && move.color === forcedExtraMove.color) {
                                 setForcedExtraMove(null);
                             }
                         }
+                        
                         setGame(new Chess(game.fen()));
                         setCpuThinking(false);
+                        
+                        // Si la CPU activó time_chamber, programar su próximo movimiento inmediatamente
+                        if (activatedTimeChamber && isCpuMode && !game.isGameOver()) {
+                            setTimeout(() => makeComputerMove(), 600);
+                        }
                         return;
                     }
                 }
@@ -905,7 +932,14 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                 };
                 const nextHistory = [...moveHistory, moveInfo];
                 setMoveHistory(nextHistory);
+                
+                let activatedTimeChamber = false;
                 if (isDragonMode) {
+                    const tileType = specialTiles[move.to];
+                    if (tileType === 'time_chamber') {
+                        activatedTimeChamber = true;
+                    }
+                    
                     triggerTileEffects(game, move, nextHistory);
                     if (forcedExtraMove && move.from === forcedExtraMove.square && move.color === forcedExtraMove.color) {
                         setForcedExtraMove(null);
@@ -914,9 +948,14 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
             }
             setLastMove({ from: randomMove.from, to: randomMove.to });
             setGame(new Chess(game.fen()));
+            
+            // Si la CPU activó time_chamber, programar su próximo movimiento inmediatamente
+            if (activatedTimeChamber && isCpuMode && !game.isGameOver()) {
+                setTimeout(() => makeComputerMove(), 600);
+            }
         }
         setCpuThinking(false);
-    }, [game, stockfishReady, getBestMove, playerIsWhite, isDragonPvc, selectBestDragonComputerMove, forcedExtraMove, getPossibleMovesForSquare, moveHistory, isDragonMode, triggerTileEffects]);
+    }, [game, stockfishReady, getBestMove, playerIsWhite, isDragonPvc, selectBestDragonComputerMove, forcedExtraMove, getPossibleMovesForSquare, moveHistory, isDragonMode, triggerTileEffects, specialTiles, isCpuMode, squareIsAnchored]);
     
     const handlePromotion = (pieceType) => {
         if (!promotionPending) return;
@@ -1138,13 +1177,12 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                     </div>
                 </header>
 
-                {(isDragonMode || specialMessage) && (
+                {isDragonMode && (
                     <div className="px-4 md:px-10 py-2 border-b border-white/5 bg-black/30">
                         <div className="flex flex-wrap items-center gap-3 text-[10px] md:text-xs font-black uppercase tracking-widest">
-                            {isDragonMode && <span className="text-cyan-300">Modo Dragon Chess</span>}
+                            <span className="text-cyan-300">Modo Dragon Chess</span>
                             {kiBurst.white && <span className="text-orange-400">Explosión Ki Blancas</span>}
                             {kiBurst.black && <span className="text-purple-300">Explosión Ki Negras</span>}
-                            {specialMessage && <span className="text-yellow-300 normal-case tracking-normal text-xs md:text-sm">{specialMessage}</span>}
                         </div>
                     </div>
                 )}
@@ -1291,6 +1329,17 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                         <div className="absolute top-8 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
                             <div className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-red-500 animate-pulse drop-shadow-[0_0_40px_rgba(239,68,68,1)]">
                                 ¡JAQUE!
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Special Tile Message - Arriba del tablero */}
+                    {specialMessage && (
+                        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-none w-full max-w-2xl px-4">
+                            <div className="text-center bg-gradient-to-r from-yellow-500/90 to-orange-500/90 backdrop-blur-sm px-6 py-4 rounded-2xl border-2 border-yellow-300/50 shadow-[0_0_30px_rgba(234,179,8,0.6)]">
+                                <div className="text-2xl md:text-3xl font-black tracking-tight text-white drop-shadow-[0_0_20px_rgba(0,0,0,0.8)]">
+                                    {specialMessage}
+                                </div>
                             </div>
                         </div>
                     )}
