@@ -27,12 +27,18 @@ Route::get('/game-mode', function () {
 
 // Selección de Jugador 2 (PvP)
 Route::get('/player2-select', function () {
-    return Inertia::render('SeleccionJugador2');
+    $mode = request('mode', 'PVP');
+    return Inertia::render('SeleccionJugador2', [
+        'mode' => $mode,
+    ]);
 })->middleware(['auth'])->name('player2.select');
 
 // Login de Jugador 2
 Route::get('/player2-login', function () {
-    return Inertia::render('Auth/LoginJugador2');
+    $mode = request('mode', 'PVP');
+    return Inertia::render('Auth/LoginJugador2', [
+        'mode' => $mode,
+    ]);
 })->middleware(['auth'])->name('player2.login');
 
 // Autenticación de Jugador 2
@@ -40,7 +46,10 @@ Route::post('/player2-authenticate', function () {
     $credentials = request()->validate([
         'email' => ['required', 'email'],
         'password' => ['required'],
+        'mode' => ['nullable', 'in:PVP,DRAGON_PVP'],
     ]);
+
+    $mode = request('mode', 'PVP');
 
     // Intentar autenticar
     $user = \App\Models\User::where('email', $credentials['email'])->first();
@@ -55,7 +64,7 @@ Route::post('/player2-authenticate', function () {
 
         // Guardar el jugador 2 en sesión
         session(['player2_id' => $user->id]);
-        return redirect()->route('faction.select', ['mode' => 'PVP', 'player2Type' => 'authenticated']);
+        return redirect()->route('faction.select', ['mode' => $mode, 'player2Type' => 'authenticated']);
     }
 
     return back()->withErrors([
@@ -91,7 +100,7 @@ Route::get('/game-arena', function () {
     );
     $player2Preferences = \App\Http\Controllers\PieceCustomizationController::getDefaultPiecePreferences(); // Default para invitados
     
-    if ($mode === 'PVP' && session('player2_id')) {
+    if (in_array($mode, ['PVP', 'DRAGON_PVP'], true) && session('player2_id')) {
         $player2 = \App\Models\User::with('stats')->find(session('player2_id'));
         if ($player2) {
             $player2Preferences = \App\Http\Controllers\PieceCustomizationController::normalizePreferences(

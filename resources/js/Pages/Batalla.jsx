@@ -69,6 +69,14 @@ function RewardCard({ name, avatar, rewards, levelUp, accentClass }) {
 }
 
 export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2, player2 = null, player1Preferences = {}, player2Preferences = {} }) {
+    const isClassicPvp = mode === 'PVP';
+    const isClassicPvc = mode === 'PVC';
+    const isDragonPvp = mode === 'DRAGON_PVP';
+    const isDragonPvc = mode === 'DRAGON_PVC';
+    const isPvpMode = isClassicPvp || isDragonPvp;
+    const isCpuMode = isClassicPvc || isDragonPvc;
+    const isDragonMode = isDragonPvp || isDragonPvc;
+
     const [game, setGame] = useState(new Chess());
     const [selectedSquare, setSelectedSquare] = useState(null);
     const [possibleMoves, setPossibleMoves] = useState([]);
@@ -89,9 +97,14 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
     const [lastMove, setLastMove] = useState(null); // { from, to }
     const [gameRewards, setGameRewards] = useState(null);
     const [gameOverMinimized, setGameOverMinimized] = useState(false);
+    const [specialTiles, setSpecialTiles] = useState({});
+    const [specialMessage, setSpecialMessage] = useState('');
+    const [anchoredPieces, setAnchoredPieces] = useState({});
+    const [forcedExtraMove, setForcedExtraMove] = useState(null);
+    const [kiBurst, setKiBurst] = useState({ white: false, black: false });
 
     // Stockfish engine (solo se activa en modo PVC)
-    const { isReady: stockfishReady, getBestMove, stop: stopStockfish } = useStockfish(mode === 'PVC' ? difficulty : 2);
+    const { isReady: stockfishReady, getBestMove, getBestMoveWithEvaluations, stop: stopStockfish } = useStockfish(isCpuMode ? difficulty : 2);
     
     // Refs para auto-scroll
     const moveHistoryRef  = useRef(null);
@@ -112,7 +125,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
     const handleAbortMission = () => {
         setShowConfirmAbort(false);
         // Limpiar sesión de jugador 2 si existe
-        if (mode === 'PVP' && player2) {
+        if (isPvpMode && player2) {
             fetch(route('clear.player2.session'), { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } });
         }
         router.visit(route('game.mode'));
@@ -120,7 +133,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
     
     const handleReturnToMenu = () => {
         // Limpiar sesión de jugador 2 si existe
-        if (mode === 'PVP' && player2) {
+        if (isPvpMode && player2) {
             fetch(route('clear.player2.session'), { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } })
                 .then(() => router.visit(route('game.mode')));
         } else {
@@ -129,10 +142,10 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
     };
 
     const opponent = {
-        name: mode === 'PVC' 
+        name: isCpuMode
             ? 'CPU' 
             : (player2 ? player2.name : 'Invitado'),
-        avatar: mode === 'PVC'
+        avatar: isCpuMode
             ? (faction === 'Z_WARRIORS' ? '/images/characters/Villanos/Rey/Freezer.webp' : '/images/characters/Guerreros/Torre/Goku.webp')
             : (player2 ? player2.avatar : (faction === 'Z_WARRIORS' ? '/images/characters/Villanos/Rey/Freezer.webp' : '/images/characters/Guerreros/Torre/Goku.webp')),
     };
@@ -229,6 +242,217 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
         'P': '\u2659', 'N': '\u2658', 'B': '\u2657', 'R': '\u2656', 'Q': '\u2655', 'K': '\u2654'
     };
 
+    const previousTurnRef = useRef(game.turn());
+
+    const randomFrom = (items) => items[Math.floor(Math.random() * items.length)];
+
+    const generateRandomSpecialTiles = useCallback(() => {
+        const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+        const ranks = ['3', '4', '5', '6'];
+        const pool = [];
+
+        files.forEach((file) => {
+            ranks.forEach((rank) => {
+                pool.push(`${file}${rank}`);
+            });
+        });
+
+        const tiles = {};
+        const baseTypes = ['time_chamber', 'heavy_gravity', 'sacred_water'];
+
+        const pickUnusedSquare = () => {
+            let selected = null;
+            while (!selected && pool.length > 0) {
+                const idx = Math.floor(Math.random() * pool.length);
+                const candidate = pool[idx];
+                pool.splice(idx, 1);
+                if (!tiles[candidate]) {
+                    selected = candidate;
+                }
+            }
+            return selected;
+        };
+
+        baseTypes.forEach((type) => {
+            const square = pickUnusedSquare();
+            if (square) {
+                tiles[square] = type;
+            }
+        });
+
+        const duplicatedType = randomFrom(baseTypes);
+        const extraSquare = pickUnusedSquare();
+        if (extraSquare) {
+            tiles[extraSquare] = duplicatedType;
+        }
+
+        return tiles;
+    }, []);
+
+    const squareIsAnchored = useCallback((square, pieceColor) => {
+        const entry = anchoredPieces[square];
+        return Boolean(entry && entry.color === pieceColor && entry.state === 'active');
+    }, [anchoredPieces]);
+
+    const getPossibleMovesForSquare = useCallback((square) => {
+        const piece = game.get(square);
+        if (!piece) return [];
+        if (squareIsAnchored(square, piece.color)) return [];
+
+        let moves = game.moves({ square, verbose: true });
+
+        if (!isDragonMode) {
+            return moves;
+        }
+
+        const burstEnabled = piece.color === 'w' ? kiBurst.white : kiBurst.black;
+        if (!burstEnabled) {
+            return moves;
+        }
+
+        if (piece.type === 'p') {
+            const direction = piece.color === 'w' ? 1 : -1;
+            const rank = Number(square[1]);
+            const fileCode = square.charCodeAt(0);
+            const oneForward = `${square[0]}${rank + direction}`;
+            const twoForward = `${square[0]}${rank + (direction * 2)}`;
+
+            if (game.get(oneForward) === null && game.get(twoForward) === null && rank + (direction * 2) >= 1 && rank + (direction * 2) <= 8) {
+                const alreadyIncluded = moves.some((m) => m.to === twoForward);
+                if (!alreadyIncluded) {
+                    moves = [...moves, { from: square, to: twoForward, color: piece.color, piece: 'p' }];
+                }
+            }
+
+            const captureOffsets = [-1, 1];
+            captureOffsets.forEach((offset) => {
+                const targetFileCode = fileCode + offset;
+                const targetRank = rank + (direction * 2);
+                if (targetFileCode >= 97 && targetFileCode <= 104 && targetRank >= 1 && targetRank <= 8) {
+                    const targetSquare = `${String.fromCharCode(targetFileCode)}${targetRank}`;
+                    const targetPiece = game.get(targetSquare);
+                    if (targetPiece && targetPiece.color !== piece.color && !moves.some((m) => m.to === targetSquare)) {
+                        moves = [...moves, { from: square, to: targetSquare, color: piece.color, piece: 'p', captured: targetPiece.type }];
+                    }
+                }
+            });
+        }
+
+        return moves;
+    }, [game, squareIsAnchored, isDragonMode, kiBurst]);
+
+    const evaluateSpecialTileImpact = useCallback((moveObj, stockfishScore, aiColor) => {
+        if (!isDragonMode) {
+            return stockfishScore;
+        }
+
+        const tileType = specialTiles[moveObj.to];
+        let adjustment = 0;
+
+        if (tileType === 'time_chamber') {
+            adjustment += moveObj.piece === 'n' || moveObj.piece === 'b' ? 300 : 220;
+        }
+
+        if (tileType === 'heavy_gravity') {
+            const penaltyBase = moveObj.piece === 'q' || moveObj.piece === 'r' ? -550 : -320;
+            adjustment += penaltyBase;
+        }
+
+        if (tileType === 'sacred_water') {
+            adjustment += moveObj.piece === 'p' ? 900 : -40;
+        }
+
+        const opponentColor = aiColor === 'w' ? 'b' : 'w';
+        Object.entries(specialTiles).forEach(([sq, type]) => {
+            const piece = game.get(sq);
+            if (!piece || piece.color !== opponentColor) return;
+            if (type === 'sacred_water' && piece.type === 'p') adjustment -= 220;
+            if (type === 'time_chamber') adjustment -= 90;
+        });
+
+        return stockfishScore + adjustment;
+    }, [isDragonMode, specialTiles, game]);
+
+    const selectBestDragonComputerMove = useCallback(async () => {
+        const analysis = await getBestMoveWithEvaluations(game.fen(), { multiPv: difficulty === 3 ? 8 : difficulty === 2 ? 5 : 3 });
+        const aiColor = playerIsWhite ? 'b' : 'w';
+        const legalMoves = game.moves({ verbose: true }).filter((m) => {
+            if (!isDragonMode) return true;
+            return !squareIsAnchored(m.from, aiColor);
+        });
+        const legalMap = new Map(
+            legalMoves.map((m) => {
+                const key = `${m.from}${m.to}${m.promotion ?? ''}`;
+                return [key, m];
+            })
+        );
+
+        const candidates = [];
+        analysis.evaluations.forEach((item) => {
+            const key = item.move;
+            const legalMove = legalMap.get(key);
+            if (!legalMove) return;
+
+            const finalScore = evaluateSpecialTileImpact(legalMove, item.scoreCP, aiColor);
+            candidates.push({ move: item.move, score: finalScore, rank: item.rank });
+        });
+
+        if (analysis.bestMove && legalMap.has(analysis.bestMove) && !candidates.some((c) => c.move === analysis.bestMove)) {
+            const legalMove = legalMap.get(analysis.bestMove);
+            candidates.push({ move: analysis.bestMove, score: evaluateSpecialTileImpact(legalMove, 0, aiColor), rank: 99 });
+        }
+
+        if (candidates.length === 0) {
+            return analysis.bestMove;
+        }
+
+        candidates.sort((a, b) => b.score - a.score || a.rank - b.rank);
+        return candidates[0].move;
+    }, [getBestMoveWithEvaluations, game, difficulty, evaluateSpecialTileImpact, playerIsWhite, isDragonMode, squareIsAnchored]);
+
+    const triggerTileEffects = useCallback((workingGame, move, updatedHistory) => {
+        if (!isDragonMode) return;
+
+        const tileType = specialTiles[move.to];
+        if (!tileType) return;
+
+        if (tileType === 'time_chamber') {
+            const fenParts = workingGame.fen().split(' ');
+            fenParts[1] = move.color;
+            workingGame.load(fenParts.join(' '));
+            setForcedExtraMove({ square: move.to, color: move.color });
+            setSpecialMessage('⏳ Cámara del Tiempo: la misma pieza debe mover otra vez.');
+        }
+
+        if (tileType === 'heavy_gravity') {
+            setAnchoredPieces((prev) => ({
+                ...prev,
+                [move.to]: { color: move.color, state: 'pending' },
+            }));
+            setSpecialMessage('🌌 Gravedad Aumentada: esa pieza quedará anclada en su próximo turno.');
+        }
+
+        if (tileType === 'sacred_water' && move.piece === 'p') {
+            const promotedType = randomFrom(['q', 'r', 'b', 'n']);
+            workingGame.remove(move.to);
+            workingGame.put({ type: promotedType, color: move.color }, move.to);
+
+            setMoveHistory((prev) => {
+                if (!updatedHistory) return prev;
+                const clone = [...updatedHistory];
+                const lastIndex = clone.length - 1;
+                if (lastIndex >= 0) {
+                    clone[lastIndex] = {
+                        ...clone[lastIndex],
+                        san: `${clone[lastIndex].san} (Zenkai→${promotedType.toUpperCase()})`,
+                    };
+                }
+                return clone;
+            });
+            setSpecialMessage(`💧 Agua Ultra Sagrada: Zenkai Boost → ${pieceNames[promotedType]}.`);
+        }
+    }, [isDragonMode, specialTiles]);
+
     // Cronómetro activo
     useEffect(() => {
         if (gameOver || showPauseMenu || showPiecesIntro) return;
@@ -263,6 +487,73 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
         
         return () => clearInterval(interval);
     }, [game, gameOver, showPauseMenu, showPiecesIntro]);
+
+    useEffect(() => {
+        if (!isDragonMode) {
+            setSpecialTiles({});
+            setAnchoredPieces({});
+            setForcedExtraMove(null);
+            setKiBurst({ white: false, black: false });
+            return;
+        }
+
+        setSpecialTiles(generateRandomSpecialTiles());
+        setAnchoredPieces({});
+        setForcedExtraMove(null);
+        setKiBurst({ white: false, black: false });
+    }, [isDragonMode, generateRandomSpecialTiles]);
+
+    useEffect(() => {
+        if (!specialMessage) return;
+
+        const timeout = setTimeout(() => setSpecialMessage(''), 2200);
+        return () => clearTimeout(timeout);
+    }, [specialMessage]);
+
+    useEffect(() => {
+        if (!isDragonMode || gameOver) return;
+
+        setKiBurst((prev) => {
+            const next = {
+                white: prev.white || whiteTime < 60,
+                black: prev.black || blackTime < 60,
+            };
+
+            if (next.white !== prev.white || next.black !== prev.black) {
+                if ((next.white && !prev.white) || (next.black && !prev.black)) {
+                    setSpecialMessage('💥 Explosión de Ki activada: poder máximo en tiempo crítico.');
+                }
+                return next;
+            }
+
+            return prev;
+        });
+    }, [whiteTime, blackTime, isDragonMode, gameOver]);
+
+    useEffect(() => {
+        if (!isDragonMode) {
+            previousTurnRef.current = game.turn();
+            return;
+        }
+
+        const previousTurn = previousTurnRef.current;
+        const currentTurn = game.turn();
+
+        if (previousTurn !== currentTurn) {
+            setAnchoredPieces((prev) => {
+                const updated = { ...prev };
+                Object.entries(prev).forEach(([square, value]) => {
+                    if (value.state === 'pending' && currentTurn === value.color) {
+                        updated[square] = { ...value, state: 'active' };
+                    } else if (value.state === 'active' && currentTurn !== value.color) {
+                        delete updated[square];
+                    }
+                });
+                return updated;
+            });
+            previousTurnRef.current = currentTurn;
+        }
+    }, [game, isDragonMode]);
 
     // Verificar estado del juego
     useEffect(() => {
@@ -320,10 +611,10 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
 
     // Si es PVC y la CPU juega blancas (jugador eligió Villanos), hacer primer movimiento automático
     useEffect(() => {
-        if (mode === 'PVC' && !playerIsWhite && game.turn() === 'w' && moveHistory.length === 0 && !gameOver) {
+        if (isCpuMode && !playerIsWhite && game.turn() === 'w' && moveHistory.length === 0 && !gameOver) {
             setTimeout(() => makeComputerMove(), 800);
         }
-    }, [mode, playerIsWhite, stockfishReady]);
+    }, [isCpuMode, playerIsWhite, stockfishReady]);
 
     // Guardar resultado de la partida al terminar y obtener recompensas
     useEffect(() => {
@@ -375,6 +666,10 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
         // Bloquear interacción mientras la CPU piensa
         if (cpuThinking) return;
 
+        if (forcedExtraMove && game.turn() !== forcedExtraMove.color) {
+            return;
+        }
+
         // Si hay una pieza seleccionada y hacemos click en un movimiento válido
         if (selectedSquare && possibleMoves.includes(square)) {
             // Verificar si es una promoción
@@ -415,15 +710,39 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                         san: move.san,
                         timestamp: new Date()
                     };
-                    setMoveHistory([...moveHistory, moveInfo]);
+                    const nextHistory = [...moveHistory, moveInfo];
+                    setMoveHistory(nextHistory);
                     setLastMove({ from: move.from, to: move.to });
+
+                    if (isDragonMode) {
+                        triggerTileEffects(game, move, nextHistory);
+
+                        if (forcedExtraMove && move.from === forcedExtraMove.square && move.color === forcedExtraMove.color) {
+                            setForcedExtraMove(null);
+                        }
+
+                        Object.entries(anchoredPieces).forEach(([anchoredSquare, anchorInfo]) => {
+                            const anchoredPiece = game.get(anchoredSquare);
+                            if (!anchoredPiece || anchoredPiece.color !== anchorInfo.color) {
+                                setAnchoredPieces((prev) => {
+                                    const updated = { ...prev };
+                                    delete updated[anchoredSquare];
+                                    return updated;
+                                });
+                            }
+                        });
+                    }
+
                     setGame(new Chess(game.fen()));
                     setSelectedSquare(null);
                     setPossibleMoves([]);
 
                     // Si es modo PVC, hacer movimiento de CPU después de un delay
-                    if (mode === 'PVC' && !game.isGameOver()) {
-                        setTimeout(() => makeComputerMove(), 500);
+                    if (isCpuMode && !game.isGameOver()) {
+                        const nextCpuColor = playerIsWhite ? 'b' : 'w';
+                        if (game.turn() === nextCpuColor) {
+                            setTimeout(() => makeComputerMove(), 500);
+                        }
                     }
                 }
             } catch (e) {
@@ -433,8 +752,20 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
             // Seleccionar nueva pieza
             const piece = game.get(square);
             if (piece && piece.color === game.turn()) {
+                if (forcedExtraMove && (square !== forcedExtraMove.square || piece.color !== forcedExtraMove.color)) {
+                    setSpecialMessage('⏳ Debes usar el segundo movimiento con la misma pieza de la Cámara del Tiempo.');
+                    return;
+                }
+
+                if (squareIsAnchored(square, piece.color)) {
+                    setSpecialMessage('🌌 Pieza anclada: no puede moverse en este turno.');
+                    setSelectedSquare(null);
+                    setPossibleMoves([]);
+                    return;
+                }
+
                 setSelectedSquare(square);
-                const moves = game.moves({ square, verbose: true });
+                const moves = getPossibleMovesForSquare(square);
                 setPossibleMoves(moves.map(m => m.to));
             } else {
                 setSelectedSquare(null);
@@ -445,17 +776,62 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
 
     const makeComputerMove = useCallback(async () => {
         if (game.isGameOver()) return;
+        const cpuColor = playerIsWhite ? 'b' : 'w';
+        if (game.turn() !== cpuColor) return;
 
         setCpuThinking(true);
 
         // Si Stockfish está listo, usarlo; si no, fallback a movimiento aleatorio
         if (stockfishReady) {
             try {
-                const bestMoveUci = await getBestMove(game.fen());
+                let bestMoveUci = null;
+                if (isDragonPvc) {
+                    bestMoveUci = await selectBestDragonComputerMove();
+                } else {
+                    bestMoveUci = await getBestMove(game.fen());
+                }
+
                 if (bestMoveUci && bestMoveUci !== '(none)') {
                     const from = bestMoveUci.substring(0, 2);
                     const to = bestMoveUci.substring(2, 4);
                     const promotion = bestMoveUci.length > 4 ? bestMoveUci[4] : undefined;
+
+                    if (forcedExtraMove && from !== forcedExtraMove.square) {
+                        const forcedMoves = getPossibleMovesForSquare(forcedExtraMove.square);
+                        if (forcedMoves.length > 0) {
+                            const fallbackForced = forcedMoves[0];
+                            const forcedPromotion = fallbackForced.promotion;
+                            const forcedMoveObj = { from: fallbackForced.from, to: fallbackForced.to };
+                            if (forcedPromotion) forcedMoveObj.promotion = forcedPromotion;
+                            const forcedMove = game.move(forcedMoveObj);
+                            if (forcedMove) {
+                                if (forcedMove.captured) {
+                                    const capturedColor = forcedMove.color === 'w' ? 'black' : 'white';
+                                    const capturedPiece = forcedMove.color === 'w' ? forcedMove.captured : forcedMove.captured.toUpperCase();
+                                    setCapturedPieces(prev => ({
+                                        ...prev,
+                                        [capturedColor]: [...prev[capturedColor], capturedPiece]
+                                    }));
+                                }
+                                const moveInfoForced = {
+                                    player: forcedMove.color === 'w' ? (playerIsWhite ? 'G' : 'V') : (playerIsWhite ? 'V' : 'G'),
+                                    piece: forcedMove.piece,
+                                    from: forcedMove.from,
+                                    to: forcedMove.to,
+                                    san: forcedMove.san,
+                                    timestamp: new Date()
+                                };
+                                const nextHistory = [...moveHistory, moveInfoForced];
+                                setMoveHistory(nextHistory);
+                                setLastMove({ from: forcedMove.from, to: forcedMove.to });
+                                triggerTileEffects(game, forcedMove, nextHistory);
+                                setForcedExtraMove(null);
+                                setGame(new Chess(game.fen()));
+                                setCpuThinking(false);
+                                return;
+                            }
+                        }
+                    }
 
                     const moveObj = { from, to };
                     if (promotion) moveObj.promotion = promotion;
@@ -478,8 +854,16 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                             san: move.san,
                             timestamp: new Date()
                         };
-                        setMoveHistory(prev => [...prev, moveInfo]);
+                        const nextHistory = [...moveHistory, moveInfo];
+                        setMoveHistory(nextHistory);
                         setLastMove({ from: move.from, to: move.to });
+                        if (isDragonMode) {
+                            triggerTileEffects(game, move, nextHistory);
+
+                            if (forcedExtraMove && move.from === forcedExtraMove.square && move.color === forcedExtraMove.color) {
+                                setForcedExtraMove(null);
+                            }
+                        }
                         setGame(new Chess(game.fen()));
                         setCpuThinking(false);
                         return;
@@ -491,7 +875,14 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
         }
 
         // Fallback: movimiento aleatorio
-        const moves = game.moves({ verbose: true });
+        let moves = game.moves({ verbose: true });
+        if (forcedExtraMove) {
+            moves = moves.filter((m) => m.from === forcedExtraMove.square);
+        }
+        if (isDragonMode) {
+            const moverColor = game.turn();
+            moves = moves.filter((m) => !squareIsAnchored(m.from, moverColor));
+        }
         if (moves.length > 0) {
             const randomMove = moves[Math.floor(Math.random() * moves.length)];
             const move = game.move(randomMove);
@@ -512,13 +903,20 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                     san: move.san,
                     timestamp: new Date()
                 };
-                setMoveHistory(prev => [...prev, moveInfo]);
+                const nextHistory = [...moveHistory, moveInfo];
+                setMoveHistory(nextHistory);
+                if (isDragonMode) {
+                    triggerTileEffects(game, move, nextHistory);
+                    if (forcedExtraMove && move.from === forcedExtraMove.square && move.color === forcedExtraMove.color) {
+                        setForcedExtraMove(null);
+                    }
+                }
             }
             setLastMove({ from: randomMove.from, to: randomMove.to });
             setGame(new Chess(game.fen()));
         }
         setCpuThinking(false);
-    }, [game, stockfishReady, getBestMove, playerIsWhite]);
+    }, [game, stockfishReady, getBestMove, playerIsWhite, isDragonPvc, selectBestDragonComputerMove, forcedExtraMove, getPossibleMovesForSquare, moveHistory, isDragonMode, triggerTileEffects]);
     
     const handlePromotion = (pieceType) => {
         if (!promotionPending) return;
@@ -551,16 +949,23 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                     san: move.san,
                     timestamp: new Date()
                 };
-                setMoveHistory([...moveHistory, moveInfo]);
+                const nextHistory = [...moveHistory, moveInfo];
+                setMoveHistory(nextHistory);
                 setLastMove({ from: move.from, to: move.to });
+                if (isDragonMode) {
+                    triggerTileEffects(game, move, nextHistory);
+                }
                 setGame(new Chess(game.fen()));
                 setSelectedSquare(null);
                 setPossibleMoves([]);
                 setPromotionPending(null);
 
                 // Si es modo PVC, hacer movimiento de CPU después de un delay
-                if (mode === 'PVC' && !game.isGameOver()) {
-                    setTimeout(() => makeComputerMove(), 500);
+                if (isCpuMode && !game.isGameOver()) {
+                    const nextCpuColor = playerIsWhite ? 'b' : 'w';
+                    if (game.turn() === nextCpuColor) {
+                        setTimeout(() => makeComputerMove(), 500);
+                    }
                 }
             }
         } catch (e) {
@@ -583,11 +988,14 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
         const isDark = (row + col) % 2 === 1;
         const square = getSquareName(row, col);
         const piece = game.get(square);
+        const tileType = specialTiles[square];
         const isSelected = selectedSquare === square;
         const isPossibleMove = possibleMoves.includes(square);
         const isInCheck = game.isCheck() && piece && piece.type === 'k' && piece.color === game.turn();
         const isLastMoveFrom = lastMove && lastMove.from === square;
         const isLastMoveTo = lastMove && lastMove.to === square;
+        const isAnchored = piece ? squareIsAnchored(square, piece.color) : false;
+        const isForcedPiece = forcedExtraMove && forcedExtraMove.square === square;
 
         return (
             <div 
@@ -599,9 +1007,19 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                     ${isInCheck ? 'bg-red-500/50' : ''}
                     ${isLastMoveFrom ? 'bg-yellow-500/20' : ''}
                     ${isLastMoveTo ? 'bg-yellow-500/30' : ''}
+                    ${tileType === 'time_chamber' ? 'after:absolute after:inset-0 after:bg-cyan-400/15 after:pointer-events-none' : ''}
+                    ${tileType === 'heavy_gravity' ? 'after:absolute after:inset-0 after:bg-red-500/15 after:pointer-events-none' : ''}
+                    ${tileType === 'sacred_water' ? 'after:absolute after:inset-0 after:bg-emerald-400/15 after:pointer-events-none' : ''}
                     hover:brightness-110
                 `}
             >
+                {tileType && (
+                    <div className="absolute top-0.5 left-0.5 text-[9px] md:text-[10px] font-black z-20 pointer-events-none">
+                        {tileType === 'time_chamber' && <span className="text-cyan-300">⏳</span>}
+                        {tileType === 'heavy_gravity' && <span className="text-red-400">🌌</span>}
+                        {tileType === 'sacred_water' && <span className="text-emerald-300">💧</span>}
+                    </div>
+                )}
                 {piece && (
                     <span className={`text-4xl md:text-5xl select-none transition-all duration-300 ${isLastMoveTo ? 'animate-piece-land' : ''} ${
                         (piece.color === 'w' && playerIsWhite) || (piece.color === 'b' && !playerIsWhite)
@@ -613,7 +1031,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                                 ? (faction === 'Z_WARRIORS' ? 'drop-shadow-[0_0_25px_rgba(249,122,31,1)] scale-110' : 'drop-shadow-[0_0_25px_rgba(168,85,247,1)] scale-110')
                                 : (faction === 'Z_WARRIORS' ? 'drop-shadow-[0_0_25px_rgba(168,85,247,1)] scale-110' : 'drop-shadow-[0_0_25px_rgba(249,122,31,1)] scale-110'))
                             : 'drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]'
-                    }`}>
+                    } ${isAnchored ? 'opacity-60 grayscale' : ''} ${isForcedPiece ? 'ring-2 ring-cyan-300 rounded-md' : ''}`}>
                         {getPieceImage(piece) ? (
                             <img 
                                 src={getPieceImage(piece)} 
@@ -657,6 +1075,15 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
         setShowPiecesIntro(true);
         setGameRewards(null);
         setGameOverMinimized(false);
+        setAnchoredPieces({});
+        setForcedExtraMove(null);
+        setSpecialMessage('');
+        setKiBurst({ white: false, black: false });
+        if (isDragonMode) {
+            setSpecialTiles(generateRandomSpecialTiles());
+        } else {
+            setSpecialTiles({});
+        }
         rewardsSavedRef.current = false;
     };
     
@@ -710,6 +1137,17 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                         </span>
                     </div>
                 </header>
+
+                {(isDragonMode || specialMessage) && (
+                    <div className="px-4 md:px-10 py-2 border-b border-white/5 bg-black/30">
+                        <div className="flex flex-wrap items-center gap-3 text-[10px] md:text-xs font-black uppercase tracking-widest">
+                            {isDragonMode && <span className="text-cyan-300">Modo Dragon Chess</span>}
+                            {kiBurst.white && <span className="text-orange-400">Explosión Ki Blancas</span>}
+                            {kiBurst.black && <span className="text-purple-300">Explosión Ki Negras</span>}
+                            {specialMessage && <span className="text-yellow-300 normal-case tracking-normal text-xs md:text-sm">{specialMessage}</span>}
+                        </div>
+                    </div>
+                )}
 
                 {/* Main Game Area */}
                 <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
@@ -926,7 +1364,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                         </ElectricBorder>
                         <div className="text-left md:text-center">
                             <h3 className="text-lg md:text-2xl font-black italic uppercase tracking-tighter leading-none mb-1 md:mb-2 text-white">{opponent.name}</h3>
-                            {mode === 'PVC' && (
+                            {isCpuMode && (
                                 <div className="flex flex-col items-start md:items-center gap-1">
                                     <span className={`text-[9px] md:text-xs font-bold uppercase tracking-widest ${
                                         difficulty === 1 ? 'text-green-400' : difficulty === 2 ? 'text-yellow-400' : 'text-red-400'
@@ -935,7 +1373,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', difficulty = 2,
                                     </span>
                                     {cpuThinking && (
                                         <span className="text-[10px] md:text-xs text-purple-400 animate-pulse font-bold">
-                                            Pensando...
+                                            {isDragonPvc ? 'Analizando casillas especiales...' : 'Pensando...'}
                                         </span>
                                     )}
                                 </div>

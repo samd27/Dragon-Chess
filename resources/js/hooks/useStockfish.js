@@ -20,6 +20,8 @@ export default function useStockfish(difficulty = 2) {
     const [isReady, setIsReady] = useState(false);
     const [isThinking, setIsThinking] = useState(false);
     const resolveMove = useRef(null);
+    const resolveAnalysis = useRef(null);
+    const analysisResultsRef = useRef(new Map());
 
     // Inicializar el Web Worker
     useEffect(() => {
@@ -46,10 +48,48 @@ export default function useStockfish(difficulty = 2) {
                 const parts = line.split(' ');
                 const bestMove = parts[1]; // e.g. "e2e4"
                 setIsThinking(false);
+
+                if (resolveAnalysis.current) {
+                    const evaluations = Array.from(analysisResultsRef.current.values())
+                        .sort((a, b) => a.rank - b.rank)
+                        .slice(0, 12);
+
+                    resolveAnalysis.current({ bestMove, evaluations });
+                    resolveAnalysis.current = null;
+                    analysisResultsRef.current.clear();
+                }
+
                 if (resolveMove.current) {
                     resolveMove.current(bestMove);
                     resolveMove.current = null;
                 }
+            }
+
+            if (resolveAnalysis.current && line.startsWith('info')) {
+                const multipvMatch = line.match(/\bmultipv\s+(\d+)/);
+                const scoreMatch = line.match(/\bscore\s+(cp|mate)\s+(-?\d+)/);
+                const pvMatch = line.match(/\bpv\s+([a-h][1-8][a-h][1-8][qrbn]?)/);
+
+                if (!multipvMatch || !scoreMatch || !pvMatch) {
+                    return;
+                }
+
+                const rank = Number.parseInt(multipvMatch[1], 10);
+                const scoreType = scoreMatch[1];
+                const rawScore = Number.parseInt(scoreMatch[2], 10);
+                const move = pvMatch[1];
+
+                const normalizedScore = scoreType === 'mate'
+                    ? (rawScore > 0 ? 100000 - rank : -100000 + rank)
+                    : rawScore;
+
+                analysisResultsRef.current.set(move, {
+                    move,
+                    rank,
+                    scoreCP: normalizedScore,
+                    scoreType,
+                    rawScore,
+                });
             }
         };
 
@@ -82,6 +122,26 @@ export default function useStockfish(difficulty = 2) {
         });
     }, [isReady, difficulty]);
 
+    const getBestMoveWithEvaluations = useCallback((fen, options = {}) => {
+        return new Promise((resolve) => {
+            if (!workerRef.current || !isReady) {
+                resolve({ bestMove: null, evaluations: [] });
+                return;
+            }
+
+            setIsThinking(true);
+            analysisResultsRef.current.clear();
+            resolveAnalysis.current = resolve;
+
+            const settings = DIFFICULTY_SETTINGS[difficulty] || DIFFICULTY_SETTINGS[2];
+            const multiPv = Math.min(Math.max(options.multiPv ?? 5, 1), 12);
+
+            workerRef.current.postMessage(`setoption name MultiPV value ${multiPv}`);
+            workerRef.current.postMessage(`position fen ${fen}`);
+            workerRef.current.postMessage(`go depth ${settings.depth} movetime ${settings.movetime}`);
+        });
+    }, [isReady, difficulty]);
+
     // Detener búsqueda en curso
     const stop = useCallback(() => {
         if (workerRef.current) {
@@ -89,5 +149,5 @@ export default function useStockfish(difficulty = 2) {
         }
     }, []);
 
-    return { isReady, isThinking, getBestMove, stop };
+    return { isReady, isThinking, getBestMove, getBestMoveWithEvaluations, stop };
 }

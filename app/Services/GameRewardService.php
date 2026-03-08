@@ -61,6 +61,19 @@ class GameRewardService
     }
 
     /**
+     * Recompensas para Dragon PvC (ligero bonus por reglas especiales).
+     */
+    public function calculateDragonPvcRewards(string $result, int $difficulty): array
+    {
+        $rewards = $this->calculatePvcRewards($result, $difficulty);
+        return [
+            'exp'   => (int) round($rewards['exp'] * 1.15),
+            'senzu' => (int) round($rewards['senzu'] * 1.15),
+            'ki'    => (int) round($rewards['ki'] * 1.15),
+        ];
+    }
+
+    /**
      * Calcula las recompensas de una partida PVP según el Ki del oponente vs el jugador.
      *
      * @param  string  $result         'win' | 'loss' | 'draw'
@@ -95,6 +108,19 @@ class GameRewardService
         }
 
         return $base;
+    }
+
+    /**
+     * Recompensas para Dragon PvP.
+     */
+    public function calculateDragonPvpRewards(string $result, int $playerKi, int $opponentKi): array
+    {
+        $rewards = $this->calculatePvpRewards($result, $playerKi, $opponentKi);
+        return [
+            'exp'   => (int) round($rewards['exp'] * 1.15),
+            'senzu' => (int) round($rewards['senzu'] * 1.15),
+            'ki'    => (int) round($rewards['ki'] * 1.15),
+        ];
     }
 
     /**
