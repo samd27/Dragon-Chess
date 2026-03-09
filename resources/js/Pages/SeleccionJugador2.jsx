@@ -2,16 +2,16 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { UserIcon, LockClosedIcon, CheckIcon } from '@heroicons/react/24/solid';
 
-export default function SeleccionJugador2({ mode = 'PVP' }) {
+export default function SeleccionJugador2({ mode = 'PVP', variant = 'CLASSIC', difficulty = 2 }) {
     const [selectedType, setSelectedType] = useState('guest');
 
     const handleContinue = () => {
         if (selectedType === 'guest') {
             // Continuar como invitado
-            router.visit(route('faction.select', { mode, player2Type: 'guest' }));
+            router.visit(route('faction.select', { mode, variant, difficulty, player2Type: 'guest' }));
         } else {
             // Ir a login especial para jugador 2
-            router.visit(route('player2.login', { mode }));
+            router.visit(route('player2.login', { mode, variant, difficulty }));
         }
     };
 

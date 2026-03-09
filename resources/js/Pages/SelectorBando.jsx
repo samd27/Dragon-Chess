@@ -2,9 +2,9 @@ import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 import { ShieldCheckIcon, FireIcon, BoltIcon } from '@heroicons/react/24/solid';
 
-export default function FactionSelector({ mode = 'PVP', player2Type = 'guest', player2 = null, difficulty = 2 }) {
+export default function FactionSelector({ mode = 'PVP', variant = 'CLASSIC', player2Type = 'guest', player2 = null, difficulty = 2 }) {
     const [selected, setSelected] = useState('Z_WARRIORS');
-    const isPvpMode = mode === 'PVP' || mode === 'DRAGON_PVP';
+    const isPvpMode = mode === 'PVP';
 
     return (
         <>
@@ -12,7 +12,7 @@ export default function FactionSelector({ mode = 'PVP', player2Type = 'guest', p
             <div className="flex flex-col h-screen relative overflow-hidden bg-gradient-to-br from-[#0d0e12] via-[#1a1b1e] to-[#0d0e12]">
                 <header className="px-4 md:px-10 py-4 md:py-6 flex items-center justify-between border-b border-white/5 relative z-10 bg-black/20">
                     <Link 
-                        href={isPvpMode ? route('player2.select', { mode }) : route('game.mode')} 
+                        href={isPvpMode ? route('player2.select', { mode, variant, difficulty }) : route('game.mode')} 
                         className="flex items-center gap-2 group text-white/60 hover:text-white transition-colors"
                     >
                         <span className="text-xl transition-transform group-hover:-translate-x-1">←</span>
@@ -63,7 +63,7 @@ export default function FactionSelector({ mode = 'PVP', player2Type = 'guest', p
                         )}
                         
                         <Link 
-                            href={route('game.arena', { faction: selected, mode: mode, difficulty: difficulty })}
+                            href={route('game.arena', { faction: selected, mode, variant, difficulty })}
                             className="w-full bg-primary h-14 md:h-16 rounded-2xl shadow-neon-orange font-black italic uppercase tracking-tighter text-lg md:text-2xl flex items-center justify-center gap-3 md:gap-4 hover:bg-orange-500 transition-all active:scale-95 group"
                         >
                             <span className="hidden md:inline">Confirmar Plan de Batalla</span>

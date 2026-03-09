@@ -27,17 +27,29 @@ Route::get('/game-mode', function () {
 
 // Selección de Jugador 2 (PvP)
 Route::get('/player2-select', function () {
-    $mode = request('mode', 'PVP');
+    $rawMode = request('mode', 'PVP');
+    $mode = in_array($rawMode, ['PVP', 'DRAGON_PVP'], true) ? 'PVP' : 'PVC';
+    $variant = request('variant', in_array($rawMode, ['DRAGON_PVP', 'DRAGON_PVC'], true) ? 'SPECIAL' : 'CLASSIC');
+    $difficulty = (int) request('difficulty', 2);
+
     return Inertia::render('SeleccionJugador2', [
         'mode' => $mode,
+        'variant' => $variant,
+        'difficulty' => $difficulty,
     ]);
 })->middleware(['auth'])->name('player2.select');
 
 // Login de Jugador 2
 Route::get('/player2-login', function () {
-    $mode = request('mode', 'PVP');
+    $rawMode = request('mode', 'PVP');
+    $mode = in_array($rawMode, ['PVP', 'DRAGON_PVP'], true) ? 'PVP' : 'PVC';
+    $variant = request('variant', in_array($rawMode, ['DRAGON_PVP', 'DRAGON_PVC'], true) ? 'SPECIAL' : 'CLASSIC');
+    $difficulty = (int) request('difficulty', 2);
+
     return Inertia::render('Auth/LoginJugador2', [
         'mode' => $mode,
+        'variant' => $variant,
+        'difficulty' => $difficulty,
     ]);
 })->middleware(['auth'])->name('player2.login');
 
@@ -46,10 +58,15 @@ Route::post('/player2-authenticate', function () {
     $credentials = request()->validate([
         'email' => ['required', 'email'],
         'password' => ['required'],
-        'mode' => ['nullable', 'in:PVP,DRAGON_PVP'],
+        'mode' => ['nullable', 'in:PVP,PVC,DRAGON_PVP,DRAGON_PVC'],
+        'variant' => ['nullable', 'in:CLASSIC,SPECIAL'],
+        'difficulty' => ['nullable', 'integer', 'between:1,3'],
     ]);
 
-    $mode = request('mode', 'PVP');
+    $rawMode = request('mode', 'PVP');
+    $mode = in_array($rawMode, ['PVP', 'DRAGON_PVP'], true) ? 'PVP' : 'PVC';
+    $variant = request('variant', in_array($rawMode, ['DRAGON_PVP', 'DRAGON_PVC'], true) ? 'SPECIAL' : 'CLASSIC');
+    $difficulty = (int) request('difficulty', 2);
 
     // Intentar autenticar
     $user = \App\Models\User::where('email', $credentials['email'])->first();
@@ -64,7 +81,12 @@ Route::post('/player2-authenticate', function () {
 
         // Guardar el jugador 2 en sesión
         session(['player2_id' => $user->id]);
-        return redirect()->route('faction.select', ['mode' => $mode, 'player2Type' => 'authenticated']);
+        return redirect()->route('faction.select', [
+            'mode' => $mode,
+            'variant' => $variant,
+            'difficulty' => $difficulty,
+            'player2Type' => 'authenticated',
+        ]);
     }
 
     return back()->withErrors([
@@ -73,7 +95,9 @@ Route::post('/player2-authenticate', function () {
 })->middleware(['auth'])->name('player2.authenticate');
 
 Route::get('/faction-select', function () {
-    $mode = request('mode', 'PVP');
+    $rawMode = request('mode', 'PVP');
+    $mode = in_array($rawMode, ['PVP', 'DRAGON_PVP'], true) ? 'PVP' : 'PVC';
+    $variant = request('variant', in_array($rawMode, ['DRAGON_PVP', 'DRAGON_PVC'], true) ? 'SPECIAL' : 'CLASSIC');
     $player2Type = request('player2Type', 'guest');
     $difficulty = (int) request('difficulty', 2);
     $player2 = null;
@@ -84,6 +108,7 @@ Route::get('/faction-select', function () {
     
     return Inertia::render('SelectorBando', [
         'mode' => $mode,
+        'variant' => $variant,
         'player2Type' => $player2Type,
         'player2' => $player2,
         'difficulty' => $difficulty,
@@ -92,7 +117,9 @@ Route::get('/faction-select', function () {
 
 Route::get('/game-arena', function () {
     $faction = request('faction', 'Z_WARRIORS');
-    $mode = request('mode', 'PVP');
+    $rawMode = request('mode', 'PVP');
+    $mode = in_array($rawMode, ['PVP', 'DRAGON_PVP'], true) ? 'PVP' : 'PVC';
+    $variant = request('variant', in_array($rawMode, ['DRAGON_PVP', 'DRAGON_PVC'], true) ? 'SPECIAL' : 'CLASSIC');
     $difficulty = (int) request('difficulty', 2);
     $player2 = null;
     $player1Preferences = \App\Http\Controllers\PieceCustomizationController::normalizePreferences(
@@ -100,7 +127,7 @@ Route::get('/game-arena', function () {
     );
     $player2Preferences = \App\Http\Controllers\PieceCustomizationController::getDefaultPiecePreferences(); // Default para invitados
     
-    if (in_array($mode, ['PVP', 'DRAGON_PVP'], true) && session('player2_id')) {
+    if ($mode === 'PVP' && session('player2_id')) {
         $player2 = \App\Models\User::with('stats')->find(session('player2_id'));
         if ($player2) {
             $player2Preferences = \App\Http\Controllers\PieceCustomizationController::normalizePreferences(
@@ -112,6 +139,7 @@ Route::get('/game-arena', function () {
     return Inertia::render('Batalla', [
         'faction' => $faction,
         'mode' => $mode,
+        'variant' => $variant,
         'difficulty' => $difficulty,
         'player2' => $player2,
         'player1Preferences' => $player1Preferences,

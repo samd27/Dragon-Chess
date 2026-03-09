@@ -1,11 +1,13 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function LoginJugador2({ status, mode = 'PVP' }) {
+export default function LoginJugador2({ status, mode = 'PVP', variant = 'CLASSIC', difficulty = 2 }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
         mode,
+        variant,
+        difficulty,
     });
     
     const [showPassword, setShowPassword] = useState(false);
@@ -45,7 +47,7 @@ export default function LoginJugador2({ status, mode = 'PVP' }) {
                 {/* Right Side - Login Form */}
                 <div className="flex-1 flex items-center justify-center p-4 md:p-8 relative z-10">
                     <div className="w-full max-w-md">
-                        <Link href={route('player2.select', { mode })} className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-6 md:mb-8">
+                        <Link href={route('player2.select', { mode, variant, difficulty })} className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-6 md:mb-8">
                             <span className="text-lg md:text-xl">←</span>
                             <span className="text-[10px] md:text-xs font-black uppercase tracking-widest">Volver</span>
                         </Link>

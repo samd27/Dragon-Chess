@@ -4,16 +4,17 @@ import { UsersIcon, CpuChipIcon, AcademicCapIcon, BoltIcon, FireIcon } from '@he
 
 export default function GameMode() {
     const [selectedMode, setSelectedMode] = useState('PVP');
+    const [selectedVariant, setSelectedVariant] = useState('CLASSIC');
     const [difficulty, setDifficulty] = useState(2); // 1=Fácil, 2=Normal, 3=Difícil
-    const isCpuMode = selectedMode === 'PVC' || selectedMode === 'DRAGON_PVC';
-    const needsPlayer2Selection = selectedMode === 'PVP' || selectedMode === 'DRAGON_PVP';
+    const isCpuMode = selectedMode === 'PVC';
+    const needsPlayer2Selection = selectedMode === 'PVP';
 
     const modeCards = [
         {
             id: 'PVP',
             title: 'Jugador vs Jugador',
-            subtitle: 'Clásico',
-            description: 'Reglas normales de ajedrez, batalla local en el mismo dispositivo.',
+            subtitle: 'Local',
+            description: 'Batalla local en el mismo dispositivo.',
             Icon: UsersIcon,
             accentClass: 'border-primary ring-primary/10 bg-primary/10 text-primary',
             dotClass: 'bg-primary',
@@ -21,29 +22,28 @@ export default function GameMode() {
         {
             id: 'PVC',
             title: 'Jugador vs CPU',
-            subtitle: 'Clásico',
-            description: 'Desafía a la IA con reglas estándar y dificultad configurable.',
+            subtitle: 'IA',
+            description: 'Desafía a la IA con dificultad configurable.',
             Icon: CpuChipIcon,
             accentClass: 'border-purple-500 ring-purple-500/10 bg-purple-500/10 text-purple-400',
             dotClass: 'bg-purple-400',
         },
+    ];
+
+    const variantCards = [
         {
-            id: 'DRAGON_PVP',
-            title: 'Dragon PvP',
-            subtitle: 'Casillas Especiales',
-            description: 'Modo local con Cámara del Tiempo, Gravedad y Agua Ultra Sagrada.',
-            Icon: UsersIcon,
-            accentClass: 'border-cyan-400 ring-cyan-400/10 bg-cyan-400/10 text-cyan-300',
-            dotClass: 'bg-cyan-300',
+            id: 'CLASSIC',
+            title: 'Modo Clásico',
+            description: 'Reglas normales de ajedrez sin casillas especiales.',
+            accentClass: 'border-white/20 ring-white/10 bg-white/5 text-white',
+            dotClass: 'bg-white',
         },
         {
-            id: 'DRAGON_PVC',
-            title: 'Dragon PvC',
-            subtitle: 'IA Adaptada',
-            description: 'Stockfish + evaluación avanzada para considerar casillas especiales.',
-            Icon: CpuChipIcon,
-            accentClass: 'border-emerald-400 ring-emerald-400/10 bg-emerald-400/10 text-emerald-300',
-            dotClass: 'bg-emerald-300',
+            id: 'SPECIAL',
+            title: 'Casillas Especiales',
+            description: 'Partida con reglas Dragon y eventos especiales progresivos.',
+            accentClass: 'border-cyan-400 ring-cyan-400/10 bg-cyan-400/10 text-cyan-300',
+            dotClass: 'bg-cyan-300',
         },
     ];
 
@@ -115,6 +115,33 @@ export default function GameMode() {
                             })}
                         </div>
 
+                        <div className="space-y-3">
+                            <h3 className="text-center text-sm md:text-base font-black uppercase tracking-[0.2em] text-white/70">Variante de partida</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                                {variantCards.map(({ id, title, description, accentClass, dotClass }) => {
+                                    const isSelected = selectedVariant === id;
+                                    return (
+                                        <button
+                                            key={id}
+                                            type="button"
+                                            onClick={() => setSelectedVariant(id)}
+                                            className={`relative rounded-2xl border-2 p-4 md:p-5 text-left transition-all duration-300 ${
+                                                isSelected
+                                                    ? `${accentClass} ring-4`
+                                                    : 'border-white/10 bg-white/5 opacity-70 hover:opacity-100'
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span className={`w-2.5 h-2.5 rounded-full ${dotClass} ${isSelected ? 'animate-pulse' : ''}`}></span>
+                                                <span className="text-sm md:text-base font-black uppercase tracking-wider text-white">{title}</span>
+                                            </div>
+                                            <p className="text-xs md:text-sm text-white/60">{description}</p>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
                         {/* Difficulty Selector (solo PVC) */}
                         {isCpuMode && (
                             <div className="bg-white/5 border border-purple-500/20 rounded-2xl p-4 md:p-6 space-y-4 animate-in fade-in duration-300">
@@ -153,7 +180,9 @@ export default function GameMode() {
 
                         {/* Continue Button */}
                         <Link 
-                            href={needsPlayer2Selection ? route('player2.select', { mode: selectedMode }) : route('faction.select', { mode: selectedMode, difficulty: difficulty })}
+                            href={needsPlayer2Selection
+                                ? route('player2.select', { mode: selectedMode, variant: selectedVariant, difficulty })
+                                : route('faction.select', { mode: selectedMode, variant: selectedVariant, difficulty })}
                             className="w-full group relative bg-primary h-16 md:h-20 rounded-2xl flex items-center justify-center gap-4 shadow-[0_0_20px_rgba(249,122,31,0.25),0_0_40px_rgba(249,122,31,0.1)] hover:shadow-[0_0_25px_rgba(249,122,31,0.35),0_0_50px_rgba(249,122,31,0.15)] transition-all hover:-translate-y-1 active:scale-95 overflow-hidden"
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>

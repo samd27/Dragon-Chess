@@ -21,6 +21,7 @@ class GameController extends Controller
         $request->validate([
             'result'         => 'required|in:win,loss,draw',
             'mode'           => 'required|in:PVC,PVP,DRAGON_PVC,DRAGON_PVP',
+            'variant'        => 'nullable|in:CLASSIC,SPECIAL',
             'difficulty'     => 'nullable|integer|between:1,3',
             'opponent_ki'    => 'nullable|integer|min:0',
             'player2_id'     => 'nullable|integer',
@@ -29,17 +30,23 @@ class GameController extends Controller
 
         /** @var User $user */
         $user = $request->user();
+        $rawMode = $request->mode;
+        $isPvpMode = in_array($rawMode, ['PVP', 'DRAGON_PVP'], true);
+        $baseMode = $isPvpMode ? 'PVP' : 'PVC';
+        $isSpecialVariant = $request->variant
+            ? $request->variant === 'SPECIAL'
+            : in_array($rawMode, ['DRAGON_PVC', 'DRAGON_PVP'], true);
 
         try {
-            if (in_array($request->mode, ['PVC', 'DRAGON_PVC'], true)) {
+            if ($baseMode === 'PVC') {
                 $difficulty = (int) ($request->difficulty ?? 2);
-                $rewards = $request->mode === 'DRAGON_PVC'
+                $rewards = $isSpecialVariant
                     ? $this->rewardService->calculateDragonPvcRewards($request->result, $difficulty)
                     : $this->rewardService->calculatePvcRewards($request->result, $difficulty);
             } else {
                 $playerKi   = $user->stats?->ki ?? 1000;
                 $opponentKi = (int) ($request->opponent_ki ?? $playerKi);
-                $rewards    = $request->mode === 'DRAGON_PVP'
+                $rewards    = $isSpecialVariant
                     ? $this->rewardService->calculateDragonPvpRewards($request->result, $playerKi, $opponentKi)
                     : $this->rewardService->calculatePvpRewards($request->result, $playerKi, $opponentKi);
             }
@@ -48,11 +55,11 @@ class GameController extends Controller
 
             // En PVP, guardar también las stats del jugador 2 si está autenticado
             $player2Payload = null;
-            if (in_array($request->mode, ['PVP', 'DRAGON_PVP'], true) && $request->player2_id && $request->player2_result) {
+            if ($baseMode === 'PVP' && $request->player2_id && $request->player2_result) {
                 $player2 = User::find($request->player2_id);
                 if ($player2 && $player2->id !== $user->id) {
                     $p2Ki          = $player2->stats?->ki ?? 1000;
-                    $p2Rewards     = $request->mode === 'DRAGON_PVP'
+                    $p2Rewards     = $isSpecialVariant
                         ? $this->rewardService->calculateDragonPvpRewards($request->player2_result, $p2Ki, $playerKi)
                         : $this->rewardService->calculatePvpRewards($request->player2_result, $p2Ki, $playerKi);
                     $p2LevelResult = $this->rewardService->applyRewards($player2, $p2Rewards, $request->player2_result);
