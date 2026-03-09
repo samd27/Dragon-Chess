@@ -1187,7 +1187,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
             >
                 {tileType && (
                     <div className="absolute top-1 left-1 z-20 pointer-events-none">
-                        <span className="text-xs md:text-sm drop-shadow-lg">
+                        <span className="text-[10px] md:text-xs drop-shadow-lg">
                             {TILE_TYPE_META[tileType].emoji}
                         </span>
                     </div>
