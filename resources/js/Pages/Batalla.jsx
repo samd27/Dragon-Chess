@@ -300,6 +300,11 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
         if (!piece) return [];
         if (squareIsAnchored(square, piece.color)) return [];
 
+        // Si hay un forcedExtraMove y esta pieza no es la forzada, retornar vacío
+        if (forcedExtraMove && (square !== forcedExtraMove.square || piece.color !== forcedExtraMove.color)) {
+            return [];
+        }
+
         let moves = game.moves({ square, verbose: true });
 
         if (!isDragonMode) {
@@ -340,7 +345,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
         }
 
         return moves;
-    }, [game, squareIsAnchored, isDragonMode, kiBurst]);
+    }, [game, squareIsAnchored, isDragonMode, kiBurst, forcedExtraMove]);
 
     const evaluateSpecialTileImpact = useCallback((moveObj, stockfishScore, aiColor) => {
         if (!isDragonMode) {
@@ -500,7 +505,21 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
         }
 
         setSpecialTiles({});
-        setSpecialTileQueue(generateSpecialTileQueue());
+        const queue = generateSpecialTileQueue();
+        
+        // Revelar la primera casilla especial inmediatamente
+        if (queue.length > 0) {
+            const [firstTile, ...remaining] = queue;
+            setSpecialTiles((prev) => ({
+                ...prev,
+                [firstTile.square]: firstTile.type,
+            }));
+            setSpecialMessage(`${TILE_TYPE_META[firstTile.type].displayName} activada en ${firstTile.square.toUpperCase()}.`);
+            setSpecialTileQueue(remaining);
+        } else {
+            setSpecialTileQueue(queue);
+        }
+        
         setAnchoredPieces({});
         setForcedExtraMove(null);
         setKiBurst({ white: false, black: false });
@@ -564,12 +583,19 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
         const currentTurn = game.turn();
 
         if (previousTurn !== currentTurn) {
+            // Limpiar forcedExtraMove cuando cambia el turno (la acción forzada ya terminó)
+            if (forcedExtraMove && forcedExtraMove.color !== currentTurn) {
+                setForcedExtraMove(null);
+            }
+            
             setAnchoredPieces((prev) => {
                 const updated = { ...prev };
                 Object.entries(prev).forEach(([square, value]) => {
-                    if (value.state === 'pending' && currentTurn === value.color) {
+                    // Activar cuando es turno del jugador OPONENTE (la gravedad bloquea en el turno del que se movió)
+                    if (value.state === 'pending' && currentTurn !== value.color) {
                         updated[square] = { ...value, state: 'active' };
-                    } else if (value.state === 'active' && currentTurn !== value.color) {
+                    } else if (value.state === 'active' && currentTurn === value.color) {
+                        // Desactivar cuando es turno del propietario de la pieza anclada
                         delete updated[square];
                     }
                 });
@@ -577,7 +603,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
             });
             previousTurnRef.current = currentTurn;
         }
-    }, [game, isDragonMode]);
+    }, [game, isDragonMode, anchoredPieces, forcedExtraMove]);
 
     // Verificar estado del juego
     useEffect(() => {
@@ -740,9 +766,15 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                     setLastMove({ from: move.from, to: move.to });
 
                     if (isDragonMode) {
+                        const tileType = specialTiles[move.to];
+                        const isTimeChamber = tileType === 'time_chamber';
+                        
                         triggerTileEffects(game, move, nextHistory);
 
-                        if (forcedExtraMove && move.from === forcedExtraMove.square && move.color === forcedExtraMove.color) {
+                        // Para time_chamber, no limpiar forcedExtraMove aquí (se limpió en el turno pasado)
+                        // El forcedExtraMove se setea en triggerTileEffects y se limpiará cuando cambie el turno
+                        
+                        if (!isTimeChamber && forcedExtraMove && move.from === forcedExtraMove.square && move.color === forcedExtraMove.color) {
                             setForcedExtraMove(null);
                         }
 
@@ -798,11 +830,6 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
             // Seleccionar nueva pieza
             const piece = game.get(square);
             if (piece && piece.color === game.turn()) {
-                if (forcedExtraMove && (square !== forcedExtraMove.square || piece.color !== forcedExtraMove.color)) {
-                    setSpecialMessage('Debes usar el segundo movimiento con la misma pieza de la Cámara del Tiempo.');
-                    return;
-                }
-
                 if (squareIsAnchored(square, piece.color)) {
                     setSpecialMessage('Pieza anclada: no puede moverse en este turno.');
                     setSelectedSquare(null);
@@ -812,6 +839,9 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
 
                 setSelectedSquare(square);
                 const moves = getPossibleMovesForSquare(square);
+                if (moves.length === 0 && forcedExtraMove && square !== forcedExtraMove.square) {
+                    setSpecialMessage('Debes usar el segundo movimiento con la misma pieza de la Cámara del Tiempo.');
+                }
                 setPossibleMoves(moves.map(m => m.to));
             } else {
                 setSelectedSquare(null);
@@ -1157,7 +1187,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
             >
                 {tileType && (
                     <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-                        <span className="text-3xl md:text-4xl drop-shadow-lg">
+                        <span className="text-lg md:text-xl drop-shadow-lg">
                             {TILE_TYPE_META[tileType].emoji}
                         </span>
                     </div>
