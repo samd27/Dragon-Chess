@@ -68,7 +68,7 @@ export default function GameMode() {
                     <div className="max-w-4xl w-full space-y-4 md:space-y-8 my-auto">
                         <div className="text-center space-y-2 md:space-y-4">
                             <h1 className="text-2xl md:text-5xl lg:text-6xl font-black italic tracking-tighter uppercase leading-tight text-white">
-                                Elige el<br className="md:hidden"/>
+                                Elige el<br/>
                                 <span className="text-primary">Modo de Batalla</span>
                             </h1>
                             <p className="text-white/40 text-sm md:text-base font-medium max-w-xl mx-auto leading-relaxed">
