@@ -69,9 +69,9 @@ function RewardCard({ name, avatar, rewards, levelUp, accentClass }) {
 }
 
 const TILE_TYPE_META = {
-    time_chamber: { label: 'Tiempo', displayName: 'Cámara del Tiempo' },
-    heavy_gravity: { label: 'Gravedad', displayName: 'Gravedad Aumentada' },
-    sacred_water: { label: 'Agua', displayName: 'Agua Ultra Sagrada' },
+    time_chamber: { label: 'Tiempo', displayName: 'Cámara del Tiempo', emoji: '⏱️' },
+    heavy_gravity: { label: 'Gravedad', displayName: 'Gravedad Aumentada', emoji: '⬇️' },
+    sacred_water: { label: 'Agua', displayName: 'Agua Ultra Sagrada', emoji: '💧' },
 };
 
 export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLASSIC', difficulty = 2, player2 = null, player1Preferences = {}, player2Preferences = {} }) {
@@ -289,34 +289,6 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
 
         return queue.sort(() => Math.random() - 0.5);
     }, []);
-
-    const renderTileIcon = (tileType) => {
-        if (tileType === 'time_chamber') {
-            return (
-                <svg className="w-2.5 h-2.5 md:w-3 md:h-3 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M12 7v5l3 3" />
-                </svg>
-            );
-        }
-
-        if (tileType === 'heavy_gravity') {
-            return (
-                <svg className="w-2.5 h-2.5 md:w-3 md:h-3 text-red-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 3v14" />
-                    <path d="m7 12 5 5 5-5" />
-                    <path d="M5 20h14" />
-                </svg>
-            );
-        }
-
-        return (
-            <svg className="w-2.5 h-2.5 md:w-3 md:h-3 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 3s-4 5-4 8a4 4 0 0 0 8 0c0-3-4-8-4-8Z" />
-                <path d="M9 16h6" />
-            </svg>
-        );
-    };
 
     const squareIsAnchored = useCallback((square, pieceColor) => {
         const entry = anchoredPieces[square];
@@ -1184,13 +1156,10 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                 `}
             >
                 {tileType && (
-                    <div className="absolute top-0.5 left-0.5 z-20 pointer-events-none">
-                        <div className="inline-flex items-center gap-1 rounded-md bg-black/60 border border-white/20 px-1 py-0.5">
-                            {renderTileIcon(tileType)}
-                            <span className="text-[8px] md:text-[9px] leading-none font-black uppercase tracking-tight text-white/90">
-                                {TILE_TYPE_META[tileType].label}
-                            </span>
-                        </div>
+                    <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+                        <span className="text-3xl md:text-4xl drop-shadow-lg">
+                            {TILE_TYPE_META[tileType].emoji}
+                        </span>
                     </div>
                 )}
                 {piece && (
