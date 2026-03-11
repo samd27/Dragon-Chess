@@ -64,8 +64,8 @@ export default function GameMode() {
                     <div className="w-12 md:w-24 h-[1px] bg-white/10"></div>
                 </header>
 
-                <div className="flex-1 flex flex-col items-center justify-start md:justify-center px-4 md:px-10 py-4 md:py-8 relative z-10 overflow-y-auto">
-                    <div className="max-w-4xl w-full space-y-4 md:space-y-8 my-auto">
+                <div className="flex-1 flex flex-col items-center justify-start px-4 md:px-10 py-6 md:py-8 relative z-10 overflow-y-auto">
+                    <div className="max-w-4xl w-full space-y-4 md:space-y-8 mx-auto">
                         <div className="text-center space-y-2 md:space-y-4">
                             <h1 className="text-2xl md:text-5xl lg:text-6xl font-black italic tracking-tighter uppercase leading-tight text-white">
                                 Elige el<br/>
