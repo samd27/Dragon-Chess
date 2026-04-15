@@ -1,15 +1,16 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 import { ShieldCheckIcon, FireIcon, BoltIcon } from '@heroicons/react/24/solid';
+import GameLayout from '@/Layouts/GameLayout';
+import FactionPanel from '@/Components/FactionPanel';
 
 export default function FactionSelector({ mode = 'PVP', variant = 'CLASSIC', player2Type = 'guest', player2 = null, difficulty = 2 }) {
     const [selected, setSelected] = useState('Z_WARRIORS');
     const isPvpMode = mode === 'PVP';
 
     return (
-        <>
+        <GameLayout>
             <Head title="Elige Tu Bando" />
-            <div className="flex flex-col h-screen relative overflow-hidden bg-gradient-to-br from-[#0d0e12] via-[#1a1b1e] to-[#0d0e12]">
                 <header className="px-4 md:px-10 py-4 md:py-6 flex items-center justify-between border-b border-white/5 relative z-10 bg-black/20">
                     <Link 
                         href={isPvpMode ? route('player2.select', { mode, variant, difficulty }) : route('game.mode')} 
@@ -74,44 +75,25 @@ export default function FactionSelector({ mode = 'PVP', variant = 'CLASSIC', pla
 
                     {/* Right: Large Vertical Selection Panels */}
                     <div className="flex-1 grid grid-cols-2 gap-3 md:gap-6 items-stretch min-h-[300px] md:min-h-0">
-                        {/* Z-Warriors Large Panel */}
-                        <div 
+                        <FactionPanel 
+                            title="GUERREROS Z"
+                            subtitle="Guardianes de la Tierra"
+                            imageSrc="https://dragonball-api.com/characters/goku_normal.webp"
+                            isSelected={selected === 'Z_WARRIORS'}
                             onClick={() => setSelected('Z_WARRIORS')}
-                            className={`relative group rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 border-4 ${selected === 'Z_WARRIORS' ? 'border-primary ring-8 ring-primary/10 scale-100' : 'border-white/5 opacity-40 grayscale hover:opacity-80 scale-[0.98]'}`}
-                        >
-                            <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-orange-700"></div>
-                            <img 
-                                src="https://dragonball-api.com/characters/goku_normal.webp" 
-                                alt="Z-Warriors" 
-                                className="absolute inset-0 w-full h-full object-contain object-bottom transition-transform duration-1000 group-hover:scale-110"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
-                            <div className="absolute bottom-4 md:bottom-10 left-4 md:left-10 right-4 md:right-10">
-                                <h3 className="text-2xl md:text-5xl font-black italic tracking-tighter uppercase leading-none drop-shadow-xl text-white">GUERREROS Z</h3>
-                                <p className="text-[10px] md:text-sm font-bold text-primary tracking-[0.3em] md:tracking-[0.4em] uppercase mt-1 md:mt-2">Guardianes de la Tierra</p>
-                            </div>
-                        </div>
+                            factionType="Z_WARRIORS"
+                        />
 
-                        {/* Conquerors Large Panel */}
-                        <div 
+                        <FactionPanel 
+                            title="VILLANOS"
+                            subtitle="Destructores de Mundos"
+                            imageSrc="https://dragonball-api.com/characters/Freezer.webp"
+                            isSelected={selected === 'CONQUERORS'}
                             onClick={() => setSelected('CONQUERORS')}
-                            className={`relative group rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 border-4 ${selected === 'CONQUERORS' ? 'border-purple-500 ring-8 ring-purple-500/10 scale-100' : 'border-white/5 opacity-40 grayscale hover:opacity-80 scale-[0.98]'}`}
-                        >
-                            <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-purple-900"></div>
-                            <img 
-                                src="https://dragonball-api.com/characters/Freezer.webp" 
-                                alt="Conquerors" 
-                                className="absolute inset-0 w-full h-full object-contain object-bottom transition-transform duration-1000 group-hover:scale-110"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
-                            <div className="absolute bottom-4 md:bottom-10 left-4 md:left-10 right-4 md:right-10">
-                                <h3 className="text-2xl md:text-5xl font-black italic tracking-tighter uppercase leading-none drop-shadow-xl text-white">VILLANOS</h3>
-                                <p className="text-[10px] md:text-sm font-bold text-purple-400 tracking-[0.3em] md:tracking-[0.4em] uppercase mt-1 md:mt-2">Destructores de Mundos</p>
-                            </div>
-                        </div>
+                            factionType="CONQUERORS"
+                        />
                     </div>
                 </div>
-            </div>
-        </>
+        </GameLayout>
     );
 }

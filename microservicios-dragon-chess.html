@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Propuesta de Microservicios - Dragon Chess</title>
+</head>
+<body>
+  <h1>Propuesta de Microservicios para Dragon Chess</h1>
+
+  <p>
+    Este documento describe que microservicios se agregarian, que tecnologias se usarian y como se conectan,
+    siguiendo el diagrama propuesto: Frontend -> API Gateway -> servicios de Auth/Perfil, Game Economy,
+    Content/Inventory, Chess Engine y Email/Notificaciones.
+  </p>
+
+  <h2>1) Vision general de arquitectura</h2>
+  <p>
+    El cliente (web o movil) se conecta al Frontend (React + Inertia). El Frontend llama a un API Gateway.
+    El API Gateway enruta cada solicitud al microservicio correcto.
+  </p>
+  <p>
+    Cada microservicio tiene su propia base de datos para reducir acoplamiento.
+    Redis se usa para cache, locks y estado temporal.
+    RabbitMQ o Kafka se usa como bus de eventos para comunicacion asincrona.
+    Todo se despliega en Railway como servicios separados por dominio.
+  </p>
+
+  <h2>2) Microservicios que se agregarian</h2>
+
+  <h3>2.1 Game Economy</h3>
+  <p><strong>Que es:</strong> Servicio de progreso y economia del jugador.</p>
+  <p><strong>Que hace:</strong> Calcula EXP, Ki, Senzu, nivel, desbloqueos y compras.</p>
+  <p><strong>Tecnologias a usar (Railway):</strong> Laravel API (PHP 8.2), PostgreSQL de Railway, Redis de Railway, REST interno y eventos con RabbitMQ (si se habilita asincronia).</p>
+  <p><strong>Responsabilidades:</strong></p>
+  <ul>
+    <li>Procesar resultado de partida (win/loss/draw).</li>
+    <li>Aplicar recompensas y penalizaciones.</li>
+    <li>Subir nivel y desbloquear recompensas de battle pass.</li>
+    <li>Validar compras de personajes con recursos del jugador.</li>
+  </ul>
+
+  <h3>2.2 Content/Inventory</h3>
+  <p><strong>Que es:</strong> Servicio de catalogo de contenido y gestion de inventario.</p>
+  <p><strong>Que hace:</strong> Administra personajes, precios, temporadas y disponibilidad.</p>
+  <p><strong>Tecnologias a usar (Railway):</strong> Laravel API o Node.js (NestJS), PostgreSQL de Railway, Redis de Railway para cache y almacenamiento de assets en Cloudinary o S3 compatible.</p>
+  <p><strong>Responsabilidades:</strong></p>
+  <ul>
+    <li>Publicar catalogo oficial de personajes.</li>
+    <li>Definir items de tienda y reglas de battle pass.</li>
+    <li>Versionar contenido por temporada.</li>
+    <li>Servir metadatos y rutas de assets.</li>
+  </ul>
+
+  <h3>2.3 Chess Engine (Go + Stockfish)</h3>
+  <p><strong>Que es:</strong> Servicio de motor de ajedrez para decisiones de CPU.</p>
+  <p><strong>Que hace:</strong> Recibe estado del tablero (FEN) y devuelve bestmove.</p>
+  <p><strong>Tecnologias a usar (Railway):</strong> Go 1.22+, binario Stockfish dentro del mismo servicio, API REST interna (o gRPC), Redis para colas cortas y control de concurrencia por workers.</p>
+  <p><strong>Responsabilidades:</strong></p>
+  <ul>
+    <li>Ejecutar Stockfish como proceso controlado por Go.</li>
+    <li>Aplicar niveles de dificultad (depth/movetime/skill).</li>
+    <li>Responder movimiento de CPU de forma consistente.</li>
+    <li>Permitir escalado horizontal por workers.</li>
+  </ul>
+
+  <h3>2.4 Email/Notificaciones</h3>
+  <p><strong>Que es:</strong> Servicio de comunicacion con el jugador.</p>
+  <p><strong>Que hace:</strong> Envia emails y notificaciones in-app/push.</p>
+  <p><strong>Tecnologias a usar (Railway):</strong> Laravel Notifications o Node.js, Redis de Railway para colas, proveedor externo de email (Resend, SendGrid o Mailgun) y WebSockets para notificaciones en tiempo real.</p>
+  <p><strong>Responsabilidades:</strong></p>
+  <ul>
+    <li>Enviar avisos de progreso, recompensas y eventos.</li>
+    <li>Procesar colas de envio asincrono.</li>
+    <li>Manejar reintentos y trazabilidad de envios.</li>
+  </ul>
+
+  <h3>2.5 Auth y Perfil (servicio existente, centralizado al inicio)</h3>
+  <p><strong>Que es:</strong> Servicio de identidad y perfil de usuario.</p>
+  <p><strong>Que hace:</strong> Login, registro, sesion, perfil y datos base del usuario.</p>
+  <p><strong>Tecnologias a usar (Railway):</strong> Laravel actual con Sanctum, PostgreSQL de Railway y almacenamiento de avatar en proveedor externo (Cloudinary/S3).</p>
+  <p>
+    En la primera fase puede mantenerse en Laravel actual y luego evolucionar si se requiere separar identidad.
+  </p>
+
+  <h2>3) Tecnologias propuestas y razon de uso</h2>
+
+  <h3>3.1 Plataforma y despliegue</h3>
+  <ul>
+    <li><strong>Docker + Docker Compose:</strong> Entornos reproducibles para desarrollo local.</li>
+    <li><strong>Railway:</strong> Despliegue rapido por servicio, variables de entorno por proyecto y databases administradas.</li>
+    <li><strong>API Gateway (BFF en Laravel o servicio dedicado):</strong> Entrada unica, ruteo, seguridad y rate limit.</li>
+  </ul>
+
+  <h3>3.2 Datos y cache</h3>
+  <ul>
+    <li><strong>PostgreSQL por servicio (Railway):</strong> Aislamiento de datos por dominio.</li>
+    <li><strong>Redis (Railway):</strong> Cache, locks distribuidos, colas rapidas y estado temporal.</li>
+    <li><strong>Object Storage (S3/compatible):</strong> Assets y contenido estatico de personajes.</li>
+  </ul>
+
+  <h3>3.3 Comunicacion entre servicios</h3>
+  <ul>
+    <li><strong>REST:</strong> Operaciones CRUD y consultas estandar.</li>
+    <li><strong>gRPC (interno opcional):</strong> Baja latencia para servicios criticos (ejemplo Chess Engine).</li>
+    <li><strong>RabbitMQ:</strong> Eventos asincronos entre servicios en fase inicial (Kafka solo si el volumen crece mucho).</li>
+  </ul>
+
+  <h3>3.4 Observabilidad y calidad operativa</h3>
+  <ul>
+    <li><strong>OpenTelemetry:</strong> Trazas distribuidas.</li>
+    <li><strong>Prometheus + Grafana (opcional por fase):</strong> Metricas y dashboards.</li>
+    <li><strong>Sentry:</strong> Monitoreo de errores.</li>
+    <li><strong>CI/CD (GitHub Actions):</strong> Build, tests y despliegue automatico.</li>
+  </ul>
+
+  <h2>4) Flujo operativo alineado al diagrama</h2>
+  <ol>
+    <li>El jugador inicia una partida desde Frontend.</li>
+    <li>El Frontend consulta al API Gateway.</li>
+    <li>Para CPU, el Gateway llama al Chess Engine.</li>
+    <li>Chess Engine pide jugada a Stockfish y devuelve bestmove.</li>
+    <li>Al finalizar partida, Game Economy calcula recompensas.</li>
+    <li>Game Economy publica eventos (ejemplo: RewardGranted).</li>
+    <li>Email/Notificaciones consume eventos y envia mensajes al usuario.</li>
+    <li>Content/Inventory entrega reglas de catalogo, precios y battle pass.</li>
+  </ol>
+
+  <h2>5) Beneficios esperados</h2>
+  <ul>
+    <li>Escalado independiente por dominio (engine, economy, notificaciones).</li>
+    <li>Menor acoplamiento entre logica de juego y contenido.</li>
+    <li>Mejor control de rendimiento y observabilidad.</li>
+    <li>Base preparada para temporadas, matchmaking y crecimiento futuro.</li>
+  </ul>
+
+  <h2>6) Resumen final</h2>
+  <p>
+    La arquitectura recomendada usa API Gateway + microservicios de Game Economy, Content/Inventory,
+    Chess Engine (Go + Stockfish) y Email/Notificaciones, con Redis, PostgreSQL y bus de eventos.
+    El despliegue se realiza en Railway con servicios separados por dominio.
+    Esto permite evolucionar Dragon Chess de forma escalable sin perder la base actual de Laravel + React.
+  </p>
+</body>
+</html>

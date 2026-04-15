@@ -4,69 +4,8 @@ import { Chess } from 'chess.js';
 import { TrophyIcon, HandRaisedIcon, XMarkIcon, PauseIcon, PlayIcon, PhotoIcon, ClipboardDocumentListIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/solid';
 import ElectricBorder from '@/Components/ElectricBorder';
 import useStockfish from '@/hooks/useStockfish';
-
-// Tarjeta de recompensas para un jugador (definida fuera del componente para evitar remounts)
-function RewardCard({ name, avatar, rewards, levelUp, accentClass }) {
-    return (
-        <div className="bg-gradient-to-br from-[#1a1b1e] to-[#0d0e12] border border-white/10 rounded-2xl p-5 flex flex-col gap-4 w-full">
-            {/* Avatar + nombre */}
-            <div className="flex items-center gap-3">
-                <img
-                    src={avatar}
-                    alt={name}
-                    className="w-12 h-12 rounded-full object-cover border-2 border-white/20 bg-white/5 shrink-0"
-                />
-                <span className={`font-black uppercase tracking-tighter text-base leading-tight ${accentClass}`}>{name}</span>
-            </div>
-
-            {/* Ki | EXP | Senzu */}
-            <div className="grid grid-cols-3 gap-2">
-                <div className="bg-white/5 rounded-xl p-2.5 flex flex-col items-center border border-white/10">
-                    <span className={`text-xl font-black tabular-nums ${(rewards?.ki ?? 0) >= 0 ? 'text-yellow-400' : 'text-red-400'}`}>
-                        {(rewards?.ki ?? 0) >= 0 ? '+' : ''}{rewards?.ki ?? 0}
-                    </span>
-                    <span className="text-[9px] font-black uppercase text-white/40 tracking-widest mt-0.5">Ki</span>
-                </div>
-                <div className="bg-white/5 rounded-xl p-2.5 flex flex-col items-center border border-white/10">
-                    <span className="text-xl font-black text-orange-400 tabular-nums">+{rewards?.exp ?? 0}</span>
-                    <span className="text-[9px] font-black uppercase text-white/40 tracking-widest mt-0.5">EXP</span>
-                </div>
-                <div className="bg-white/5 rounded-xl p-2.5 flex flex-col items-center border border-white/10">
-                    <span className="text-xl font-black text-green-400 tabular-nums">+{rewards?.senzu ?? 0}</span>
-                    <span className="text-[9px] font-black uppercase text-white/40 tracking-widest mt-0.5">Senzu</span>
-                </div>
-            </div>
-
-            {/* Level Up Banner */}
-            {levelUp?.leveled_up && (
-                <div className="bg-yellow-400/10 border border-yellow-400/40 rounded-xl p-3 text-center">
-                    <p className="text-yellow-400 font-black text-base uppercase tracking-tighter">
-                        ¡Nivel {levelUp.new_level}!
-                    </p>
-                    <p className="text-white/50 text-[10px] mt-0.5">
-                        {levelUp.old_level} → {levelUp.new_level}
-                    </p>
-                </div>
-            )}
-
-            {/* Barra de progreso */}
-            {levelUp && (
-                <div className="space-y-1">
-                    <div className="flex justify-between text-[10px] text-white/40">
-                        <span>Nv. {levelUp.new_level}</span>
-                        <span>{levelUp.level_progress}%</span>
-                    </div>
-                    <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                        <div
-                            className="h-full bg-gradient-to-r from-primary to-orange-400 rounded-full transition-all duration-700"
-                            style={{ width: `${levelUp.level_progress}%` }}
-                        />
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-}
+import RewardCard from '@/Components/RewardCard';
+import GameLayout from '@/Layouts/GameLayout';
 
 const TILE_TYPE_META = {
     time_chamber: { label: 'Tiempo', displayName: 'Cámara del Tiempo', emoji: '⏱️' },
@@ -662,9 +601,9 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
     // Si es PVC y la CPU juega blancas (jugador eligió Villanos), hacer primer movimiento automático
     useEffect(() => {
         if (isCpuMode && !playerIsWhite && game.turn() === 'w' && moveHistory.length === 0 && !gameOver) {
-            setTimeout(() => makeComputerMove(), 800);
+            setTimeout(() => makeComputerMove(), 1200);
         }
-    }, [isCpuMode, playerIsWhite, stockfishReady]);
+    }, [isCpuMode, playerIsWhite, stockfishReady, moveHistory.length, gameOver]);
 
     // Guardar resultado de la partida al terminar y obtener recompensas
     useEffect(() => {
@@ -714,6 +653,12 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
 
     const handleSquareClick = (square) => {
         if (gameOver) return;
+        // Si el juego es contra CPU y no es el turno del jugador, bloquear las acciones
+        if (normalizedMode === 'PVC') {
+            const isPlayerTurn = (game.turn() === 'w' && playerIsWhite) || (game.turn() === 'b' && !playerIsWhite);
+            if (!isPlayerTurn) return;
+        }
+        
         // Bloquear interacción mientras la CPU piensa
         if (cpuThinking) return;
 
@@ -819,7 +764,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                     if (isCpuMode && !game.isGameOver()) {
                         const nextCpuColor = playerIsWhite ? 'b' : 'w';
                         if (game.turn() === nextCpuColor) {
-                            setTimeout(() => makeComputerMove(), 500);
+                            setTimeout(() => makeComputerMove(), 1200);
                         }
                     }
                 }
@@ -926,7 +871,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                                 
                                 // Si la CPU activó time_chamber en el movimiento forzado, programar su próximo movimiento
                                 if (activatedTimeChamber && isCpuMode && !game.isGameOver()) {
-                                    setTimeout(() => makeComputerMove(), 600);
+                                    setTimeout(() => makeComputerMove(), 1200);
                                 }
                                 return;
                             }
@@ -987,7 +932,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                         
                         // Si la CPU activó time_chamber, programar su próximo movimiento inmediatamente
                         if (activatedTimeChamber && isCpuMode && !game.isGameOver()) {
-                            setTimeout(() => makeComputerMove(), 600);
+                            setTimeout(() => makeComputerMove(), 1200);
                         }
                         return;
                     }
@@ -1009,6 +954,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
         if (moves.length > 0) {
             const randomMove = moves[Math.floor(Math.random() * moves.length)];
             const move = game.move(randomMove);
+            let activatedTimeChamber = false;
             if (move) {
                 if (move.captured) {
                     const capturedColor = move.color === 'w' ? 'black' : 'white';
@@ -1029,7 +975,6 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                 const nextHistory = [...moveHistory, moveInfo];
                 setMoveHistory(nextHistory);
                 
-                let activatedTimeChamber = false;
                 if (isDragonMode) {
                     const tileType = specialTiles[move.to];
                     if (tileType === 'time_chamber') {
@@ -1058,7 +1003,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
             
             // Si la CPU activó time_chamber, programar su próximo movimiento inmediatamente
             if (activatedTimeChamber && isCpuMode && !game.isGameOver()) {
-                setTimeout(() => makeComputerMove(), 600);
+                setTimeout(() => makeComputerMove(), 1200);
             }
         }
         setCpuThinking(false);
@@ -1133,7 +1078,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                 if (isCpuMode && !game.isGameOver()) {
                     const nextCpuColor = playerIsWhite ? 'b' : 'w';
                     if (game.turn() === nextCpuColor) {
-                        setTimeout(() => makeComputerMove(), 500);
+                        setTimeout(() => makeComputerMove(), 1200);
                     }
                 }
             }
@@ -1193,7 +1138,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                     </div>
                 )}
                 {piece && (
-                    <span className={`text-4xl md:text-5xl select-none transition-all duration-300 ${isLastMoveTo ? 'animate-piece-land' : ''} ${
+                    <span className={`text-4xl md:text-5xl select-none transition-all duration-700 ease-in-out ${isLastMoveTo ? 'animate-piece-land' : ''} ${
                         (piece.color === 'w' && playerIsWhite) || (piece.color === 'b' && !playerIsWhite)
                             ? (faction === 'Z_WARRIORS' ? 'text-primary' : 'text-purple-500')
                             : (faction === 'Z_WARRIORS' ? 'text-purple-500' : 'text-primary')

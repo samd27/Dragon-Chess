@@ -1,6 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 import { UsersIcon, CpuChipIcon, AcademicCapIcon, BoltIcon, FireIcon } from '@heroicons/react/24/solid';
+import GameLayout from '@/Layouts/GameLayout';
+import SelectionCard from '@/Components/SelectionCard';
 
 export default function GameMode() {
     const [selectedMode, setSelectedMode] = useState('PVP');
@@ -48,13 +50,8 @@ export default function GameMode() {
     ];
 
     return (
-        <>
+        <GameLayout>
             <Head title="Seleccionar Modo de Juego" />
-            <div className="flex flex-col h-screen relative overflow-hidden bg-gradient-to-br from-[#0d0e12] via-[#1a1b1e] to-[#0d0e12]">
-                {/* Decorative Aura */}
-                <div className="absolute -top-40 -right-40 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-primary/10 blur-[120px] rounded-full pointer-events-none"></div>
-                <div className="absolute -bottom-40 -left-40 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-secondary/5 blur-[120px] rounded-full pointer-events-none"></div>
-
                 <header className="px-4 md:px-10 py-4 md:py-6 flex items-center justify-between border-b border-white/5 relative z-10 bg-black/20">
                     <Link href={route('welcome')} className="flex items-center gap-2 group text-white/60 hover:text-white transition-colors">
                         <span className="text-xl transition-transform group-hover:-translate-x-1">←</span>
@@ -78,41 +75,24 @@ export default function GameMode() {
 
                         {/* Game Mode Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
-                            {modeCards.map(({ id, title, subtitle, description, Icon, accentClass, dotClass }) => {
-                                const isSelected = selectedMode === id;
-                                return (
-                                    <div
-                                        key={id}
-                                        onClick={() => setSelectedMode(id)}
-                                        className={`relative group rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 border-4 p-4 md:p-10 lg:p-12 ${
-                                            isSelected
-                                                ? `${accentClass} ring-8 scale-100`
-                                                : 'border-white/5 opacity-60 hover:opacity-80 scale-[0.98] bg-white/5'
-                                        }`}
-                                    >
-                                        <div className="relative z-10 space-y-4 md:space-y-6">
-                                            <Icon className="w-12 h-12 md:w-16 lg:w-20 md:h-16 lg:h-20 text-white" />
-                                            <div>
-                                                <h3 className="text-2xl md:text-3xl lg:text-4xl font-black italic tracking-tighter uppercase leading-none text-white mb-2 md:mb-3">
-                                                    {title}
-                                                </h3>
-                                                <p className="text-white/60 text-sm md:text-base font-medium leading-relaxed">
-                                                    {description}
-                                                </p>
-                                            </div>
-                                            <div className={`flex items-center gap-2 text-xs md:text-sm font-black uppercase tracking-widest ${isSelected ? 'text-white' : 'text-white/40'}`}>
-                                                <span className={`w-2 h-2 rounded-full ${dotClass} ${isSelected ? 'animate-pulse' : ''}`}></span>
-                                                {subtitle}
-                                            </div>
-                                        </div>
-                                        {isSelected && (
-                                            <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                                                <span className="text-white text-xl">✓</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
+                            <SelectionCard
+                                Icon={UsersIcon}
+                                title={'Jugador vs\nJugador'}
+                                description="Batalla local en el mismo dispositivo."
+                                tagText="Local"
+                                isSelected={selectedMode === 'PVP'}
+                                onClick={() => setSelectedMode('PVP')}
+                                colorClass="primary"
+                            />
+                            <SelectionCard
+                                Icon={CpuChipIcon}
+                                title={'Jugador vs\nCPU'}
+                                description="Desafía a la IA con dificultad configurable."
+                                tagText="IA"
+                                isSelected={selectedMode === 'PVC'}
+                                onClick={() => setSelectedMode('PVC')}
+                                colorClass="purple"
+                            />
                         </div>
 
                         <div className="space-y-3">
@@ -191,7 +171,6 @@ export default function GameMode() {
                         </Link>
                     </div>
                 </div>
-            </div>
-        </>
+        </GameLayout>
     );
 }
