@@ -2,8 +2,34 @@
 
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+Route::get('/media/catalog', function () {
+    $baseUrl = rtrim((string) config('services.media.base_url', ''), '/');
+    $catalogPath = '/' . ltrim((string) config('services.media.catalog_path', '/api/media/catalog'), '/');
+
+    if ($baseUrl === '') {
+        return response()->json([
+            'success' => false,
+            'error' => 'MEDIA_SERVICE_URL is not configured',
+        ], 503);
+    }
+
+    try {
+        $response = Http::timeout(12)->acceptJson()->get($baseUrl . $catalogPath);
+
+        return response($response->body(), $response->status())
+            ->header('Content-Type', 'application/json');
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'error' => 'Media catalog proxy request failed',
+            'detail' => $e->getMessage(),
+        ], 502);
+    }
+})->name('media.catalog.proxy');
 
 Route::get('/', function () {
     $stats      = null;

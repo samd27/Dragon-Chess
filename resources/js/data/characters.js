@@ -20,6 +20,12 @@ const CLOUDINARY_BASE_FOLDER = (import.meta.env.VITE_CLOUDINARY_BASE_FOLDER || '
 const CLOUDINARY_BASE_URL = CLOUDINARY_CLOUD_NAME
     ? `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload`
     : '';
+const MEDIA_SERVICE_URL = (import.meta.env.VITE_MEDIA_SERVICE_URL || '').replace(/\/+$/g, '');
+const MEDIA_CATALOG_PATH = import.meta.env.VITE_MEDIA_CATALOG_PATH || '/api/media/catalog';
+
+const CATALOG_URL_BY_ID = new Map();
+let catalogReady = false;
+let preloadPromise = null;
 
 /** Directorio de carpeta según faction key */
 const FACTION_DIR = { guerreros: 'Guerreros', villanos: 'Villanos' };
@@ -82,6 +88,66 @@ function buildCloudinaryImageUrl(characterId) {
     return `${CLOUDINARY_BASE_URL}/${CLOUDINARY_BASE_FOLDER}/${factionDir}/${pieceDir}/${encodedFile}`;
 }
 
+function normalizeCharacterId(characterId) {
+    const [faction, pieceType, ...filenameParts] = String(characterId || '').split('/');
+    if (!faction || !pieceType || filenameParts.length === 0) return '';
+    return `${String(faction).toLowerCase()}/${String(pieceType).toLowerCase()}/${filenameParts.join('/')}`;
+}
+
+function getMediaCatalogUrl() {
+    if (MEDIA_SERVICE_URL) {
+        return `${MEDIA_SERVICE_URL}${MEDIA_CATALOG_PATH.startsWith('/') ? MEDIA_CATALOG_PATH : `/${MEDIA_CATALOG_PATH}`}`;
+    }
+
+    if (MEDIA_CATALOG_PATH.startsWith('/')) {
+        return MEDIA_CATALOG_PATH;
+    }
+
+    return `/${MEDIA_CATALOG_PATH}`;
+}
+
+export async function preloadCharacterCatalog(force = false) {
+    if (!force && catalogReady) return true;
+    if (!force && preloadPromise) return preloadPromise;
+
+    const endpoint = getMediaCatalogUrl();
+    if (!endpoint) {
+        catalogReady = true;
+        return false;
+    }
+
+    preloadPromise = fetch(endpoint)
+        .then(async (response) => {
+            if (!response.ok) {
+                throw new Error(`Media catalog request failed with status ${response.status}`);
+            }
+
+            const data = await response.json();
+            const items = Array.isArray(data?.items) ? data.items : [];
+
+            CATALOG_URL_BY_ID.clear();
+            for (const item of items) {
+                const id = normalizeCharacterId(item?.id || item?.character_key);
+                const url = String(item?.url || item?.secure_url || '').trim();
+                if (id && url) {
+                    CATALOG_URL_BY_ID.set(id, url);
+                }
+            }
+
+            catalogReady = true;
+            return true;
+        })
+        .catch(() => {
+            catalogReady = true;
+            return false;
+        })
+        .finally(() => {
+            preloadPromise = null;
+        });
+
+    return preloadPromise;
+}
+
 export function resolveCharacterImageUrl(value) {
     if (!value) return '';
     if (String(value).startsWith('http')) return value;
@@ -92,7 +158,8 @@ export function resolveCharacterImageUrl(value) {
     }
 
     if (String(value).startsWith('/images/characters/')) {
-        return String(value);
+        const legacyCharacterId = legacyPathToCharacterId(value);
+        return legacyCharacterId ? charPath(legacyCharacterId) : '';
     }
 
     return charPath(String(value));
@@ -103,6 +170,11 @@ export function resolveCharacterImageUrl(value) {
  * @param {string} characterId — e.g. "guerreros/torre/piccolo"
  */
 export function charPath(characterId) {
+    const normalizedId = normalizeCharacterId(characterId);
+    if (normalizedId && CATALOG_URL_BY_ID.has(normalizedId)) {
+        return CATALOG_URL_BY_ID.get(normalizedId) || '';
+    }
+
     const cloudinaryUrl = buildCloudinaryImageUrl(characterId);
     return cloudinaryUrl || '';
 }

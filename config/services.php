@@ -31,4 +31,9 @@ return [
         ],
     ],
 
+    'media' => [
+        'base_url' => env('MEDIA_SERVICE_URL'),
+        'catalog_path' => env('MEDIA_CATALOG_PATH', '/api/media/catalog'),
+    ],
+
 ];
