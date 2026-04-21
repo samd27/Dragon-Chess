@@ -94,6 +94,58 @@ function normalizeCharacterId(characterId) {
     return `${String(faction).toLowerCase()}/${String(pieceType).toLowerCase()}/${filenameParts.join('/')}`;
 }
 
+function normalizeCharacterFilename(filename) {
+    return String(filename || '')
+        .trim()
+        .replace(/\.(webp|png|jpe?g|gif|avif)$/i, '');
+}
+
+function buildFilenameCandidates(filename) {
+    const candidates = [];
+    let current = normalizeCharacterFilename(filename);
+
+    while (current) {
+        candidates.push(current);
+        const next = current.replace(/_[^_]+$/, '');
+        if (!next || next === current) {
+            break;
+        }
+        current = next;
+    }
+
+    return candidates;
+}
+
+function getCanonicalCharacterId(faction, pieceType, filename) {
+    const normalizedFaction = String(faction || '').toLowerCase();
+    const normalizedPieceType = String(pieceType || '').toLowerCase();
+    const normalizedFilename = normalizeCharacterFilename(filename);
+    const candidateFilenames = buildFilenameCandidates(normalizedFilename);
+
+    for (const candidateFilename of candidateFilenames) {
+        const match = ALL_CHARACTERS.find((character) => {
+            return character.faction === normalizedFaction
+                && character.pieceType === normalizedPieceType
+                && character.filename === candidateFilename;
+        });
+
+        if (match) {
+            return match.id;
+        }
+    }
+
+    return `${normalizedFaction}/${normalizedPieceType}/${normalizedFilename}`;
+}
+
+function registerCatalogUrl(characterId, url) {
+    const normalizedId = normalizeCharacterId(characterId);
+    const normalizedUrl = String(url || '').trim();
+
+    if (normalizedId && normalizedUrl) {
+        CATALOG_URL_BY_ID.set(normalizedId, normalizedUrl);
+    }
+}
+
 function getMediaCatalogUrl() {
     if (MEDIA_SERVICE_URL) {
         return `${MEDIA_SERVICE_URL}${MEDIA_CATALOG_PATH.startsWith('/') ? MEDIA_CATALOG_PATH : `/${MEDIA_CATALOG_PATH}`}`;
@@ -127,10 +179,18 @@ export async function preloadCharacterCatalog(force = false) {
 
             CATALOG_URL_BY_ID.clear();
             for (const item of items) {
-                const id = normalizeCharacterId(item?.id || item?.character_key);
+                const rawId = item?.character_key || item?.id || '';
                 const url = String(item?.url || item?.secure_url || '').trim();
-                if (id && url) {
-                    CATALOG_URL_BY_ID.set(id, url);
+                const [faction, pieceType, ...filenameParts] = String(rawId).split('/');
+                const filename = filenameParts.join('/');
+                const canonicalId = getCanonicalCharacterId(faction, pieceType, filename);
+
+                registerCatalogUrl(rawId, url);
+                registerCatalogUrl(canonicalId, url);
+
+                const fallbackId = normalizeCharacterId(item?.id);
+                if (fallbackId && url) {
+                    CATALOG_URL_BY_ID.set(fallbackId, url);
                 }
             }
 
