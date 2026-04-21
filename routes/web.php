@@ -31,6 +31,30 @@ Route::get('/media/catalog', function () {
     }
 })->name('media.catalog.proxy');
 
+Route::post('/media/catalog/sync', function () {
+    $baseUrl = rtrim((string) config('services.media.base_url', ''), '/');
+    
+    if ($baseUrl === '') {
+        return response()->json([
+            'success' => false,
+            'error' => 'MEDIA_SERVICE_URL is not configured',
+        ], 503);
+    }
+
+    try {
+        $response = Http::timeout(30)->acceptJson()->post($baseUrl . '/api/media/catalog/sync', []);
+
+        return response($response->body(), $response->status())
+            ->header('Content-Type', 'application/json');
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'error' => 'Media sync request failed',
+            'detail' => $e->getMessage(),
+        ], 502);
+    }
+})->name('media.catalog.sync');
+
 Route::get('/', function () {
     $stats      = null;
     $unlockAll  = false;
