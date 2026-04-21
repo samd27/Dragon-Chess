@@ -100,6 +100,12 @@ function normalizeCharacterFilename(filename) {
         .replace(/\.(webp|png|jpe?g|gif|avif)$/i, '');
 }
 
+function normalizeFilenameMatchKey(filename) {
+    return normalizeCharacterFilename(filename)
+        .toLowerCase()
+        .replace(/[\s_]+/g, '');
+}
+
 function buildFilenameCandidates(filename) {
     const candidates = [];
     let current = normalizeCharacterFilename(filename);
@@ -121,6 +127,7 @@ function getCanonicalCharacterId(faction, pieceType, filename) {
     const normalizedPieceType = String(pieceType || '').toLowerCase();
     const normalizedFilename = normalizeCharacterFilename(filename);
     const candidateFilenames = buildFilenameCandidates(normalizedFilename);
+    const candidateKey = normalizeFilenameMatchKey(normalizedFilename);
 
     for (const candidateFilename of candidateFilenames) {
         const match = ALL_CHARACTERS.find((character) => {
@@ -132,6 +139,16 @@ function getCanonicalCharacterId(faction, pieceType, filename) {
         if (match) {
             return match.id;
         }
+    }
+
+    const relaxedMatch = ALL_CHARACTERS.find((character) => {
+        return character.faction === normalizedFaction
+            && character.pieceType === normalizedPieceType
+            && normalizeFilenameMatchKey(character.filename) === candidateKey;
+    });
+
+    if (relaxedMatch) {
+        return relaxedMatch.id;
     }
 
     return `${normalizedFaction}/${normalizedPieceType}/${normalizedFilename}`;
@@ -338,7 +355,7 @@ export const ALL_CHARACTERS = [
     char('villanos', 'alfil', 'Broly Super',       'Broly Super'),
     char('villanos', 'alfil', 'Burter',            'Burter'),
     char('villanos', 'alfil', 'Dyspo',             'Dyspo'),
-    char('villanos', 'alfil', 'Freezer_2da forma', 'Freezer 2da forma'),
+    char('villanos', 'alfil', 'Freezer_3ra forma', 'Freezer 3ra forma'),
     char('villanos', 'alfil', 'Janemba',           'Janemba'),
     char('villanos', 'alfil', 'Super Buu',         'Super Buu'),
 
