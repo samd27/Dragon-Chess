@@ -7,12 +7,19 @@
  *    - pieceType   : 'rey' | 'reina' | 'torre' | 'caballo' | 'alfil' | 'peon'
  *    - filename    : nombre del archivo sin extensión (exacto, igual que en disco)
  *
- *  Ruta de imagen : /images/characters/{FactionDir}/{PieceTypeDir}/{filename}.webp
+ *  Ruta de imagen : Cloudinary (vía VITE_CLOUDINARY_CLOUD_NAME)
  */
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
+
+const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || '';
+const CLOUDINARY_BASE_FOLDER = (import.meta.env.VITE_CLOUDINARY_BASE_FOLDER || 'Dragon-chess/characters')
+    .replace(/^\/+|\/+$/g, '');
+const CLOUDINARY_BASE_URL = CLOUDINARY_CLOUD_NAME
+    ? `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload`
+    : '';
 
 /** Directorio de carpeta según faction key */
 const FACTION_DIR = { guerreros: 'Guerreros', villanos: 'Villanos' };
@@ -27,13 +34,77 @@ const PIECE_DIR = {
     peon:    'Peon',
 };
 
+const REVERSE_FACTION_DIR = Object.fromEntries(
+    Object.entries(FACTION_DIR).map(([key, value]) => [value.toLowerCase(), key])
+);
+
+const REVERSE_PIECE_DIR = Object.fromEntries(
+    Object.entries(PIECE_DIR).map(([key, value]) => [value.toLowerCase(), key])
+);
+
+function legacyPathToCharacterId(imagePath) {
+    const normalized = String(imagePath || '').trim();
+    if (!normalized.startsWith('/images/characters/')) return null;
+
+    const relative = normalized
+        .replace(/^\/images\/characters\//, '')
+        .replace(/\.(webp|png|jpe?g|gif|avif)$/i, '');
+
+    const parts = relative.split('/');
+    if (parts.length < 3) return null;
+
+    const [factionDir, pieceDir, ...filenameParts] = parts;
+    const faction = REVERSE_FACTION_DIR[String(factionDir).toLowerCase()] || String(factionDir).toLowerCase();
+    const pieceType = REVERSE_PIECE_DIR[String(pieceDir).toLowerCase()] || String(pieceDir).toLowerCase();
+    const filename = filenameParts.join('/');
+
+    if (!faction || !pieceType || !filename) return null;
+    return `${faction}/${pieceType}/${filename}`;
+}
+
+function buildCloudinaryImageUrl(characterId) {
+    const [faction, pieceType, ...filenameParts] = String(characterId || '').split('/');
+    const filename = filenameParts.join('/');
+
+    if (!CLOUDINARY_BASE_URL || !faction || !pieceType || !filename) {
+        return null;
+    }
+
+    const factionDir = FACTION_DIR[faction];
+    const pieceDir = PIECE_DIR[pieceType];
+    if (!factionDir || !pieceDir) return null;
+
+    const encodedFile = filename
+        .split('/')
+        .map(segment => encodeURIComponent(segment))
+        .join('/');
+
+    return `${CLOUDINARY_BASE_URL}/${CLOUDINARY_BASE_FOLDER}/${factionDir}/${pieceDir}/${encodedFile}`;
+}
+
+export function resolveCharacterImageUrl(value) {
+    if (!value) return '';
+    if (String(value).startsWith('http')) return value;
+
+    const legacyId = legacyPathToCharacterId(value);
+    if (legacyId) {
+        return charPath(legacyId);
+    }
+
+    if (String(value).startsWith('/images/characters/')) {
+        return String(value);
+    }
+
+    return charPath(String(value));
+}
+
 /**
  * Genera la ruta de imagen pública a partir del ID de personaje.
  * @param {string} characterId — e.g. "guerreros/torre/piccolo"
  */
 export function charPath(characterId) {
-    const [faction, pieceType, filename] = characterId.split('/');
-    return `/images/characters/${FACTION_DIR[faction]}/${PIECE_DIR[pieceType]}/${filename}.webp`;
+    const cloudinaryUrl = buildCloudinaryImageUrl(characterId);
+    return cloudinaryUrl || '';
 }
 
 /**

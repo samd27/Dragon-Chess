@@ -12,6 +12,7 @@ import {
     BoltIcon,
     SparklesIcon,
 } from '@heroicons/react/24/solid';
+import { resolveCharacterImageUrl } from '@/data/characters';
 
 /**
  * Calcula el nivel a partir de la experiencia (debe coincidir con la lógica del backend).
@@ -46,7 +47,7 @@ export default function AppNavBar({ auth, stats }) {
 
     const player = {
         name:   auth?.user?.name   || 'Guerrero',
-        avatar: auth?.user?.avatar || '/images/characters/Guerreros/Torre/Goku.webp',
+        avatar: resolveCharacterImageUrl(auth?.user?.avatar || 'guerreros/torre/Goku'),
     };
 
     // Determinar sección activa basada en la URL actual

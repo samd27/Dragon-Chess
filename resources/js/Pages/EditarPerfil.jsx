@@ -1,13 +1,13 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import { ArrowDownTrayIcon, LockClosedIcon } from '@heroicons/react/24/solid';
-import { ALL_CHARACTERS, charPath, isUnlocked } from '@/data/characters';
+import { ALL_CHARACTERS, charPath, isUnlocked, resolveCharacterImageUrl } from '@/data/characters';
 
 export default function EditarPerfil({ auth, stats, unlock_all }) {
     const { data, setData, patch, processing, errors } = useForm({
         name: auth.user.name,
         email: auth.user.email,
-        avatar: auth.user.avatar || '/images/characters/Guerreros/Torre/Goku.webp',
+        avatar: resolveCharacterImageUrl(auth.user.avatar || 'guerreros/torre/Goku'),
     });
 
     const [clientErrors, setClientErrors] = useState({});

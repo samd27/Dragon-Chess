@@ -6,6 +6,7 @@ import ElectricBorder from '@/Components/ElectricBorder';
 import useStockfish from '@/hooks/useStockfish';
 import RewardCard from '@/Components/RewardCard';
 import GameLayout from '@/Layouts/GameLayout';
+import { resolveCharacterImageUrl } from '@/data/characters';
 
 const TILE_TYPE_META = {
     time_chamber: { label: 'Tiempo', displayName: 'Cámara del Tiempo', emoji: '⏱️' },
@@ -63,7 +64,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
     
     const player = {
         name: auth.user?.name || 'Kakarot_99',
-        avatar: auth.user?.avatar || '/images/characters/Guerreros/Torre/Goku.webp',
+        avatar: resolveCharacterImageUrl(auth.user?.avatar || 'guerreros/torre/Goku'),
     };
 
     const handleAbortMission = () => {
@@ -90,8 +91,8 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
             ? 'CPU' 
             : (player2 ? player2.name : 'Invitado'),
         avatar: isCpuMode
-            ? (faction === 'Z_WARRIORS' ? '/images/characters/Villanos/Rey/Freezer.webp' : '/images/characters/Guerreros/Torre/Goku.webp')
-            : (player2 ? player2.avatar : (faction === 'Z_WARRIORS' ? '/images/characters/Villanos/Rey/Freezer.webp' : '/images/characters/Guerreros/Torre/Goku.webp')),
+            ? resolveCharacterImageUrl(faction === 'Z_WARRIORS' ? 'villanos/rey/Freezer' : 'guerreros/torre/Goku')
+            : resolveCharacterImageUrl(player2 ? player2.avatar : (faction === 'Z_WARRIORS' ? 'villanos/rey/Freezer' : 'guerreros/torre/Goku')),
     };
 
     // Mapeo de tipos de piezas de chess.js a nombres de carpetas
@@ -124,7 +125,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
         
         // Obtener la imagen desde las preferencias
         if (preferences && preferences[factionKey] && preferences[factionKey][pieceKey]) {
-            return preferences[factionKey][pieceKey];
+            return resolveCharacterImageUrl(preferences[factionKey][pieceKey]);
         }
         
         return null;
@@ -149,7 +150,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
         }
         
         if (preferences && preferences[factionKey] && preferences[factionKey][pieceKey]) {
-            return preferences[factionKey][pieceKey];
+            return resolveCharacterImageUrl(preferences[factionKey][pieceKey]);
         }
         
         return null;
@@ -174,7 +175,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
         }
         
         if (preferences && preferences[factionKey] && preferences[factionKey][pieceKey]) {
-            return preferences[factionKey][pieceKey];
+            return resolveCharacterImageUrl(preferences[factionKey][pieceKey]);
         }
         
         return null;
@@ -2080,7 +2081,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                                 <div className="grid grid-cols-2 gap-3">
                                     <RewardCard
                                         name={auth.user?.name}
-                                        avatar={auth.user?.avatar || '/images/characters/Guerreros/Torre/Goku.webp'}
+                                        avatar={resolveCharacterImageUrl(auth.user?.avatar || 'guerreros/torre/Goku')}
                                         rewards={gameRewards.rewards}
                                         levelUp={gameRewards.level_up}
                                         accentClass="text-primary"
@@ -2097,7 +2098,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                                 /* PVC o PVP invitado: tarjeta única */
                                 <RewardCard
                                     name={auth.user?.name}
-                                    avatar={auth.user?.avatar || '/images/characters/Guerreros/Torre/Goku.webp'}
+                                    avatar={resolveCharacterImageUrl(auth.user?.avatar || 'guerreros/torre/Goku')}
                                     rewards={gameRewards.rewards}
                                     levelUp={gameRewards.level_up}
                                     accentClass="text-primary"
