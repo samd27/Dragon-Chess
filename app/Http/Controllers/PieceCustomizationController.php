@@ -46,26 +46,44 @@ class PieceCustomizationController extends Controller
     }
 
     /**
-     * Convierte cualquier valor en formato ID (guerreros/torre/Goku) a ruta de imagen.
-     * Protección hacia atrás por si algún usuario tiene datos en el formato antiguo.
+     * Convierte preferencias antiguas basadas en rutas locales a IDs canónicos.
+     * El formato moderno guardado es siempre "faccion/tipo/archivo".
      */
     public static function normalizePreferences(array $prefs): array
     {
-        $factionDir  = ['guerreros' => 'Guerreros', 'villanos' => 'Villanos'];
-        $pieceDir    = ['rey' => 'Rey', 'reina' => 'Reina', 'torre' => 'Torre',
-                        'caballo' => 'Caballo', 'alfil' => 'Alfil', 'peon' => 'Peon'];
+        $reverseFaction = ['guerreros' => 'guerreros', 'villanos' => 'villanos'];
+        $reversePiece = [
+            'rey' => 'rey',
+            'reina' => 'reina',
+            'torre' => 'torre',
+            'caballo' => 'caballo',
+            'alfil' => 'alfil',
+            'peon' => 'peon',
+        ];
 
         foreach ($prefs as $faction => &$pieces) {
             if (!is_array($pieces)) continue;
             foreach ($pieces as $pieceType => &$value) {
-                if ($value && !str_starts_with($value, '/')) {
-                    // Es un ID: convertir a ruta
-                    $parts = explode('/', $value, 3);
-                    if (count($parts) === 3) {
-                        [$f, $p, $filename] = $parts;
-                        $fDir = $factionDir[$f]  ?? ucfirst($f);
-                        $pDir = $pieceDir[$p]    ?? ucfirst($p);
-                        $value = "/images/characters/{$fDir}/{$pDir}/{$filename}.webp";
+                if (!$value || !is_string($value)) {
+                    continue;
+                }
+
+                if (str_starts_with($value, '/images/characters/')) {
+                    $relative = str_replace('/images/characters/', '', $value);
+                    $relative = preg_replace('/\.(webp|png|jpe?g|gif|avif)$/i', '', $relative ?? '');
+                    $parts = explode('/', (string) $relative);
+
+                    if (count($parts) >= 3) {
+                        $rawFaction = strtolower((string) ($parts[0] ?? ''));
+                        $rawPiece = strtolower((string) ($parts[1] ?? ''));
+                        $filename = implode('/', array_slice($parts, 2));
+
+                        $mappedFaction = $reverseFaction[$rawFaction] ?? $rawFaction;
+                        $mappedPiece = $reversePiece[$rawPiece] ?? $rawPiece;
+
+                        if ($mappedFaction && $mappedPiece && $filename) {
+                            $value = "{$mappedFaction}/{$mappedPiece}/{$filename}";
+                        }
                     }
                 }
             }
@@ -78,45 +96,24 @@ class PieceCustomizationController extends Controller
      */
     public static function getDefaultPiecePreferences(): array
     {
-        $basePath = public_path('images/characters');
-        $defaults = [
-            'guerreros' => [],
-            'villanos' => []
+        return [
+            'guerreros' => [
+                'rey' => 'guerreros/rey/Bills',
+                'reina' => 'guerreros/reina/Bulma',
+                'torre' => 'guerreros/torre/Goku',
+                'caballo' => 'guerreros/caballo/gohan',
+                'alfil' => 'guerreros/alfil/caulifla',
+                'peon' => 'guerreros/peon/chaos',
+            ],
+            'villanos' => [
+                'rey' => 'villanos/rey/Champa',
+                'reina' => 'villanos/reina/Arinsu',
+                'torre' => 'villanos/torre/Broly_Z',
+                'caballo' => 'villanos/caballo/Androide 17',
+                'alfil' => 'villanos/alfil/Androide 18',
+                'peon' => 'villanos/peon/Freezer_1ra forma',
+            ],
         ];
-
-        foreach (['Guerreros', 'Villanos'] as $faction) {
-            $factionPath = $basePath . '/' . $faction;
-            $factionKey = strtolower($faction);
-            
-            if (!is_dir($factionPath)) {
-                continue;
-            }
-
-            foreach (['Rey', 'Reina', 'Torre', 'Caballo', 'Alfil', 'Peon'] as $pieceType) {
-                $pieceTypePath = $factionPath . '/' . $pieceType;
-                $pieceKey = strtolower($pieceType);
-                
-                if (!is_dir($pieceTypePath)) {
-                    $defaults[$factionKey][$pieceKey] = null;
-                    continue;
-                }
-                
-                $files = scandir($pieceTypePath);
-                $webpFiles = array_filter($files, function($file) {
-                    return pathinfo($file, PATHINFO_EXTENSION) === 'webp';
-                });
-                
-                sort($webpFiles); // Ordenar alfabéticamente
-                
-                if (count($webpFiles) > 0) {
-                    $defaults[$factionKey][$pieceKey] = '/images/characters/' . $faction . '/' . $pieceType . '/' . reset($webpFiles);
-                } else {
-                    $defaults[$factionKey][$pieceKey] = null;
-                }
-            }
-        }
-
-        return $defaults;
     }
 
     /**

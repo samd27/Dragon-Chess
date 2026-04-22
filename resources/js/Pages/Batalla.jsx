@@ -1658,7 +1658,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                         {Object.entries(pieceTypeMap).map(([key, name]) => {
                                             const factionKey = faction === 'Z_WARRIORS' ? 'guerreros' : 'villanos';
-                                            const image = player1Preferences?.[factionKey]?.[name];
+                                            const image = resolveCharacterImageUrl(player1Preferences?.[factionKey]?.[name]);
                                             const pieceNames = { rey: 'Rey', reina: 'Reina', torre: 'Torre', caballo: 'Caballo', alfil: 'Alfil', peon: 'Peón' };
                                             return (
                                                 <div key={key} className={`bg-white/5 rounded-xl p-4 border border-white/10 transition-colors ${faction === 'Z_WARRIORS' ? 'hover:border-primary/50' : 'hover:border-purple-500/50'}`}>
@@ -1683,7 +1683,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                                         {Object.entries(pieceTypeMap).map(([key, name]) => {
                                             const factionKey = faction === 'Z_WARRIORS' ? 'villanos' : 'guerreros';
                                             const preferences = (player2 === null || !player2) ? player1Preferences : player2Preferences;
-                                            const image = preferences?.[factionKey]?.[name];
+                                            const image = resolveCharacterImageUrl(preferences?.[factionKey]?.[name]);
                                             const pieceNames = { rey: 'Rey', reina: 'Reina', torre: 'Torre', caballo: 'Caballo', alfil: 'Alfil', peon: 'Peón' };
                                             return (
                                                 <div key={key} className={`bg-white/5 rounded-xl p-4 border border-white/10 transition-colors ${faction === 'Z_WARRIORS' ? 'hover:border-purple-500/50' : 'hover:border-primary/50'}`}>
@@ -2004,7 +2004,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                                     <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 md:gap-3">
                                         {Object.entries(pieceTypeMap).map(([key, name]) => {
                                             const factionKey = faction === 'Z_WARRIORS' ? 'guerreros' : 'villanos';
-                                            const image = player1Preferences?.[factionKey]?.[name];
+                                            const image = resolveCharacterImageUrl(player1Preferences?.[factionKey]?.[name]);
                                             return (
                                                 <div key={key} className={`bg-white/5 rounded-xl p-2 md:p-3 border border-white/10 ${faction === 'Z_WARRIORS' ? 'hover:border-primary/50' : 'hover:border-purple-500/50'} transition-colors`}>
                                                     <div className="aspect-square bg-white/5 rounded-lg flex items-center justify-center overflow-hidden mb-1">
@@ -2030,7 +2030,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                                         {Object.entries(pieceTypeMap).map(([key, name]) => {
                                             const factionKey = faction === 'Z_WARRIORS' ? 'villanos' : 'guerreros';
                                             const prefs = (player2 === null || !player2) ? player1Preferences : player2Preferences;
-                                            const image = prefs?.[factionKey]?.[name];
+                                            const image = resolveCharacterImageUrl(prefs?.[factionKey]?.[name]);
                                             return (
                                                 <div key={key} className={`bg-white/5 rounded-xl p-2 md:p-3 border border-white/10 ${faction === 'Z_WARRIORS' ? 'hover:border-purple-500/50' : 'hover:border-primary/50'} transition-colors`}>
                                                     <div className="aspect-square bg-white/5 rounded-lg flex items-center justify-center overflow-hidden mb-1">

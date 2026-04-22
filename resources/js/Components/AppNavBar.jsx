@@ -85,7 +85,8 @@ export default function AppNavBar({ auth, stats }) {
     ];
 
     return (
-        <header className="flex items-center justify-between px-4 md:px-10 py-4 relative z-50 bg-black/20 backdrop-blur-lg border-b border-white/5 flex-shrink-0">
+        <>
+        <header className="fixed top-0 inset-x-0 flex items-center justify-between px-4 md:px-10 py-4 z-[60] bg-black/70 backdrop-blur-xl border-b border-white/10 flex-shrink-0">
             {/* ── Izquierda: Logo + Nav ── */}
             <div className="flex items-center gap-4 md:gap-8">
                 {/* Logo */}
@@ -333,5 +334,7 @@ export default function AppNavBar({ auth, stats }) {
                 </div>
             )}
         </header>
+        <div className="h-[76px] md:h-[84px] flex-shrink-0" />
+        </>
     );
 }

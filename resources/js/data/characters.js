@@ -23,6 +23,26 @@ const CLOUDINARY_BASE_URL = CLOUDINARY_CLOUD_NAME
 const MEDIA_SERVICE_URL = (import.meta.env.VITE_MEDIA_SERVICE_URL || '').replace(/\/+$/g, '');
 const MEDIA_CATALOG_PATH = import.meta.env.VITE_MEDIA_CATALOG_PATH || '/api/media/catalog';
 
+const CLOUDINARY_FILENAME_ALIASES = {
+    // Renombres anteriores
+    'bills_muychistoso': 'bills-muychistoso',
+    'gohan_niño': 'gohan-nino',
+    'freezer_black': 'freezer-black',
+    'zamas_fusion': 'zamas-fusion',
+    'freezer_2da forma': 'freezer-2da-forma',
+    'freezer_100': 'freezer-100',
+    'freezer_3ra forma': 'freezer-3ra-forma',
+    // Nuevos renombres
+    'goku_ui': 'goku-ui',
+    'gohan_adolescente': 'gohan-adolescente',
+    'broly_z': 'broly-z',
+    'androide 17': 'androide-17',
+    'kid buu': 'kid-buu',
+    'androide 18': 'androide-18',
+    'black goku': 'black-goku',
+    'freezer_1ra forma': 'freezer-1ra-forma',
+};
+
 const CATALOG_URL_BY_ID = new Map();
 let catalogReady = false;
 let preloadPromise = null;
@@ -80,7 +100,10 @@ function buildCloudinaryImageUrl(characterId) {
     const pieceDir = PIECE_DIR[pieceType];
     if (!factionDir || !pieceDir) return null;
 
-    const encodedFile = filename
+    const aliasKey = String(filename).trim().toLowerCase();
+    const resolvedFilename = CLOUDINARY_FILENAME_ALIASES[aliasKey] || filename;
+
+    const encodedFile = resolvedFilename
         .split('/')
         .map(segment => encodeURIComponent(segment))
         .join('/');
