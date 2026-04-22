@@ -3,44 +3,16 @@ import {
     FireIcon,
     BoltIcon,
     SparklesIcon,
-    ShoppingBagIcon,
-    UserCircleIcon,
-    ArrowRightIcon,
 } from '@heroicons/react/24/solid';
 import ElectricBorder from '@/Components/ElectricBorder';
 import AppNavBar from '@/Components/AppNavBar';
-import HomeActionCard from '@/Components/HomeActionCard';
+import PageHero from '@/Components/PageHero';
+import SurfaceSection from '@/Components/SurfaceSection';
 import HomeStatCard from '@/Components/HomeStatCard';
 
 export default function Welcome({ auth, stats }) {
     const isAuthenticated = Boolean(auth?.user);
     const battleHref = isAuthenticated ? route('game.mode') : route('login');
-    const shopHref = isAuthenticated ? route('shop.index') : route('login');
-    const profileHref = isAuthenticated ? route('profile.edit') : route('login');
-
-    const quickActions = [
-        {
-            title: 'Entrar a Batalla',
-            description: 'Elige modo de juego y entra a la arena.',
-            href: battleHref,
-            Icon: FireIcon,
-            tone: 'battle',
-        },
-        {
-            title: 'Tienda',
-            description: 'Compra personajes con Semillas Senzu.',
-            href: shopHref,
-            Icon: ShoppingBagIcon,
-            tone: 'shop',
-        },
-        {
-            title: 'Personalizar Perfil',
-            description: 'Actualiza avatar y datos de jugador.',
-            href: profileHref,
-            Icon: UserCircleIcon,
-            tone: 'profile',
-        },
-    ];
 
     return (
         <>
@@ -54,8 +26,21 @@ export default function Welcome({ auth, stats }) {
                 <AppNavBar auth={auth} stats={stats} />
 
                 {/* Main Content Area */}
-                <main className="flex-1 flex flex-col md:flex-row px-4 md:px-10 py-8 md:py-0 items-center justify-between relative z-10 gap-8 md:gap-0">
+                <main className="flex-1 overflow-y-auto px-4 md:px-10 py-6 md:py-8 relative z-10">
+                    <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
+                        <PageHero
+                            icon={FireIcon}
+                            title="Dragon Chess"
+                            subtitle="El campo de batalla definitivo. Domina tu Ki y conquista la arena."
+                            tone="orange"
+                        />
+
+                        <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-6">
                     {/* Left: Hero Text */}
+                    <SurfaceSection
+                        title="Preparado para combatir"
+                        subtitle="Elige tu modo de juego y lanza tu próxima batalla"
+                    >
                     <div className="max-w-lg flex flex-col gap-6 md:gap-8 text-left">
                         <div className="flex flex-col">
                             <span className="text-xs md:text-sm font-black text-primary tracking-[0.4em] md:tracking-[0.6em] uppercase mb-3 md:mb-4 animate-pulse">Prepárate Para el Combate</span>
@@ -81,24 +66,18 @@ export default function Welcome({ auth, stats }) {
                             </ElectricBorder>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            {quickActions.map((action) => (
-                                <HomeActionCard
-                                    key={action.title}
-                                    href={action.href}
-                                    title={action.title}
-                                    description={action.description}
-                                    Icon={action.Icon}
-                                    ArrowIcon={ArrowRightIcon}
-                                    tone={action.tone}
-                                />
-                            ))}
-                        </div>
+                        <div className="h-1 w-40 bg-gradient-to-r from-primary/80 to-transparent rounded-full"></div>
                     </div>
+                    </SurfaceSection>
 
                     {/* Right: Featured Event & Stats */}
                     {isAuthenticated && (
-                        <div className="w-full md:w-80 space-y-6">
+                        <SurfaceSection
+                            title="Panel del jugador"
+                            subtitle="Resumen de tu progreso y recursos"
+                            className="w-full"
+                        >
+                        <div className="w-full space-y-6">
                             <div className="grid grid-cols-2 gap-4">
                                 <HomeStatCard
                                     label="Victorias"
@@ -124,7 +103,10 @@ export default function Welcome({ auth, stats }) {
                                 />
                             </div>
                         </div>
+                        </SurfaceSection>
                     )}
+                        </div>
+                    </div>
                 </main>
 
                 {/* Subtle Footer Bar */}

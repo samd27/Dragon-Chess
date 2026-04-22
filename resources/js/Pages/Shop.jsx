@@ -2,6 +2,8 @@ import { Head, router } from '@inertiajs/react';
 import { ShoppingBagIcon, LockClosedIcon, CheckCircleIcon, SparklesIcon } from '@heroicons/react/24/solid';
 import { useState } from 'react';
 import AppNavBar from '@/Components/AppNavBar';
+import PageHero from '@/Components/PageHero';
+import SurfaceSection from '@/Components/SurfaceSection';
 import {
     SHOP_ITEMS,
     charPath,
@@ -62,26 +64,23 @@ export default function Shop({ auth, stats, unlock_all }) {
     return (
         <>
             <Head title="Tienda" />
-            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 text-white">
+            <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,0.12),transparent_35%),linear-gradient(135deg,#0f1117_0%,#151922_45%,#0f1218_100%)] text-white">
                 <AppNavBar auth={auth} stats={stats} />
 
-                {/* Header */}
-                <div className="relative overflow-hidden bg-gradient-to-r from-yellow-900/40 via-orange-900/30 to-yellow-900/40 border-b border-yellow-700/30">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                        <div className="flex items-center gap-4">
-                            <ShoppingBagIcon className="w-10 h-10 text-yellow-400" />
-                            <div>
-                                <h1 className="text-3xl font-bold text-yellow-400">Tienda</h1>
-                                <p className="text-gray-400 text-sm mt-1">Desbloquea personajes con Semillas Senzu</p>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
+                    <PageHero
+                        icon={ShoppingBagIcon}
+                        title="Tienda"
+                        subtitle="Desbloquea personajes con Semillas Senzu"
+                        tone="emerald"
+                        rightSlot={(
+                            <div className="flex items-center gap-2 bg-black/30 border border-emerald-400/30 rounded-xl px-4 py-2">
+                                <SparklesIcon className="w-5 h-5 text-emerald-300" />
+                                <span className="font-black text-emerald-200 text-lg">{seeds}</span>
+                                <span className="text-emerald-300/80 text-sm">Semillas</span>
                             </div>
-                            <div className="ml-auto flex items-center gap-2 bg-yellow-900/40 border border-yellow-700/50 rounded-xl px-4 py-2">
-                                <SparklesIcon className="w-5 h-5 text-yellow-400" />
-                                <span className="font-bold text-yellow-300 text-lg">{seeds}</span>
-                                <span className="text-yellow-500 text-sm">Semillas Senzu</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                        )}
+                    />
 
                 {/* Mensaje flash */}
                 {message && (
@@ -94,16 +93,13 @@ export default function Shop({ auth, stats, unlock_all }) {
                     </div>
                 )}
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-14">
+                <div className="space-y-10">
                     {Object.entries(groups).map(([factionKey, items]) => (
-                        <section key={factionKey}>
-                            <h2 className={`text-2xl font-bold mb-6 pb-2 border-b ${
-                                factionKey === 'guerreros'
-                                    ? 'text-blue-400 border-blue-700/40'
-                                    : 'text-red-400 border-red-700/40'
-                            }`}>
-                                {FACTION_DISPLAY[factionKey]}
-                            </h2>
+                        <SurfaceSection
+                            key={factionKey}
+                            title={FACTION_DISPLAY[factionKey]}
+                            subtitle="Selecciona un personaje para desbloquear"
+                        >
 
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                                 {items.map(character => {
@@ -166,8 +162,9 @@ export default function Shop({ auth, stats, unlock_all }) {
                                     );
                                 })}
                             </div>
-                        </section>
+                        </SurfaceSection>
                     ))}
+                </div>
                 </div>
             </div>
         </>

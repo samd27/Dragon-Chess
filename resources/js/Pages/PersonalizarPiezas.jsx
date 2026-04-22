@@ -11,6 +11,8 @@ import {
     CheckCircleIcon,
 } from '@heroicons/react/24/solid';
 import AppNavBar from '@/Components/AppNavBar';
+import PageHero from '@/Components/PageHero';
+import SurfaceSection from '@/Components/SurfaceSection';
 import {
     ALL_CHARACTERS,
     PIECE_TYPES,
@@ -89,15 +91,13 @@ export default function PersonalizarPiezas({ auth, stats, currentPreferences, un
             <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.16),transparent_35%),radial-gradient(circle_at_bottom_left,rgba(239,68,68,0.14),transparent_35%),linear-gradient(135deg,#0f1117_0%,#161a22_45%,#10131a_100%)] text-white">
                 <AppNavBar auth={auth} stats={stats} />
 
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-                    <div className="mb-8 rounded-2xl border border-white/10 bg-black/30 backdrop-blur-xl p-5 md:p-6">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                            <div>
-                                <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white mb-2">Personalizar Piezas</h1>
-                                <p className="text-white/60 text-sm md:text-base">
-                                    Elige el personaje de cada pieza para tu escuadron en batalla.
-                                </p>
-                            </div>
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
+                    <PageHero
+                        icon={SparklesIcon}
+                        title="Personalizar Piezas"
+                        subtitle="Define el personaje de cada tipo de pieza para tus partidas"
+                        tone="blue"
+                        rightSlot={(
                             <div className="grid grid-cols-2 gap-2 w-full md:w-auto">
                                 <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
                                     <p className="text-[10px] uppercase tracking-widest text-white/40">Desbloqueados</p>
@@ -108,11 +108,16 @@ export default function PersonalizarPiezas({ auth, stats, currentPreferences, un
                                     <p className="text-sm font-black text-white">{unlock_all ? 'Unlock All' : 'Progreso'}</p>
                                 </div>
                             </div>
-                        </div>
-                    </div>
+                        )}
+                    />
+
+                    <SurfaceSection
+                        title="Seleccion de faccion"
+                        subtitle="Escoge el equipo que deseas personalizar"
+                    >
 
                     {/* Selector de facción */}
-                    <div className="grid grid-cols-2 gap-3 mb-8">
+                    <div className="grid grid-cols-2 gap-3">
                         {FACTIONS.map(f => (
                             <button
                                 key={f}
@@ -127,6 +132,7 @@ export default function PersonalizarPiezas({ auth, stats, currentPreferences, un
                             </button>
                         ))}
                     </div>
+                    </SurfaceSection>
 
                     <form onSubmit={handleSubmit}>
                         <div className="space-y-4">
