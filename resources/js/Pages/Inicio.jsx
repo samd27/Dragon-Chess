@@ -1,9 +1,46 @@
 import { Head, Link } from '@inertiajs/react';
-import { FireIcon, BoltIcon, SparklesIcon } from '@heroicons/react/24/solid';
+import {
+    FireIcon,
+    BoltIcon,
+    SparklesIcon,
+    ShoppingBagIcon,
+    UserCircleIcon,
+    ArrowRightIcon,
+} from '@heroicons/react/24/solid';
 import ElectricBorder from '@/Components/ElectricBorder';
 import AppNavBar from '@/Components/AppNavBar';
+import HomeActionCard from '@/Components/HomeActionCard';
+import HomeStatCard from '@/Components/HomeStatCard';
 
 export default function Welcome({ auth, stats }) {
+    const isAuthenticated = Boolean(auth?.user);
+    const battleHref = isAuthenticated ? route('game.mode') : route('login');
+    const shopHref = isAuthenticated ? route('shop.index') : route('login');
+    const profileHref = isAuthenticated ? route('profile.edit') : route('login');
+
+    const quickActions = [
+        {
+            title: 'Entrar a Batalla',
+            description: 'Elige modo de juego y entra a la arena.',
+            href: battleHref,
+            Icon: FireIcon,
+            tone: 'battle',
+        },
+        {
+            title: 'Tienda',
+            description: 'Compra personajes con Semillas Senzu.',
+            href: shopHref,
+            Icon: ShoppingBagIcon,
+            tone: 'shop',
+        },
+        {
+            title: 'Personalizar Perfil',
+            description: 'Actualiza avatar y datos de jugador.',
+            href: profileHref,
+            Icon: UserCircleIcon,
+            tone: 'profile',
+        },
+    ];
 
     return (
         <>
@@ -34,7 +71,7 @@ export default function Welcome({ auth, stats }) {
                         <div className="flex items-center">
                             <ElectricBorder color="#F97A1F" speed={1.5} chaos={0.15} className="w-full md:w-auto" active={true}>
                                 <Link 
-                                    href={auth.user ? route('game.mode') : route('login')}
+                                    href={battleHref}
                                     className="group relative bg-primary h-16 md:h-20 px-10 md:px-14 rounded-2xl flex items-center gap-3 md:gap-4 shadow-[0_15px_30px_rgba(249,122,31,0.3)] hover:shadow-[0_20px_40px_rgba(249,122,31,0.4)] transition-all hover:-translate-y-1 active:scale-95 overflow-hidden w-full md:w-auto justify-center"
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
@@ -43,34 +80,48 @@ export default function Welcome({ auth, stats }) {
                                 </Link>
                             </ElectricBorder>
                         </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            {quickActions.map((action) => (
+                                <HomeActionCard
+                                    key={action.title}
+                                    href={action.href}
+                                    title={action.title}
+                                    description={action.description}
+                                    Icon={action.Icon}
+                                    ArrowIcon={ArrowRightIcon}
+                                    tone={action.tone}
+                                />
+                            ))}
+                        </div>
                     </div>
 
                     {/* Right: Featured Event & Stats */}
-                    {auth.user && (
+                    {isAuthenticated && (
                         <div className="w-full md:w-80 space-y-6">
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-white/5 p-5 rounded-2xl border border-white/10 flex flex-col items-center">
-                                    <span className="text-3xl font-black text-primary italic leading-none">{stats?.victories || 0}</span>
-                                    <span className="text-[10px] font-black uppercase text-white/40 tracking-widest mt-2">Victorias</span>
-                                </div>
-                                <div className="bg-white/5 p-5 rounded-2xl border border-white/10 flex flex-col items-center">
-                                    <div className="flex items-center gap-1">
-                                        <BoltIcon className="w-5 h-5 text-yellow-400" />
-                                        <span className="text-3xl font-black text-yellow-500 italic leading-none">{stats?.ki?.toLocaleString() || 0}</span>
-                                    </div>
-                                    <span className="text-[10px] font-black uppercase text-white/40 tracking-widest mt-2">Ki</span>
-                                </div>
-                                <div className="bg-white/5 p-5 rounded-2xl border border-white/10 flex flex-col items-center">
-                                    <span className="text-3xl font-black text-orange-400 italic leading-none">{stats?.experience?.toLocaleString() || 0}</span>
-                                    <span className="text-[10px] font-black uppercase text-white/40 tracking-widest mt-2">Experiencia</span>
-                                </div>
-                                <div className="bg-white/5 p-5 rounded-2xl border border-white/10 flex flex-col items-center">
-                                    <div className="flex items-center gap-1">
-                                        <SparklesIcon className="w-5 h-5 text-green-400" />
-                                        <span className="text-3xl font-black text-green-400 italic leading-none">{stats?.senzu_seeds?.toLocaleString() || 0}</span>
-                                    </div>
-                                    <span className="text-[10px] font-black uppercase text-white/40 tracking-widest mt-2">Semillas Senzu</span>
-                                </div>
+                                <HomeStatCard
+                                    label="Victorias"
+                                    value={(stats?.victories || 0).toLocaleString()}
+                                    tone="primary"
+                                />
+                                <HomeStatCard
+                                    label="Ki"
+                                    value={(stats?.ki || 0).toLocaleString()}
+                                    tone="yellow"
+                                    Icon={BoltIcon}
+                                />
+                                <HomeStatCard
+                                    label="Experiencia"
+                                    value={(stats?.experience || 0).toLocaleString()}
+                                    tone="orange"
+                                />
+                                <HomeStatCard
+                                    label="Semillas Senzu"
+                                    value={(stats?.senzu_seeds || 0).toLocaleString()}
+                                    tone="green"
+                                    Icon={SparklesIcon}
+                                />
                             </div>
                         </div>
                     )}
