@@ -36,4 +36,11 @@ return [
         'catalog_path' => env('MEDIA_CATALOG_PATH', '/api/media/catalog'),
     ],
 
+    'chess_engine' => [
+        'base_url' => env('CHESS_ENGINE_HTTP_URL'),
+        'best_move_path' => env('CHESS_ENGINE_BEST_MOVE_PATH', '/v1/best-move'),
+        'analyze_path' => env('CHESS_ENGINE_ANALYZE_PATH', '/v1/analyze'),
+        'timeout' => (int) env('CHESS_ENGINE_TIMEOUT_MS', 3000),
+    ],
+
 ];

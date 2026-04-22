@@ -55,6 +55,80 @@ Route::post('/media/catalog/sync', function () {
     }
 })->name('media.catalog.sync');
 
+Route::post('/ai/best-move', function () {
+    $validated = request()->validate([
+        'fen' => ['required', 'string'],
+        'difficulty' => ['nullable', 'integer', 'between:1,3'],
+    ]);
+
+    $baseUrl = rtrim((string) config('services.chess_engine.base_url', ''), '/');
+    $path = '/' . ltrim((string) config('services.chess_engine.best_move_path', '/v1/best-move'), '/');
+    $timeoutMs = (int) config('services.chess_engine.timeout', 3000);
+
+    if ($baseUrl === '') {
+        return response()->json([
+            'success' => false,
+            'error' => 'CHESS_ENGINE_HTTP_URL is not configured',
+        ], 503);
+    }
+
+    try {
+        $response = Http::timeout(max(1, (int) ceil($timeoutMs / 1000)))
+            ->acceptJson()
+            ->post($baseUrl . $path, [
+                'fen' => $validated['fen'],
+                'difficulty' => (int) ($validated['difficulty'] ?? 2),
+            ]);
+
+        return response($response->body(), $response->status())
+            ->header('Content-Type', 'application/json');
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'error' => 'Chess engine best-move request failed',
+            'detail' => $e->getMessage(),
+        ], 502);
+    }
+})->middleware(['auth'])->name('ai.best-move.proxy');
+
+Route::post('/ai/analyze', function () {
+    $validated = request()->validate([
+        'fen' => ['required', 'string'],
+        'difficulty' => ['nullable', 'integer', 'between:1,3'],
+        'multiPv' => ['nullable', 'integer', 'between:1,12'],
+    ]);
+
+    $baseUrl = rtrim((string) config('services.chess_engine.base_url', ''), '/');
+    $path = '/' . ltrim((string) config('services.chess_engine.analyze_path', '/v1/analyze'), '/');
+    $timeoutMs = (int) config('services.chess_engine.timeout', 3000);
+
+    if ($baseUrl === '') {
+        return response()->json([
+            'success' => false,
+            'error' => 'CHESS_ENGINE_HTTP_URL is not configured',
+        ], 503);
+    }
+
+    try {
+        $response = Http::timeout(max(1, (int) ceil($timeoutMs / 1000)))
+            ->acceptJson()
+            ->post($baseUrl . $path, [
+                'fen' => $validated['fen'],
+                'difficulty' => (int) ($validated['difficulty'] ?? 2),
+                'multiPv' => (int) ($validated['multiPv'] ?? 5),
+            ]);
+
+        return response($response->body(), $response->status())
+            ->header('Content-Type', 'application/json');
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'error' => 'Chess engine analyze request failed',
+            'detail' => $e->getMessage(),
+        ], 502);
+    }
+})->middleware(['auth'])->name('ai.analyze.proxy');
+
 Route::get('/', function () {
     $stats      = null;
     $unlockAll  = false;
