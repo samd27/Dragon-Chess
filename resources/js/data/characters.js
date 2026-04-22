@@ -102,8 +102,10 @@ function normalizeCharacterFilename(filename) {
 
 function normalizeFilenameMatchKey(filename) {
     return normalizeCharacterFilename(filename)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
         .toLowerCase()
-        .replace(/[\s_]+/g, '');
+    .replace(/[\s_-]+/g, '');
 }
 
 function buildFilenameCandidates(filename) {
