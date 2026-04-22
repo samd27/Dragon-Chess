@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
-import { UsersIcon, CpuChipIcon, AcademicCapIcon, BoltIcon, FireIcon } from '@heroicons/react/24/solid';
+import { UsersIcon, CpuChipIcon, AcademicCapIcon, BoltIcon, FireIcon, CheckCircleIcon } from '@heroicons/react/24/solid';
 import GameLayout from '@/Layouts/GameLayout';
 import SelectionCard from '@/Components/SelectionCard';
 
@@ -37,14 +37,14 @@ export default function GameMode() {
             id: 'CLASSIC',
             title: 'Modo Clásico',
             description: 'Reglas normales de ajedrez sin casillas especiales.',
-            accentClass: 'border-white/20 ring-white/10 bg-white/5 text-white',
-            dotClass: 'bg-white',
+            accentClass: 'border-amber-300 ring-amber-300/30 bg-gradient-to-br from-amber-400/30 to-orange-500/20 text-amber-100 shadow-[0_0_0_1px_rgba(251,191,36,0.45),0_0_24px_rgba(251,191,36,0.25)]',
+            dotClass: 'bg-amber-300',
         },
         {
             id: 'SPECIAL',
             title: 'Casillas Especiales',
             description: 'Partida con reglas Dragon y eventos especiales progresivos.',
-            accentClass: 'border-cyan-400 ring-cyan-400/10 bg-cyan-400/10 text-cyan-300',
+            accentClass: 'border-cyan-400 ring-cyan-400/20 bg-cyan-400/15 text-cyan-100 shadow-[0_0_0_1px_rgba(34,211,238,0.35),0_0_24px_rgba(34,211,238,0.2)]',
             dotClass: 'bg-cyan-300',
         },
     ];
@@ -107,13 +107,16 @@ export default function GameMode() {
                                             onClick={() => setSelectedVariant(id)}
                                             className={`relative rounded-2xl border-2 p-4 md:p-5 text-left transition-all duration-300 ${
                                                 isSelected
-                                                    ? `${accentClass} ring-4`
-                                                    : 'border-white/10 bg-white/5 opacity-70 hover:opacity-100'
+                                                    ? `${accentClass} ring-4 scale-[1.01]`
+                                                    : 'border-white/10 bg-white/5 opacity-70 hover:opacity-100 hover:border-white/20'
                                             }`}
                                         >
-                                            <div className="flex items-center gap-2 mb-2">
+                                            <div className="flex items-center justify-between gap-2 mb-2">
+                                                <div className="flex items-center gap-2">
                                                 <span className={`w-2.5 h-2.5 rounded-full ${dotClass} ${isSelected ? 'animate-pulse' : ''}`}></span>
                                                 <span className="text-sm md:text-base font-black uppercase tracking-wider text-white">{title}</span>
+                                                </div>
+                                                {isSelected && <CheckCircleIcon className="w-5 h-5 text-white" />}
                                             </div>
                                             <p className="text-xs md:text-sm text-white/60">{description}</p>
                                         </button>

@@ -199,7 +199,7 @@ export default function PersonalizarPiezas({ auth, stats, currentPreferences, un
                                                                 onClick={() => selectPiece(pieceType, character)}
                                                                 className={`relative rounded-xl overflow-hidden transition-all aspect-square ring-1 ring-white/10 ${
                                                                     isSelected
-                                                                        ? `ring-2 ${selectedFactionStyles.ring} scale-[1.03]`
+                                                                        ? `ring-4 ${selectedFactionStyles.ring} scale-[1.05] shadow-[0_0_0_2px_rgba(255,255,255,0.25),0_0_30px_rgba(59,130,246,0.35)]`
                                                                         : unlocked
                                                                             ? `${selectedFactionStyles.hoverRing} hover:ring-2 hover:scale-[1.03]`
                                                                             : 'cursor-not-allowed opacity-50'
@@ -216,11 +216,17 @@ export default function PersonalizarPiezas({ auth, stats, currentPreferences, un
                                                                     </div>
                                                                 )}
                                                                 {isSelected && (
-                                                                    <div className="absolute inset-0 bg-black/10 flex items-end justify-center pb-1.5">
-                                                                        <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-md border ${selectedFactionStyles.chip}`}>
+                                                                    <>
+                                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
+                                                                    <div className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-white text-black shadow-lg flex items-center justify-center">
+                                                                        <CheckCircleIcon className="w-5 h-5" />
+                                                                    </div>
+                                                                    <div className="absolute inset-0 flex items-end justify-center pb-1.5">
+                                                                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border ${selectedFactionStyles.chip}`}>
                                                                             Seleccionada
                                                                         </span>
                                                                     </div>
+                                                                    </>
                                                                 )}
                                                             </button>
                                                         );

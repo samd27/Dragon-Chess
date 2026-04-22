@@ -1122,12 +1122,12 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                     ${isInCheck ? 'bg-red-500/50' : ''}
                     ${isLastMoveFrom ? 'bg-yellow-500/20' : ''}
                     ${isLastMoveTo ? 'bg-yellow-500/30' : ''}
-                    ${tileType === 'time_chamber' ? 'after:absolute after:inset-0 after:bg-cyan-400/15 after:pointer-events-none' : ''}
-                    ${tileType === 'heavy_gravity' ? 'after:absolute after:inset-0 after:bg-red-500/15 after:pointer-events-none' : ''}
-                    ${tileType === 'sacred_water' ? 'after:absolute after:inset-0 after:bg-emerald-400/15 after:pointer-events-none' : ''}
-                    ${tileType === 'time_chamber' ? 'shadow-[inset_0_0_12px_rgba(34,211,238,0.35)]' : ''}
-                    ${tileType === 'heavy_gravity' ? 'shadow-[inset_0_0_12px_rgba(248,113,113,0.35)]' : ''}
-                    ${tileType === 'sacred_water' ? 'shadow-[inset_0_0_12px_rgba(52,211,153,0.35)]' : ''}
+                    ${tileType === 'time_chamber' ? 'after:absolute after:inset-0 after:bg-cyan-400/32 after:pointer-events-none' : ''}
+                    ${tileType === 'heavy_gravity' ? 'after:absolute after:inset-0 after:bg-red-500/30 after:pointer-events-none' : ''}
+                    ${tileType === 'sacred_water' ? 'after:absolute after:inset-0 after:bg-emerald-400/32 after:pointer-events-none' : ''}
+                    ${tileType === 'time_chamber' ? 'ring-2 ring-cyan-300/80 shadow-[inset_0_0_18px_rgba(34,211,238,0.7)]' : ''}
+                    ${tileType === 'heavy_gravity' ? 'ring-2 ring-red-300/80 shadow-[inset_0_0_18px_rgba(248,113,113,0.7)]' : ''}
+                    ${tileType === 'sacred_water' ? 'ring-2 ring-emerald-300/80 shadow-[inset_0_0_18px_rgba(52,211,153,0.7)]' : ''}
                     hover:brightness-110
                 `}
             >
@@ -1136,7 +1136,9 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                     if (!TileIcon) return null;
                     return (
                         <div className="absolute top-1 left-1 z-20 pointer-events-none">
-                            <TileIcon className="w-3.5 h-3.5 md:w-4 md:h-4 text-white/90 drop-shadow-lg" />
+                            <div className="w-5 h-5 md:w-6 md:h-6 rounded-md bg-black/45 border border-white/25 flex items-center justify-center">
+                                <TileIcon className="w-3.5 h-3.5 md:w-4 md:h-4 text-white drop-shadow-lg" />
+                            </div>
                         </div>
                     );
                 })()}
