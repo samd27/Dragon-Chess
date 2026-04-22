@@ -2,6 +2,10 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import { ArrowDownTrayIcon, LockClosedIcon } from '@heroicons/react/24/solid';
 import { ALL_CHARACTERS, charPath, isUnlocked, resolveCharacterImageUrl } from '@/data/characters';
+import AppNavBar from '@/Components/AppNavBar';
+import PageHero from '@/Components/PageHero';
+import SurfaceSection from '@/Components/SurfaceSection';
+import HomeStatCard from '@/Components/HomeStatCard';
 
 export default function EditarPerfil({ auth, stats, unlock_all }) {
     const { data, setData, patch, processing, errors } = useForm({
@@ -88,31 +92,29 @@ export default function EditarPerfil({ auth, stats, unlock_all }) {
                 <div className="absolute -top-40 -right-40 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-primary/10 blur-[120px] rounded-full pointer-events-none"></div>
                 <div className="absolute -bottom-40 -left-40 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-secondary/5 blur-[120px] rounded-full pointer-events-none"></div>
 
-                {/* Header */}
-                <header className="flex items-center justify-between px-4 md:px-10 py-4 md:py-6 relative z-10 bg-black/20 backdrop-blur-lg border-b border-white/5">
-                    <Link href={route('welcome')} className="flex flex-col gap-0.5 transform -rotate-2">
-                        <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase leading-none text-white">
-                            D <span className="text-primary">CHESS</span>
-                        </h2>
-                        <div className="h-[2px] w-full bg-gradient-to-r from-primary to-transparent"></div>
-                    </Link>
-                    <Link 
-                        href={route('welcome')}
-                        className="px-3 md:px-4 py-2 text-white/80 hover:text-white font-bold text-xs md:text-sm transition-colors"
-                    >
-                        ← Volver
-                    </Link>
-                </header>
+                <AppNavBar auth={auth} stats={stats} />
 
                 {/* Main Content */}
-                <main className="flex-1 flex items-center justify-center px-4 md:px-10 py-6 md:py-12 relative z-10">
-                    <div className="w-full max-w-2xl bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl p-4 md:p-8 shadow-2xl">
-                        <div className="text-center mb-6 md:mb-8">
-                            <h1 className="text-2xl md:text-4xl font-black italic tracking-tighter uppercase text-white mb-2">
-                                Personalizar <span className="text-primary">Perfil</span>
-                            </h1>
-                            <p className="text-white/50 text-xs md:text-sm">Configura tu identidad de guerrero</p>
-                        </div>
+                <main className="flex-1 overflow-y-auto px-4 md:px-10 py-6 md:py-8 relative z-10">
+                    <div className="w-full max-w-4xl mx-auto space-y-6">
+                        <PageHero
+                            title="Personalizar Perfil"
+                            subtitle="Configura tu identidad de guerrero"
+                            tone="blue"
+                            rightSlot={(
+                                <Link
+                                    href={route('welcome')}
+                                    className="px-3 md:px-4 py-2 bg-white/10 border border-white/15 rounded-xl text-white/80 hover:text-white hover:bg-white/15 font-bold text-xs md:text-sm transition-colors"
+                                >
+                                    Volver
+                                </Link>
+                            )}
+                        />
+
+                        <SurfaceSection
+                            title="Datos del jugador"
+                            subtitle="Actualiza avatar, nombre y correo"
+                        >
 
                         <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
                             {/* Avatar Selector */}
@@ -253,19 +255,10 @@ export default function EditarPerfil({ auth, stats, unlock_all }) {
                             </div>
 
                             {/* Estadísticas (Solo lectura) */}
-                            <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 p-3 md:p-4 bg-black/20 rounded-xl border border-white/5">
-                                <div className="text-center">
-                                    <span className="block text-xl md:text-2xl font-black text-primary italic">{stats?.level || 1}</span>
-                                    <span className="block text-[10px] sm:text-xs md:text-sm font-black uppercase text-white/40 tracking-widest mt-1">Nivel</span>
-                                </div>
-                                <div className="text-center">
-                                    <span className="block text-xl md:text-2xl font-black text-primary italic">{stats?.victories || 0}</span>
-                                    <span className="block text-[10px] sm:text-xs md:text-sm font-black uppercase text-white/40 tracking-widest mt-1">Victorias</span>
-                                </div>
-                                <div className="text-center">
-                                    <span className="block text-xl md:text-2xl font-black text-yellow-500 italic">{stats?.ki?.toLocaleString() || 0}</span>
-                                    <span className="block text-[10px] sm:text-xs md:text-sm font-black uppercase text-white/40 tracking-widest mt-1">Ki</span>
-                                </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
+                                <HomeStatCard label="Nivel" value={(stats?.level || 1).toLocaleString()} tone="primary" />
+                                <HomeStatCard label="Victorias" value={(stats?.victories || 0).toLocaleString()} tone="orange" />
+                                <HomeStatCard label="Ki" value={(stats?.ki?.toLocaleString() || 0)} tone="yellow" />
                             </div>
 
                             {/* Submit Button */}
@@ -281,6 +274,7 @@ export default function EditarPerfil({ auth, stats, unlock_all }) {
                                 <ArrowDownTrayIcon className="w-6 h-6 md:w-7 md:h-7 relative z-10" />
                             </button>
                         </form>
+                        </SurfaceSection>
                     </div>
                 </main>
             </div>

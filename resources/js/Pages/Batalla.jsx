@@ -1,7 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Chess } from 'chess.js';
-import { TrophyIcon, HandRaisedIcon, XMarkIcon, PauseIcon, PlayIcon, PhotoIcon, ClipboardDocumentListIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/solid';
+import { TrophyIcon, HandRaisedIcon, XMarkIcon, PauseIcon, PlayIcon, PhotoIcon, ClipboardDocumentListIcon, ChevronUpIcon, ChevronDownIcon, ClockIcon, ArrowDownCircleIcon, BeakerIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid';
 import ElectricBorder from '@/Components/ElectricBorder';
 import useStockfish from '@/hooks/useStockfish';
 import RewardCard from '@/Components/RewardCard';
@@ -9,9 +9,9 @@ import GameLayout from '@/Layouts/GameLayout';
 import { resolveCharacterImageUrl } from '@/data/characters';
 
 const TILE_TYPE_META = {
-    time_chamber: { label: 'Tiempo', displayName: 'Cámara del Tiempo', emoji: '⏱️' },
-    heavy_gravity: { label: 'Gravedad', displayName: 'Gravedad Aumentada', emoji: '⬇️' },
-    sacred_water: { label: 'Agua', displayName: 'Agua Ultra Sagrada', emoji: '💧' },
+    time_chamber: { label: 'Tiempo', displayName: 'Cámara del Tiempo', icon: ClockIcon },
+    heavy_gravity: { label: 'Gravedad', displayName: 'Gravedad Aumentada', icon: ArrowDownCircleIcon },
+    sacred_water: { label: 'Agua', displayName: 'Agua Ultra Sagrada', icon: BeakerIcon },
 };
 
 export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLASSIC', difficulty = 2, player2 = null, player1Preferences = {}, player2Preferences = {} }) {
@@ -1131,13 +1131,15 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                     hover:brightness-110
                 `}
             >
-                {tileType && (
-                    <div className="absolute top-1 left-1 z-20 pointer-events-none">
-                        <span className="text-[10px] md:text-xs drop-shadow-lg">
-                            {TILE_TYPE_META[tileType].emoji}
-                        </span>
-                    </div>
-                )}
+                {tileType && (() => {
+                    const TileIcon = TILE_TYPE_META[tileType]?.icon;
+                    if (!TileIcon) return null;
+                    return (
+                        <div className="absolute top-1 left-1 z-20 pointer-events-none">
+                            <TileIcon className="w-3.5 h-3.5 md:w-4 md:h-4 text-white/90 drop-shadow-lg" />
+                        </div>
+                    );
+                })()}
                 {piece && (
                     <span className={`text-4xl md:text-5xl select-none transition-all duration-700 ease-in-out ${isLastMoveTo ? 'animate-piece-land' : ''} ${
                         (piece.color === 'w' && playerIsWhite) || (piece.color === 'b' && !playerIsWhite)
@@ -1230,7 +1232,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
             <Head title="Dragon Chess - Battle Arena" />
             <div className="flex flex-col h-screen relative overflow-hidden bg-[#0d0e12]">
                 {/* Top Header */}
-                <header className="px-4 md:px-10 py-3 md:py-4 flex items-center justify-between border-b border-white/5 bg-black/20 backdrop-blur-lg">
+                <header className="px-4 md:px-10 py-3 md:py-4 flex items-center justify-between border-b border-white/10 bg-black/65 backdrop-blur-xl">
                     <div className="flex items-center gap-2 md:gap-3">
                         <button onClick={() => setShowPauseMenu(true)} className="flex items-center gap-1 md:gap-2 group text-white/60 hover:text-yellow-500 transition-colors">
                             <PauseIcon className="w-5 h-5 md:w-6 md:h-6" />
@@ -1259,7 +1261,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                 </header>
 
                 {isDragonMode && (
-                    <div className="px-4 md:px-10 py-2 border-b border-white/5 bg-black/30">
+                    <div className="px-4 md:px-10 py-2 border-b border-white/10 bg-black/45">
                         <div className="flex flex-wrap items-center gap-3 text-[10px] md:text-xs font-black uppercase tracking-widest">
                             <span className="text-cyan-300">Modo Dragon Chess</span>
                             {kiBurst.white && <span className="text-orange-400">Explosión Ki Blancas</span>}
@@ -1392,14 +1394,14 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                     <div className="md:hidden flex gap-2 mb-4 w-full max-w-[350px]">
                         <button
                             onClick={() => setShowCapturedPiecesModal(true)}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-black/25 hover:bg-black/40 border border-white/15 rounded-xl transition-all"
                         >
                             <TrophyIcon className="w-4 h-4 text-primary" />
                             <span className="text-xs font-bold text-white">Capturas</span>
                         </button>
                         <button
                             onClick={() => setShowMoveHistoryModal(true)}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-black/25 hover:bg-black/40 border border-white/15 rounded-xl transition-all"
                         >
                             <ClipboardDocumentListIcon className="w-4 h-4 text-primary" />
                             <span className="text-xs font-bold text-white">Movimientos</span>
@@ -1561,7 +1563,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                 {/* Promotion Selection Modal */}
                 {promotionPending && (
                     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
-                        <div className="bg-gradient-to-br from-[#1a1b1e] to-[#0d0e12] border-2 border-primary/30 rounded-3xl p-8 max-w-md mx-4">
+                        <div className="bg-gradient-to-br from-[#1a1b1e] to-[#0d0e12] border-2 border-primary/30 rounded-3xl p-8 max-w-md mx-4 shadow-[0_0_50px_rgba(249,122,31,0.2)]">
                             <div className="text-center space-y-6">
                                 <div className="flex justify-center">
                                     <TrophyIcon className="w-16 h-16 text-yellow-500" />
@@ -1640,7 +1642,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                 {/* Pieces Reference Modal */}
                 {showPiecesReference && (
                     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                        <div className="bg-gradient-to-br from-[#1a1b1e] to-[#0d0e12] border-2 border-blue-500/30 rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-[0_0_50px_rgba(59,130,246,0.3)]">
+                        <div className="bg-gradient-to-br from-[#1a1b1e] to-[#0d0e12] border-2 border-blue-500/30 rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-[0_0_60px_rgba(59,130,246,0.3)]">
                             <div className="space-y-6">
                                 <div className="flex items-center justify-between mb-6">
                                     <h3 className="text-2xl font-black uppercase tracking-tighter text-white">Referencia de Piezas</h3>
@@ -1710,7 +1712,9 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
                         <div className="bg-gradient-to-br from-[#1a1b1e] to-[#0d0e12] border-2 border-red-500/30 rounded-3xl p-8 max-w-md mx-4 shadow-[0_0_50px_rgba(239,68,68,0.3)]">
                             <div className="text-center space-y-6">
-                                <div className="text-6xl">⚠️</div>
+                                <div className="flex justify-center">
+                                    <ExclamationTriangleIcon className="w-16 h-16 text-red-400" />
+                                </div>
                                 <h3 className="text-2xl font-black uppercase tracking-tighter text-white">Confirmar Aborto</h3>
                                 <p className="text-white/60 text-sm">¿Estás seguro de que quieres abandonar la batalla? Perderás todo el progreso actual.</p>
                                 <div className="flex gap-4 pt-4">
@@ -1987,7 +1991,7 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                 {/* Modal Intro de Piezas al inicio de partida */}
                 {showPiecesIntro && (
                     <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 p-4">
-                        <div className="bg-gradient-to-br from-[#1a1b1e] to-[#0d0e12] border-2 border-primary/30 rounded-3xl p-5 md:p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-[0_0_80px_rgba(249,122,31,0.2)]">
+                        <div className="bg-gradient-to-br from-[#1a1b1e] to-[#0d0e12] border-2 border-primary/30 rounded-3xl p-5 md:p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-[0_0_90px_rgba(249,122,31,0.2)]">
                             <div className="space-y-5 md:space-y-6">
                                 <div className="text-center space-y-2">
                                     <h2 className="text-2xl md:text-4xl font-black italic uppercase tracking-tighter text-white">
