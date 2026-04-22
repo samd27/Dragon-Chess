@@ -6,6 +6,25 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+if (!function_exists('normalizeChessEngineBaseUrl')) {
+    function normalizeChessEngineBaseUrl(string $baseUrl): string
+    {
+        $normalized = rtrim(trim($baseUrl), '/');
+        if ($normalized === '') {
+            return '';
+        }
+
+        $host = parse_url($normalized, PHP_URL_HOST);
+        $port = parse_url($normalized, PHP_URL_PORT);
+
+        if (is_string($host) && str_ends_with($host, '.railway.internal') && $port === null) {
+            return $normalized . ':8080';
+        }
+
+        return $normalized;
+    }
+}
+
 Route::get('/media/catalog', function () {
     $baseUrl = rtrim((string) config('services.media.base_url', ''), '/');
     $catalogPath = '/' . ltrim((string) config('services.media.catalog_path', '/api/media/catalog'), '/');
@@ -61,7 +80,7 @@ Route::post('/ai/best-move', function () {
         'difficulty' => ['nullable', 'integer', 'between:1,3'],
     ]);
 
-    $baseUrl = rtrim((string) config('services.chess_engine.base_url', ''), '/');
+    $baseUrl = normalizeChessEngineBaseUrl((string) config('services.chess_engine.base_url', ''));
     $path = '/' . ltrim((string) config('services.chess_engine.best_move_path', '/v1/best-move'), '/');
     $timeoutMs = (int) config('services.chess_engine.timeout', 3000);
 
@@ -98,7 +117,7 @@ Route::post('/ai/analyze', function () {
         'multiPv' => ['nullable', 'integer', 'between:1,12'],
     ]);
 
-    $baseUrl = rtrim((string) config('services.chess_engine.base_url', ''), '/');
+    $baseUrl = normalizeChessEngineBaseUrl((string) config('services.chess_engine.base_url', ''));
     $path = '/' . ltrim((string) config('services.chess_engine.analyze_path', '/v1/analyze'), '/');
     $timeoutMs = (int) config('services.chess_engine.timeout', 3000);
 
