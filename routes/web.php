@@ -64,10 +64,15 @@ Route::post('/ai/best-move', function () {
 
     try {
         $service = app(ChessEngineGrpcService::class);
-        return response()->json($service->getBestMove(
+        $payload = $service->getBestMove(
             $validated['fen'],
             (int) ($validated['difficulty'] ?? 2)
-        ));
+        );
+        $transport = (string) ($payload['_transport'] ?? 'unknown');
+        unset($payload['_transport']);
+
+        return response()->json($payload)
+            ->header('X-AI-Transport', $transport);
     } catch (\Throwable $e) {
         return response()->json([
             'success' => false,
@@ -86,11 +91,16 @@ Route::post('/ai/analyze', function () {
 
     try {
         $service = app(ChessEngineGrpcService::class);
-        return response()->json($service->analyzePosition(
+        $payload = $service->analyzePosition(
             $validated['fen'],
             (int) ($validated['difficulty'] ?? 2),
             (int) ($validated['multiPv'] ?? 5)
-        ));
+        );
+        $transport = (string) ($payload['_transport'] ?? 'unknown');
+        unset($payload['_transport']);
+
+        return response()->json($payload)
+            ->header('X-AI-Transport', $transport);
     } catch (\Throwable $e) {
         return response()->json([
             'success' => false,

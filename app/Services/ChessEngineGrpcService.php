@@ -15,17 +15,17 @@ class ChessEngineGrpcService
             'difficulty' => $difficulty,
         ];
 
-        try {
-            $payload = $this->callGrpc('GetBestMove', $request);
-        } catch (\Throwable $e) {
-            $payload = $this->callHttpFallback('best-move', $request);
-        }
+        [$payload, $transport] = $this->executeWithFallback(
+            fn () => $this->callGrpc('GetBestMove', $request),
+            fn () => $this->callHttpFallback('best-move', $request)
+        );
 
         return [
             'best_move' => $payload['bestMove'] ?? $payload['best_move'] ?? null,
             'score_cp' => (int) ($payload['scoreCp'] ?? $payload['score_cp'] ?? 0),
             'score_type' => (string) ($payload['scoreType'] ?? $payload['score_type'] ?? 'cp'),
             'raw_score' => (int) ($payload['rawScore'] ?? $payload['raw_score'] ?? 0),
+            '_transport' => $transport,
         ];
     }
 
@@ -37,15 +37,14 @@ class ChessEngineGrpcService
             'multipv' => $multiPv,
         ];
 
-        try {
-            $payload = $this->callGrpc('AnalyzePosition', $request);
-        } catch (\Throwable $e) {
-            $payload = $this->callHttpFallback('analyze', [
+        [$payload, $transport] = $this->executeWithFallback(
+            fn () => $this->callGrpc('AnalyzePosition', $request),
+            fn () => $this->callHttpFallback('analyze', [
                 'fen' => $fen,
                 'difficulty' => $difficulty,
                 'multiPv' => $multiPv,
-            ]);
-        }
+            ])
+        );
 
         $evaluations = array_map(function (array $item): array {
             return [
@@ -60,7 +59,25 @@ class ChessEngineGrpcService
         return [
             'best_move' => $payload['bestMove'] ?? $payload['best_move'] ?? null,
             'evaluations' => $evaluations,
+            '_transport' => $transport,
         ];
+    }
+
+    private function executeWithFallback(callable $grpcCall, callable $httpFallbackCall): array
+    {
+        try {
+            return [$grpcCall(), 'grpc'];
+        } catch (\Throwable $grpcError) {
+            try {
+                return [$httpFallbackCall(), 'http-fallback'];
+            } catch (\Throwable $httpError) {
+                throw new \RuntimeException(
+                    'gRPC failed: ' . $grpcError->getMessage() . ' | HTTP fallback failed: ' . $httpError->getMessage(),
+                    0,
+                    $httpError
+                );
+            }
+        }
     }
 
     private function callGrpc(string $method, array $payload): array
