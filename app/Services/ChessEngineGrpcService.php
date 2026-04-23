@@ -53,7 +53,7 @@ class ChessEngineGrpcService
             throw new \RuntimeException('CHESS_ENGINE_GRPC_ADDR is not configured');
         }
 
-        $binary = trim((string) config('services.chess_engine.grpcurl_bin', 'grpcurl'));
+        $binary = $this->resolveGrpcurlBinary();
         $protoPath = base_path('proto');
         $protoFile = 'chess/v1/chess_engine.proto';
         $timeoutMs = max(1, (int) config('services.chess_engine.timeout', 3000));
@@ -82,5 +82,34 @@ class ChessEngineGrpcService
         }
 
         return $decoded;
+    }
+
+    private function resolveGrpcurlBinary(): string
+    {
+        $configured = trim((string) config('services.chess_engine.grpcurl_bin', 'grpcurl'));
+        $candidates = array_values(array_unique([
+            $configured,
+            '/usr/local/bin/grpcurl',
+            '/usr/bin/grpcurl',
+            '/app/bin/grpcurl',
+            'grpcurl',
+        ]));
+
+        foreach ($candidates as $candidate) {
+            if ($candidate === '') {
+                continue;
+            }
+
+            if ($candidate[0] === '/' && is_file($candidate) && is_executable($candidate)) {
+                return $candidate;
+            }
+
+            $found = trim((string) shell_exec('command -v ' . escapeshellarg($candidate) . ' 2>/dev/null'));
+            if ($found !== '') {
+                return $found;
+            }
+        }
+
+        throw new \RuntimeException('grpcurl binary not found in runtime');
     }
 }
