@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package chess.v1;
+
+option go_package = "dragon-chess-ia-service/gen/proto/chess/v1;chessv1";
+
+service ChessEngineService {
+  rpc GetBestMove(GetBestMoveRequest) returns (GetBestMoveResponse);
+  rpc AnalyzePosition(AnalyzePositionRequest) returns (AnalyzePositionResponse);
+}
+
+message GetBestMoveRequest {
+  string fen = 1;
+  int32 difficulty = 2;
+}
+
+message GetBestMoveResponse {
+  string best_move = 1;
+  int32 score_cp = 2;
+  string score_type = 3;
+  int32 raw_score = 4;
+}
+
+message AnalyzePositionRequest {
+  string fen = 1;
+  int32 difficulty = 2;
+  int32 multipv = 3;
+}
+
+message AnalyzePositionResponse {
+  string best_move = 1;
+  repeated Evaluation evaluations = 2;
+}
+
+message Evaluation {
+  string move = 1;
+  int32 rank = 2;
+  int32 score_cp = 3;
+  string score_type = 4;
+  int32 raw_score = 5;
+}

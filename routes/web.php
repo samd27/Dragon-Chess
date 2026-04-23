@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\ProfileController;
+use App\Services\ChessEngineGrpcService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -61,35 +62,12 @@ Route::post('/ai/best-move', function () {
         'difficulty' => ['nullable', 'integer', 'between:1,3'],
     ]);
 
-    $baseUrl = rtrim(trim((string) config('services.chess_engine.base_url', '')), '/');
-    if ($baseUrl !== '' && !preg_match('#^https?://#i', $baseUrl)) {
-        $baseUrl = 'http://' . ltrim($baseUrl, '/');
-    }
-    $baseHost = parse_url($baseUrl, PHP_URL_HOST);
-    $basePort = parse_url($baseUrl, PHP_URL_PORT);
-    if (is_string($baseHost) && str_ends_with($baseHost, '.railway.internal') && $basePort === null) {
-        $baseUrl .= ':8080';
-    }
-    $path = '/' . ltrim((string) config('services.chess_engine.best_move_path', '/v1/best-move'), '/');
-    $timeoutMs = (int) config('services.chess_engine.timeout', 3000);
-
-    if ($baseUrl === '') {
-        return response()->json([
-            'success' => false,
-            'error' => 'CHESS_ENGINE_HTTP_URL is not configured',
-        ], 503);
-    }
-
     try {
-        $response = Http::timeout(max(1, (int) ceil($timeoutMs / 1000)))
-            ->acceptJson()
-            ->post($baseUrl . $path, [
-                'fen' => $validated['fen'],
-                'difficulty' => (int) ($validated['difficulty'] ?? 2),
-            ]);
-
-        return response($response->body(), $response->status())
-            ->header('Content-Type', 'application/json');
+        $service = app(ChessEngineGrpcService::class);
+        return response()->json($service->getBestMove(
+            $validated['fen'],
+            (int) ($validated['difficulty'] ?? 2)
+        ));
     } catch (\Throwable $e) {
         return response()->json([
             'success' => false,
@@ -106,36 +84,13 @@ Route::post('/ai/analyze', function () {
         'multiPv' => ['nullable', 'integer', 'between:1,12'],
     ]);
 
-    $baseUrl = rtrim(trim((string) config('services.chess_engine.base_url', '')), '/');
-    if ($baseUrl !== '' && !preg_match('#^https?://#i', $baseUrl)) {
-        $baseUrl = 'http://' . ltrim($baseUrl, '/');
-    }
-    $baseHost = parse_url($baseUrl, PHP_URL_HOST);
-    $basePort = parse_url($baseUrl, PHP_URL_PORT);
-    if (is_string($baseHost) && str_ends_with($baseHost, '.railway.internal') && $basePort === null) {
-        $baseUrl .= ':8080';
-    }
-    $path = '/' . ltrim((string) config('services.chess_engine.analyze_path', '/v1/analyze'), '/');
-    $timeoutMs = (int) config('services.chess_engine.timeout', 3000);
-
-    if ($baseUrl === '') {
-        return response()->json([
-            'success' => false,
-            'error' => 'CHESS_ENGINE_HTTP_URL is not configured',
-        ], 503);
-    }
-
     try {
-        $response = Http::timeout(max(1, (int) ceil($timeoutMs / 1000)))
-            ->acceptJson()
-            ->post($baseUrl . $path, [
-                'fen' => $validated['fen'],
-                'difficulty' => (int) ($validated['difficulty'] ?? 2),
-                'multiPv' => (int) ($validated['multiPv'] ?? 5),
-            ]);
-
-        return response($response->body(), $response->status())
-            ->header('Content-Type', 'application/json');
+        $service = app(ChessEngineGrpcService::class);
+        return response()->json($service->analyzePosition(
+            $validated['fen'],
+            (int) ($validated['difficulty'] ?? 2),
+            (int) ($validated['multiPv'] ?? 5)
+        ));
     } catch (\Throwable $e) {
         return response()->json([
             'success' => false,

@@ -1,8 +1,9 @@
 [phases.setup]
-nixPkgs = ['nodejs', 'php82', 'php82Packages.composer', 'php82Extensions.bcmath']
+nixPkgs = ['go', 'nodejs', 'php82', 'php82Packages.composer', 'php82Extensions.bcmath']
 
 [phases.install]
 cmds = [
+    'GOBIN=/usr/local/bin go install github.com/fullstorydev/grpcurl/cmd/grpcurl@v1.9.3',
     'composer install --no-dev --optimize-autoloader --ignore-platform-req=ext-bcmath',
     'npm ci',
     'npm run build'
