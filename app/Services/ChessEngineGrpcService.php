@@ -104,9 +104,9 @@ class ChessEngineGrpcService
                 return $candidate;
             }
 
-            $found = trim((string) shell_exec('command -v ' . escapeshellarg($candidate) . ' 2>/dev/null'));
-            if ($found !== '') {
-                return $found;
+            if ($candidate[0] !== '/') {
+                // Para comandos en PATH (ej. "grpcurl"), dejamos que Process los resuelva.
+                return $candidate;
             }
         }
 
