@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Http;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
@@ -9,10 +10,16 @@ class ChessEngineGrpcService
 {
     public function getBestMove(string $fen, int $difficulty = 2): array
     {
-        $payload = $this->callGrpc('GetBestMove', [
+        $request = [
             'fen' => $fen,
             'difficulty' => $difficulty,
-        ]);
+        ];
+
+        try {
+            $payload = $this->callGrpc('GetBestMove', $request);
+        } catch (\Throwable $e) {
+            $payload = $this->callHttpFallback('best-move', $request);
+        }
 
         return [
             'best_move' => $payload['bestMove'] ?? $payload['best_move'] ?? null,
@@ -24,11 +31,21 @@ class ChessEngineGrpcService
 
     public function analyzePosition(string $fen, int $difficulty = 2, int $multiPv = 5): array
     {
-        $payload = $this->callGrpc('AnalyzePosition', [
+        $request = [
             'fen' => $fen,
             'difficulty' => $difficulty,
             'multipv' => $multiPv,
-        ]);
+        ];
+
+        try {
+            $payload = $this->callGrpc('AnalyzePosition', $request);
+        } catch (\Throwable $e) {
+            $payload = $this->callHttpFallback('analyze', [
+                'fen' => $fen,
+                'difficulty' => $difficulty,
+                'multiPv' => $multiPv,
+            ]);
+        }
 
         $evaluations = array_map(function (array $item): array {
             return [
@@ -111,5 +128,34 @@ class ChessEngineGrpcService
         }
 
         throw new \RuntimeException('grpcurl binary not found in runtime');
+    }
+
+    private function callHttpFallback(string $kind, array $payload): array
+    {
+        $baseUrl = rtrim((string) config('services.chess_engine.http_fallback_url', ''), '/');
+        if ($baseUrl === '') {
+            throw new \RuntimeException('CHESS_ENGINE_HTTP_FALLBACK_URL is not configured');
+        }
+
+        $path = $kind === 'analyze'
+            ? (string) config('services.chess_engine.http_analyze_path', '/v1/analyze')
+            : (string) config('services.chess_engine.http_best_move_path', '/v1/best-move');
+        $path = '/' . ltrim($path, '/');
+        $timeoutMs = max(1, (int) config('services.chess_engine.timeout', 3000));
+
+        $response = Http::timeout(max(1, (int) ceil($timeoutMs / 1000)))
+            ->acceptJson()
+            ->post($baseUrl . $path, $payload);
+
+        if (! $response->successful()) {
+            throw new \RuntimeException('HTTP fallback failed with status ' . $response->status());
+        }
+
+        $decoded = $response->json();
+        if (! is_array($decoded)) {
+            throw new \RuntimeException('Invalid JSON returned by HTTP fallback');
+        }
+
+        return $decoded;
     }
 }

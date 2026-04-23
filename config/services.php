@@ -39,6 +39,9 @@ return [
     'chess_engine' => [
         'grpc_addr' => env('CHESS_ENGINE_GRPC_ADDR', 'dragon-chess-ia-service.railway.internal:50051'),
         'grpcurl_bin' => env('CHESS_ENGINE_GRPCURL_BIN', 'grpcurl'),
+        'http_fallback_url' => env('CHESS_ENGINE_HTTP_FALLBACK_URL', 'http://dragon-chess-ia-service.railway.internal:8080'),
+        'http_best_move_path' => env('CHESS_ENGINE_HTTP_BEST_MOVE_PATH', '/v1/best-move'),
+        'http_analyze_path' => env('CHESS_ENGINE_HTTP_ANALYZE_PATH', '/v1/analyze'),
         'timeout' => (int) env('CHESS_ENGINE_TIMEOUT_MS', 3000),
     ],
 
