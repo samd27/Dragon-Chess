@@ -38,6 +38,7 @@ return [
 
     'player_progression' => [
         'base_url' => env('PLAYER_PROGRESSION_SERVICE_URL'),
+        'fallback_url' => env('PLAYER_PROGRESSION_SERVICE_FALLBACK_URL'),
         'player_path' => env('PLAYER_PROGRESSION_SERVICE_PLAYER_PATH', '/api/players'),
         'timeout' => (int) env('PLAYER_PROGRESSION_SERVICE_TIMEOUT', 8),
     ],

@@ -65,13 +65,27 @@ class GameController extends Controller
                     : $this->rewardService->calculatePvpRewards($request->result, $playerKi, $opponentKi);
             }
 
-            $levelResult = $this->progressionService->applyRewards($user, $rewards, $request->result);
+            $syncOk = true;
+            $syncError = null;
+            $levelResult = null;
+            try {
+                $levelResult = $this->progressionService->applyRewards($user, $rewards, $request->result);
+            } catch (\Throwable $syncException) {
+                $syncOk = false;
+                $syncError = $syncException->getMessage();
+                Log::warning('GameController@saveResult progression sync failed', [
+                    'user_id' => $user->id,
+                    'mode' => $rawMode,
+                    'error' => $syncError,
+                ]);
+            }
 
             Log::info('GameController@saveResult progression applied', [
                 'user_id' => $user->id,
                 'mode' => $rawMode,
                 'rewards' => $rewards,
                 'level_result' => $levelResult,
+                'sync_ok' => $syncOk,
             ]);
 
             // En PVP, guardar también las stats del jugador 2 si está autenticado
@@ -84,7 +98,15 @@ class GameController extends Controller
                     $p2Rewards     = $isSpecialVariant
                         ? $this->rewardService->calculateDragonPvpRewards($request->player2_result, $p2Ki, $playerKi)
                         : $this->rewardService->calculatePvpRewards($request->player2_result, $p2Ki, $playerKi);
-                    $p2LevelResult = $this->progressionService->applyRewards($player2, $p2Rewards, $request->player2_result);
+                    $p2LevelResult = null;
+                    try {
+                        $p2LevelResult = $this->progressionService->applyRewards($player2, $p2Rewards, $request->player2_result);
+                    } catch (\Throwable $player2SyncException) {
+                        Log::warning('GameController@saveResult player2 progression sync failed', [
+                            'player2_id' => $player2->id,
+                            'error' => $player2SyncException->getMessage(),
+                        ]);
+                    }
                     Log::info('GameController@saveResult player2 progression applied', [
                         'player2_id' => $player2->id,
                         'rewards' => $p2Rewards,
@@ -103,6 +125,10 @@ class GameController extends Controller
                 'rewards'   => $rewards,
                 'level_up'  => $levelResult,
                 'player2'   => $player2Payload,
+                'progression_sync' => [
+                    'ok' => $syncOk,
+                    'error' => $syncError,
+                ],
             ]);
         } catch (\Throwable $e) {
             Log::error('GameController@saveResult error: ' . $e->getMessage(), [

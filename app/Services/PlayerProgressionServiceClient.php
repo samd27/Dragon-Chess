@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\Http;
 
 class PlayerProgressionServiceClient
 {
-    private function baseUrl(): string
+    private function normalizeBaseUrl(string $value): string
     {
-        $baseUrl = trim((string) config('services.player_progression.base_url', ''));
+        $baseUrl = trim($value);
 
         if ($baseUrl === '') {
             return '';
@@ -32,6 +32,27 @@ class PlayerProgressionServiceClient
         return rtrim($baseUrl, '/');
     }
 
+    /**
+     * @return array<int, string>
+     */
+    private function baseUrls(): array
+    {
+        $candidates = [
+            (string) config('services.player_progression.base_url', ''),
+            (string) config('services.player_progression.fallback_url', ''),
+        ];
+
+        $urls = [];
+        foreach ($candidates as $candidate) {
+            $normalized = $this->normalizeBaseUrl($candidate);
+            if ($normalized !== '' && ! in_array($normalized, $urls, true)) {
+                $urls[] = $normalized;
+            }
+        }
+
+        return $urls;
+    }
+
     private function playerPath(): string
     {
         return '/' . ltrim((string) config('services.player_progression.player_path', '/api/players'), '/');
@@ -39,29 +60,35 @@ class PlayerProgressionServiceClient
 
     private function request(string $method, string $path, array $payload = []): array
     {
-        $baseUrl = $this->baseUrl();
+        $baseUrls = $this->baseUrls();
 
-        if ($baseUrl === '') {
+        if ($baseUrls === []) {
             throw new \RuntimeException('PLAYER_PROGRESSION_SERVICE_URL is not configured');
         }
 
-        try {
-            $response = Http::timeout((int) config('services.player_progression.timeout', 8))
-                ->acceptJson()
-                ->send($method, $baseUrl . $path, ['json' => $payload]);
-        } catch (\Throwable $e) {
-            throw new \RuntimeException(
-                'Unable to reach player progression service at ' . $baseUrl . ': ' . $e->getMessage(),
-                0,
-                $e
-            );
+        $lastError = null;
+        foreach ($baseUrls as $baseUrl) {
+            try {
+                $response = Http::timeout((int) config('services.player_progression.timeout', 8))
+                    ->acceptJson()
+                    ->send($method, $baseUrl . $path, ['json' => $payload]);
+
+                if (! $response->successful()) {
+                    $lastError = new \RuntimeException((string) ($response->json('error') ?? 'Player progression request failed'));
+                    continue;
+                }
+
+                return $response->json() ?? [];
+            } catch (\Throwable $e) {
+                $lastError = new \RuntimeException(
+                    'Unable to reach player progression service at ' . $baseUrl . ': ' . $e->getMessage(),
+                    0,
+                    $e
+                );
+            }
         }
 
-        if (! $response->successful()) {
-            throw new \RuntimeException((string) ($response->json('error') ?? 'Player progression request failed'));
-        }
-
-        return $response->json() ?? [];
+        throw $lastError ?? new \RuntimeException('Player progression request failed');
     }
 
     public function ensure(User $user): array
