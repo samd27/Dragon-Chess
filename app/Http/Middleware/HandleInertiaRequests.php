@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\PlayerProgressionServiceClient;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -29,11 +30,26 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $stats = null;
+        $unlockAll = false;
+
+        if ($request->user()) {
+            $unlockAll = (bool) ($request->user()->unlock_all ?? false);
+
+            try {
+                $stats = app(PlayerProgressionServiceClient::class)->getProgression($request->user());
+            } catch (\Throwable $e) {
+                $stats = null;
+            }
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
             ],
+            'stats' => $stats,
+            'unlock_all' => $unlockAll,
         ];
     }
 }

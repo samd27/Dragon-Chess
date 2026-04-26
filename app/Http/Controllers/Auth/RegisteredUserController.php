@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\PieceCustomizationController;
 use App\Models\User;
-use App\Models\PlayerStats;
+use App\Services\PlayerProgressionServiceClient;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -65,18 +65,11 @@ class RegisteredUserController extends Controller
             'piece_preferences' => PieceCustomizationController::getDefaultPiecePreferences(),
         ]);
 
-        // Crear estadísticas iniciales del jugador
-        PlayerStats::create([
-            'user_id'              => $user->id,
-            'level'                => 1,
-            'victories'            => 0,
-            'losses'               => 0,
-            'draws'                => 0,
-            'ki'                   => 1000,
-            'experience'           => 0,
-            'senzu_seeds'          => 0,
-            'unlocked_characters'  => [],
-        ]);
+        try {
+            app(PlayerProgressionServiceClient::class)->ensure($user);
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         event(new Registered($user));
 

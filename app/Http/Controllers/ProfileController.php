@@ -22,7 +22,6 @@ class ProfileController extends Controller
         return Inertia::render('EditarPerfil', [
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status'          => session('status'),
-            'stats'           => $user->stats,
             'unlock_all'      => $user->unlock_all ?? false,
         ]);
     }

@@ -36,6 +36,12 @@ return [
         'catalog_path' => env('MEDIA_CATALOG_PATH', '/api/media/catalog'),
     ],
 
+    'player_progression' => [
+        'base_url' => env('PLAYER_PROGRESSION_SERVICE_URL'),
+        'player_path' => env('PLAYER_PROGRESSION_SERVICE_PLAYER_PATH', '/api/players'),
+        'timeout' => (int) env('PLAYER_PROGRESSION_SERVICE_TIMEOUT', 8),
+    ],
+
     'chess_engine' => [
         'grpc_addr' => env('CHESS_ENGINE_GRPC_ADDR', 'dragon-chess-ia-service.railway.internal:50051'),
         'grpcurl_bin' => env('CHESS_ENGINE_GRPCURL_BIN', 'grpcurl'),

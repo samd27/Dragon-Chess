@@ -43,7 +43,7 @@ export default function AppNavBar({ auth, stats }) {
     const senzuSeeds  = stats?.senzu_seeds ?? 0;
     const ki          = stats?.ki          ?? 0;
     const level       = stats?.level       ?? calcLevel(experience);
-    const progress    = calcLevelProgress(experience);
+    const progress    = stats?.level_progress ?? calcLevelProgress(experience);
 
     const player = {
         name:   auth?.user?.name   || 'Guerrero',

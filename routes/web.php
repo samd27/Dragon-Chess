@@ -3,6 +3,7 @@
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\ProfileController;
 use App\Services\ChessEngineGrpcService;
+use App\Services\PlayerProgressionServiceClient;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -111,18 +112,9 @@ Route::post('/ai/analyze', function () {
 })->middleware(['auth'])->name('ai.analyze.proxy');
 
 Route::get('/', function () {
-    $stats      = null;
-    $unlockAll  = false;
-    if (auth()->check()) {
-        $stats     = auth()->user()->stats;
-        $unlockAll = auth()->user()->unlock_all ?? false;
-    }
-    
     return Inertia::render('Inicio', [
         'canLogin'    => Route::has('login'),
         'canRegister' => Route::has('register'),
-        'stats'       => $stats,
-        'unlock_all'  => $unlockAll,
     ]);
 })->name('welcome');
 
@@ -227,17 +219,36 @@ Route::get('/game-arena', function () {
     $variant = request('variant', in_array($rawMode, ['DRAGON_PVP', 'DRAGON_PVC'], true) ? 'SPECIAL' : 'CLASSIC');
     $difficulty = (int) request('difficulty', 2);
     $player2 = null;
+    $progressionService = app(PlayerProgressionServiceClient::class);
     $player1Preferences = \App\Http\Controllers\PieceCustomizationController::normalizePreferences(
         auth()->user()->piece_preferences ?? \App\Http\Controllers\PieceCustomizationController::getDefaultPiecePreferences()
     );
     $player2Preferences = \App\Http\Controllers\PieceCustomizationController::getDefaultPiecePreferences(); // Default para invitados
     
     if ($mode === 'PVP' && session('player2_id')) {
-        $player2 = \App\Models\User::with('stats')->find(session('player2_id'));
+        $player2 = \App\Models\User::find(session('player2_id'));
         if ($player2) {
             $player2Preferences = \App\Http\Controllers\PieceCustomizationController::normalizePreferences(
                 $player2->piece_preferences ?? \App\Http\Controllers\PieceCustomizationController::getDefaultPiecePreferences()
             );
+
+            try {
+                $player2 = [
+                    'id' => $player2->id,
+                    'name' => $player2->name,
+                    'avatar' => $player2->avatar,
+                    'email' => $player2->email,
+                    'stats' => $progressionService->getProgression($player2),
+                ];
+            } catch (\Throwable $e) {
+                $player2 = [
+                    'id' => $player2->id,
+                    'name' => $player2->name,
+                    'avatar' => $player2->avatar,
+                    'email' => $player2->email,
+                    'stats' => null,
+                ];
+            }
         }
     }
     

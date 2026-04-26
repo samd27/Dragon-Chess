@@ -14,7 +14,7 @@ class PieceCustomizationController extends Controller
     public function index(Request $request): Response
     {
         $user = $request->user();
-        
+
         // Get user's current piece preferences or set defaults
         $currentPreferences = self::normalizePreferences(
             $user->piece_preferences ?? self::getDefaultPiecePreferences()
@@ -22,7 +22,6 @@ class PieceCustomizationController extends Controller
 
         return Inertia::render('PersonalizarPiezas', [
             'currentPreferences' => $currentPreferences,
-            'stats'              => $user->stats,
             'unlock_all'         => (bool) $user->unlock_all,
         ]);
     }

@@ -24,7 +24,7 @@ export default function BattlePass({ auth, stats, unlock_all = false }) {
     const [hoveredLevel, setHoveredLevel] = useState(null);
     const experience   = stats?.experience ?? 0;
     const currentLevel = stats?.level ?? calcLevel(experience);
-    const progress     = calcLevelProgress(experience);
+    const progress     = stats?.level_progress ?? calcLevelProgress(experience);
     const unlockedIds  = stats?.unlocked_characters ?? [];
 
     function isCharUnlocked(charId) {
