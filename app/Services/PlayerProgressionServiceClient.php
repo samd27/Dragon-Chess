@@ -20,6 +20,15 @@ class PlayerProgressionServiceClient
             $baseUrl = 'http://' . $baseUrl;
         }
 
+        $parts = parse_url($baseUrl);
+        $host = (string) ($parts['host'] ?? '');
+        $port = $parts['port'] ?? null;
+
+        // Railway internal DNS usually requires the service port for direct service-to-service HTTP.
+        if ($host !== '' && str_ends_with($host, '.railway.internal') && $port === null) {
+            $baseUrl .= ':5000';
+        }
+
         return rtrim($baseUrl, '/');
     }
 
