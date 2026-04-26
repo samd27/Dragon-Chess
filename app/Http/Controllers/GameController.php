@@ -57,8 +57,17 @@ class GameController extends Controller
                     ? $this->rewardService->calculateDragonPvcRewards($request->result, $difficulty)
                     : $this->rewardService->calculatePvcRewards($request->result, $difficulty);
             } else {
-                $playerStats = $this->progressionService->ensure($user);
-                $playerKi   = (int) ($playerStats['ki'] ?? 1000);
+                $playerKi = 1000;
+                try {
+                    $playerStats = $this->progressionService->ensure($user);
+                    $playerKi = (int) ($playerStats['ki'] ?? 1000);
+                } catch (\Throwable $ensureException) {
+                    Log::warning('GameController@saveResult progression ensure failed', [
+                        'user_id' => $user->id,
+                        'mode' => $rawMode,
+                        'error' => $ensureException->getMessage(),
+                    ]);
+                }
                 $opponentKi = (int) ($request->opponent_ki ?? $playerKi);
                 $rewards    = $isSpecialVariant
                     ? $this->rewardService->calculateDragonPvpRewards($request->result, $playerKi, $opponentKi)
@@ -93,8 +102,16 @@ class GameController extends Controller
             if ($baseMode === 'PVP' && $request->player2_id && $request->player2_result) {
                 $player2 = User::find($request->player2_id);
                 if ($player2 && $player2->id !== $user->id) {
-                    $player2Stats  = $this->progressionService->ensure($player2);
-                    $p2Ki          = (int) ($player2Stats['ki'] ?? 1000);
+                    $p2Ki = 1000;
+                    try {
+                        $player2Stats = $this->progressionService->ensure($player2);
+                        $p2Ki = (int) ($player2Stats['ki'] ?? 1000);
+                    } catch (\Throwable $player2EnsureException) {
+                        Log::warning('GameController@saveResult player2 progression ensure failed', [
+                            'player2_id' => $player2->id,
+                            'error' => $player2EnsureException->getMessage(),
+                        ]);
+                    }
                     $p2Rewards     = $isSpecialVariant
                         ? $this->rewardService->calculateDragonPvpRewards($request->player2_result, $p2Ki, $playerKi)
                         : $this->rewardService->calculatePvpRewards($request->player2_result, $p2Ki, $playerKi);
