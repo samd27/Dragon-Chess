@@ -9,7 +9,18 @@ class PlayerProgressionServiceClient
 {
     private function baseUrl(): string
     {
-        return rtrim((string) config('services.player_progression.base_url', ''), '/');
+        $baseUrl = trim((string) config('services.player_progression.base_url', ''));
+
+        if ($baseUrl === '') {
+            return '';
+        }
+
+        // Railway internal hosts are often configured without scheme.
+        if (! str_contains($baseUrl, '://')) {
+            $baseUrl = 'http://' . $baseUrl;
+        }
+
+        return rtrim($baseUrl, '/');
     }
 
     private function playerPath(): string
@@ -25,9 +36,17 @@ class PlayerProgressionServiceClient
             throw new \RuntimeException('PLAYER_PROGRESSION_SERVICE_URL is not configured');
         }
 
-        $response = Http::timeout((int) config('services.player_progression.timeout', 8))
-            ->acceptJson()
-            ->send($method, $baseUrl . $path, ['json' => $payload]);
+        try {
+            $response = Http::timeout((int) config('services.player_progression.timeout', 8))
+                ->acceptJson()
+                ->send($method, $baseUrl . $path, ['json' => $payload]);
+        } catch (\Throwable $e) {
+            throw new \RuntimeException(
+                'Unable to reach player progression service at ' . $baseUrl . ': ' . $e->getMessage(),
+                0,
+                $e
+            );
+        }
 
         if (! $response->successful()) {
             throw new \RuntimeException((string) ($response->json('error') ?? 'Player progression request failed'));
