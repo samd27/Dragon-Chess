@@ -31,6 +31,14 @@ return [
         ],
     ],
 
+    'auth' => [
+        'base_url' => env('AUTH_SERVICE_URL'),
+        'fallback_url' => env('AUTH_SERVICE_FALLBACK_URL'),
+        'auth_path' => env('AUTH_SERVICE_AUTH_PATH', '/internal/auth'),
+        'timeout' => (int) env('AUTH_SERVICE_TIMEOUT', 8),
+        'internal_secret' => env('AUTH_SERVICE_INTERNAL_SECRET'),
+    ],
+
     'media' => [
         'base_url' => env('MEDIA_SERVICE_URL'),
         'catalog_path' => env('MEDIA_CATALOG_PATH', '/api/media/catalog'),
