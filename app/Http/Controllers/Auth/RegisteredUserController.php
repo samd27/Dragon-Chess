@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\Exceptions\AuthServiceRequestException;
 use App\Services\AuthServiceClient;
 use App\Services\RemoteAuthUserSyncService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -54,11 +56,26 @@ class RegisteredUserController extends Controller
             'password.confirmed' => 'Las contraseñas no coinciden.',
         ]);
 
-        $response = $authService->register([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => $request->password,
-        ]);
+        try {
+            $response = $authService->register([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => $request->password,
+            ]);
+        } catch (AuthServiceRequestException $e) {
+            if ($e->status() === 422) {
+                $payload = $e->payload();
+                $code = (string) ($payload['code'] ?? 'AUTH_REGISTER_FAILED');
+                $message = (string) ($payload['message'] ?? 'No se pudo registrar el usuario.');
+
+                throw ValidationException::withMessages([
+                    'email' => $code === 'EMAIL_ALREADY_EXISTS' ? 'Este correo ya está en uso.' : $message,
+                    'name' => $code === 'NAME_ALREADY_EXISTS' ? 'Este nombre de guerrero ya está en uso.' : $message,
+                ]);
+            }
+
+            throw $e;
+        }
 
         $user = $userSync->sync($response['data'] ?? []);
 
