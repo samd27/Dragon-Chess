@@ -3,14 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\PieceCustomizationController;
-use App\Models\User;
-use App\Services\PlayerProgressionServiceClient;
+use App\Services\AuthServiceClient;
+use App\Services\RemoteAuthUserSyncService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -30,17 +27,16 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, AuthServiceClient $authService, RemoteAuthUserSyncService $userSync): RedirectResponse
     {
         $request->validate([
             'name' => [
                 'required',
                 'string',
                 'max:10',
-                'unique:'.User::class,
                 'regex:/^[a-zA-Z0-9_]+$/'
             ],
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'email' => 'required|string|lowercase|email|max:255',
             'password' => [
                 'required',
                 'confirmed',
@@ -58,15 +54,16 @@ class RegisteredUserController extends Controller
             'password.confirmed' => 'Las contraseñas no coinciden.',
         ]);
 
-        $user = User::create([
+        $response = $authService->register([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'piece_preferences' => PieceCustomizationController::getDefaultPiecePreferences(),
+            'password' => $request->password,
         ]);
 
+        $user = $userSync->sync($response['data'] ?? []);
+
         try {
-            app(PlayerProgressionServiceClient::class)->ensure($user);
+            app(\App\Services\PlayerProgressionServiceClient::class)->ensure($user);
         } catch (\Throwable $e) {
             report($e);
         }

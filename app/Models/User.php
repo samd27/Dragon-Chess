@@ -17,6 +17,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
+        'auth_service_id',
         'name',
         'email',
         'password',
@@ -43,6 +44,7 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
+            'auth_service_id' => 'integer',
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
             'piece_preferences' => 'array',

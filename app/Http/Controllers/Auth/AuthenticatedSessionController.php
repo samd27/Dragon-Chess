@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\AuthServiceClient;
+use App\Services\RemoteAuthUserSyncService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,9 +29,13 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request, RemoteAuthUserSyncService $userSync): RedirectResponse
     {
-        $request->authenticate();
+        $response = $request->authenticate();
+
+        $user = $userSync->sync($response['data'] ?? []);
+
+        Auth::login($user, (bool) ($response['meta']['remember'] ?? false));
 
         $request->session()->regenerate();
 
@@ -39,8 +45,25 @@ class AuthenticatedSessionController extends Controller
     /**
      * Destroy an authenticated session.
      */
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request, AuthServiceClient $authService): RedirectResponse
     {
+        $currentUser = $request->user();
+        if ($currentUser?->auth_service_id) {
+            try {
+                $authService->logout([
+                    'userId' => $currentUser->auth_service_id,
+                    'sessionKey' => (string) $request->session()->getId(),
+                    'sessionType' => 'web',
+                ]);
+                $authService->revokeSession([
+                    'sessionKey' => (string) $request->session()->getId(),
+                    'sessionType' => 'web',
+                ]);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

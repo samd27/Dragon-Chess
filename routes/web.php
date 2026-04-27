@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\ProfileController;
+use App\Services\AuthServiceClient;
 use App\Services\ChessEngineGrpcService;
 use App\Services\PlayerProgressionServiceClient;
+use App\Services\RemoteAuthUserSyncService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -165,30 +167,33 @@ Route::post('/player2-authenticate', function () {
     $variant = request('variant', in_array($rawMode, ['DRAGON_PVP', 'DRAGON_PVC'], true) ? 'SPECIAL' : 'CLASSIC');
     $difficulty = (int) request('difficulty', 2);
 
-    // Intentar autenticar
-    $user = \App\Models\User::where('email', $credentials['email'])->first();
-    
-    if ($user && \Illuminate\Support\Facades\Hash::check($credentials['password'], $user->password)) {
-        // Verificar que el jugador 2 no sea la misma cuenta que el jugador 1
-        if ($user->id === auth()->id()) {
-            return back()->withErrors([
-                'email' => 'El jugador 2 no puede iniciar sesión con la misma cuenta que el jugador 1.',
-            ]);
-        }
+    try {
+        $response = app(AuthServiceClient::class)->player2([
+            'email' => $credentials['email'],
+            'password' => $credentials['password'],
+            'player1Id' => (int) (auth()->user()?->auth_service_id ?? auth()->id() ?? 0),
+        ]);
 
-        // Guardar el jugador 2 en sesión
-        session(['player2_id' => $user->id]);
+        $player2 = app(RemoteAuthUserSyncService::class)->sync($response['data'] ?? []);
+        session(['player2_id' => $player2->id]);
+
         return redirect()->route('faction.select', [
             'mode' => $mode,
             'variant' => $variant,
             'difficulty' => $difficulty,
             'player2Type' => 'authenticated',
         ]);
-    }
+    } catch (\App\Services\Exceptions\AuthServiceRequestException $e) {
+        if ($e->status() === 422 && str_contains((string) ($e->payload()['code'] ?? ''), 'SAME_ACCOUNT_NOT_ALLOWED')) {
+            return back()->withErrors([
+                'email' => 'El jugador 2 no puede iniciar sesión con la misma cuenta que el jugador 1.',
+            ]);
+        }
 
-    return back()->withErrors([
-        'email' => 'Las credenciales no coinciden con nuestros registros.',
-    ]);
+        return back()->withErrors([
+            'email' => 'Las credenciales no coinciden con nuestros registros.',
+        ]);
+    }
 })->middleware(['auth'])->name('player2.authenticate');
 
 Route::get('/faction-select', function () {
