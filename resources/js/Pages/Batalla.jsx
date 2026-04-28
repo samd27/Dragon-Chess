@@ -71,7 +71,9 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
         setShowConfirmAbort(false);
         // Limpiar sesión de jugador 2 si existe
         if (isPvpMode && player2) {
-            fetch(route('clear.player2.session'), { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } });
+            window.axios.post(route('clear.player2.session')).catch((err) => {
+                console.error('No se pudo limpiar sesión de jugador 2:', err?.response?.status, err?.response?.data ?? err?.message);
+            });
         }
         router.visit(route('game.mode'));
     };
@@ -79,8 +81,13 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
     const handleReturnToMenu = () => {
         // Limpiar sesión de jugador 2 si existe
         if (isPvpMode && player2) {
-            fetch(route('clear.player2.session'), { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } })
-                .then(() => router.visit(route('game.mode')));
+            window.axios
+                .post(route('clear.player2.session'))
+                .then(() => router.visit(route('game.mode')))
+                .catch((err) => {
+                    console.error('No se pudo limpiar sesión de jugador 2:', err?.response?.status, err?.response?.data ?? err?.message);
+                    router.visit(route('game.mode'));
+                });
         } else {
             router.visit(route('game.mode'));
         }
@@ -619,14 +626,8 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
             result = playerWon ? 'win' : 'loss';
         }
 
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
-        fetch(route('game.save-result'), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken,
-            },
-            body: JSON.stringify({
+        window.axios
+            .post(route('game.save-result'), {
                 result,
                 mode: normalizedMode,
                 variant: normalizedVariant,
@@ -634,22 +635,17 @@ export default function GameArena({ auth, faction, mode = 'PVP', variant = 'CLAS
                 opponent_ki: player2?.stats?.ki ?? null,
                 player2_id: player2?.id ?? null,
                 player2_result: result === 'win' ? 'loss' : result === 'loss' ? 'win' : 'draw',
-            }),
-        })
-            .then(async (r) => {
-                const text = await r.text();
-                if (!r.ok) {
-                    console.error('Error al guardar resultado HTTP', r.status, text);
-                    return;
-                }
-                try {
-                    const data = JSON.parse(text);
-                    setGameRewards(data);
-                } catch (e) {
-                    console.error('Respuesta no es JSON:', text);
-                }
             })
-            .catch((err) => console.error('Fetch falló:', err));
+            .then((response) => {
+                setGameRewards(response?.data ?? null);
+            })
+            .catch((err) => {
+                console.error(
+                    'Error al guardar resultado:',
+                    err?.response?.status,
+                    err?.response?.data ?? err?.message
+                );
+            });
     }, [gameOver]);
 
     const handleSquareClick = (square) => {
