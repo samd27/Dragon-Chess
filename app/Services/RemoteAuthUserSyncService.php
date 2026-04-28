@@ -19,23 +19,35 @@ class RemoteAuthUserSyncService
             throw new \InvalidArgumentException('Remote user id is required');
         }
 
+        $remoteEmail = strtolower(trim((string) ($remoteUser['email'] ?? '')));
+        $remoteName = trim((string) ($remoteUser['name'] ?? ''));
+
         $defaults = PieceCustomizationController::getDefaultPiecePreferences();
         $rawPreferences = $remoteUser['piece_preferences'] ?? $defaults;
         $preferences = PieceCustomizationController::normalizePreferences(
             is_array($rawPreferences) ? $rawPreferences : $defaults
         );
 
-        $user = User::updateOrCreate(
-            ['auth_service_id' => $remoteId],
-            [
-                'name' => (string) ($remoteUser['name'] ?? 'User' . $remoteId),
-                'email' => (string) ($remoteUser['email'] ?? "user{$remoteId}@example.com"),
-                'password' => Hash::make(Str::random(64)),
-                'avatar' => (string) ($remoteUser['avatar'] ?? '/images/characters/Guerreros/Torre/Goku.webp'),
-                'piece_preferences' => $preferences,
-                'unlock_all' => (bool) ($remoteUser['unlock_all'] ?? false),
-            ]
-        );
+        $user = User::query()
+            ->where('auth_service_id', $remoteId)
+            ->when($remoteEmail !== '', function ($query) use ($remoteEmail) {
+                $query->orWhere('email', $remoteEmail);
+            })
+            ->first();
+
+        if (! $user) {
+            $user = new User();
+        }
+
+        $user->auth_service_id = $remoteId;
+        $user->name = $remoteName !== '' ? $remoteName : ('User' . $remoteId);
+        $user->email = $remoteEmail !== '' ? $remoteEmail : ("user{$remoteId}@example.com");
+        $user->password = Hash::make(Str::random(64));
+        $user->avatar = (string) ($remoteUser['avatar'] ?? '/images/characters/Guerreros/Torre/Goku.webp');
+        $user->piece_preferences = $preferences;
+        $user->unlock_all = (bool) ($remoteUser['unlock_all'] ?? false);
+
+        $user->save();
 
         return $user;
     }
