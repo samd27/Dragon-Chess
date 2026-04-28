@@ -20,10 +20,10 @@ class RemoteAuthUserSyncService
         }
 
         $defaults = PieceCustomizationController::getDefaultPiecePreferences();
-        $preferences = $remoteUser['piece_preferences'] ?? $defaults;
-        if (! is_array($preferences)) {
-            $preferences = $defaults;
-        }
+        $rawPreferences = $remoteUser['piece_preferences'] ?? $defaults;
+        $preferences = PieceCustomizationController::normalizePreferences(
+            is_array($rawPreferences) ? $rawPreferences : $defaults
+        );
 
         $user = User::updateOrCreate(
             ['auth_service_id' => $remoteId],

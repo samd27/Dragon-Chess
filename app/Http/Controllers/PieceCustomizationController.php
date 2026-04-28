@@ -87,6 +87,23 @@ class PieceCustomizationController extends Controller
                 }
             }
         }
+
+        // Asegurar que siempre exista una selección válida por facción/tipo de pieza.
+        // Esto evita que la UI caiga al fallback de piezas unicode en cuentas nuevas o legadas.
+        $defaults = self::getDefaultPiecePreferences();
+        foreach ($defaults as $faction => $pieceMap) {
+            if (!isset($prefs[$faction]) || !is_array($prefs[$faction])) {
+                $prefs[$faction] = [];
+            }
+
+            foreach ($pieceMap as $pieceType => $defaultId) {
+                $value = $prefs[$faction][$pieceType] ?? null;
+                if (!is_string($value) || trim($value) === '') {
+                    $prefs[$faction][$pieceType] = $defaultId;
+                }
+            }
+        }
+
         return $prefs;
     }
 
