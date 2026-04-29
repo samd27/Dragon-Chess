@@ -46,7 +46,7 @@ return [
 
     'email' => [
         'base_url' => env('EMAIL_SERVICE_URL', 'http://dragon-chess-email-service.railway.internal:8080'),
-        'internal_secret' => env('INTERNAL_SHARED_SECRET'),
+        'internal_secret' => env('EMAIL_SERVICE_INTERNAL_SECRET'),
         'timeout' => 5,
     ],
 
