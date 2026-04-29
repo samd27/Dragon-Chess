@@ -48,7 +48,7 @@ export default function ForgotPassword({ status }) {
                                 Forjar Nueva Clave
                             </h1>
                             <p className="text-white/40 text-xs md:text-sm mb-6 md:mb-8">
-                                ¿Olvidaste tu contraseña? No hay problema. Simplemente indícanos tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
+                                ¿Olvidaste tu contraseña? No hay problema. Simplemente indícanos tu correo electrónico y te enviaremos un código para restablecer tu contraseña.
                             </p>
 
                             {status && (
@@ -72,19 +72,48 @@ export default function ForgotPassword({ status }) {
                                         autoFocus
                                         onChange={(e) => setData('email', e.target.value)}
                                         placeholder="guerrero@arena.com"
+                                        readOnly={status !== null}
+                                        disabled={status !== null}
                                     />
                                     {errors.email && (
                                         <p className="mt-2 text-sm text-red-400">{errors.email}</p>
                                     )}
                                 </div>
 
-                                <button
-                                    type="submit"
-                                    disabled={processing}
-                                    className="w-full bg-primary hover:bg-orange-500 text-white font-black italic uppercase tracking-tighter text-lg py-4 rounded-xl shadow-neon-orange transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {processing ? 'Enviando...' : 'Enviar Enlace'}
-                                </button>
+                                {!status ? (
+                                    <button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="w-full bg-primary hover:bg-orange-500 text-white font-black italic uppercase tracking-tighter text-lg py-4 rounded-xl shadow-neon-orange transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {processing ? 'Enviando...' : 'Enviar Código'}
+                                    </button>
+                                ) : (
+                                    <div className="pt-4 border-t border-white/10 mt-6 space-y-4">
+                                        <p className="text-white/70 text-sm font-medium">¿Ya recibiste tu código de 6 dígitos?</p>
+                                        <div className="flex gap-2">
+                                            <input
+                                                id="manualCode"
+                                                type="text"
+                                                placeholder="000000"
+                                                maxLength="6"
+                                                className="w-1/2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all font-mono tracking-widest font-bold text-center"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const code = document.getElementById('manualCode').value;
+                                                    if(code && code.length >= 6) {
+                                                        window.location.href = route('password.reset', { token: code, email: data.email });
+                                                    }
+                                                }}
+                                                className="w-1/2 bg-white/10 hover:bg-white/20 text-white font-black uppercase tracking-wider text-sm py-3 rounded-xl transition-all"
+                                            >
+                                                Validar
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </form>
                         </div>
                     </div>
