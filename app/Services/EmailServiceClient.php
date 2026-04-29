@@ -46,6 +46,21 @@ class EmailServiceClient
         }
     }
 
+    public function verifyPasswordResetToken(string $email, string $token): bool
+    {
+        try {
+            $response = $this->client()->post($this->baseUrl . '/internal/email/password-reset/verify-token', [
+                'email' => $email,
+                'token' => $token,
+            ]);
+
+            return $response->successful();
+        } catch (\Exception $e) {
+            Log::error('Failed to verify password reset token via Email Service', ['error' => $e->getMessage()]);
+            return false;
+        }
+    }
+
     public function sendProfileCreated(string $email, string $name): bool
     {
         try {
