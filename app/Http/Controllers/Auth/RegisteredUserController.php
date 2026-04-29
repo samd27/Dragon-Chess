@@ -85,6 +85,15 @@ class RegisteredUserController extends Controller
             report($e);
         }
 
+        try {
+            $emailService = new \App\Services\EmailServiceClient();
+            if ($emailService->isConfigured()) {
+                $emailService->sendProfileCreated($user->email, $user->name);
+            }
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         event(new Registered($user));
 
         // No hacer login automaticamente, redirigir al login

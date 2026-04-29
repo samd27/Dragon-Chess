@@ -44,6 +44,12 @@ return [
         'catalog_path' => env('MEDIA_CATALOG_PATH', '/api/media/catalog'),
     ],
 
+    'email' => [
+        'base_url' => env('EMAIL_SERVICE_URL', 'http://dragon-chess-email-service.railway.internal:8080'),
+        'internal_secret' => env('INTERNAL_SHARED_SECRET'),
+        'timeout' => 5,
+    ],
+
     'player_progression' => [
         'base_url' => env('PLAYER_PROGRESSION_SERVICE_URL'),
         'fallback_url' => env('PLAYER_PROGRESSION_SERVICE_FALLBACK_URL'),

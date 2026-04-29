@@ -39,6 +39,15 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        try {
+            $emailService = new \App\Services\EmailServiceClient();
+            if ($emailService->isConfigured()) {
+                $emailService->loginNotification($user->email, $user->name);
+            }
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         return redirect()->intended(route('welcome'));
     }
 
